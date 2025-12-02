@@ -1,0 +1,741 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  IconButton,
+  Badge,
+  InputBase,
+  Box,
+  Container,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Typography,
+  alpha,
+  styled,
+  Stack,
+  Avatar,
+  Chip,
+  ClickAwayListener,
+  Grow,
+  Paper,
+  Popper,
+  MenuList,
+  MenuItem,
+} from '@mui/material';
+import {
+  ShoppingCart,
+  Person as UserIcon,
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  Close as CloseIcon,
+  AdminPanelSettings,
+  Dashboard,
+  Logout,
+  AccountCircle,
+  Favorite,
+  Store,
+  Home,
+  Info,
+  ContactMail,
+} from '@mui/icons-material';
+import { useStore } from '@/store/useStore';
+
+
+const StyledAppBar = styled(AppBar)(({ theme }: { theme: any }) => ({
+  background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.85)} 100%)`,
+  backdropFilter: 'blur(20px)',
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  boxShadow: `0 4px 30px ${alpha(theme.palette.common.black, 0.05)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+}));
+
+const SearchContainer = styled(Box)(({ theme }: { theme: any }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius * 3,
+  backgroundColor: alpha(theme.palette.primary.main, 0.05),
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    borderColor: alpha(theme.palette.primary.main, 0.2),
+    boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.05)}`,
+  },
+  '&:focus-within': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+  },
+}));
+
+const NavButton = styled(Button)(({ theme }: { theme: any }) => ({
+  position: 'relative',
+  textTransform: 'none',
+  fontWeight: 500,
+  fontSize: '0.9375rem',
+  padding: '8px 16px',
+  borderRadius: theme.shape.borderRadius * 2.5,
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    bottom: 0,
+    left: '50%',
+    transform: 'translateX(-50%) scaleX(0)',
+    width: '80%',
+    height: '2px',
+    background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+    borderRadius: '2px',
+    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    transform: 'translateY(-1px)',
+    '&::before': {
+      transform: 'translateX(-50%) scaleX(1)',
+    },
+  },
+  '&.active': {
+    color: theme.palette.primary.main,
+    fontWeight: 600,
+    backgroundColor: alpha(theme.palette.primary.main, 0.12),
+    '&::before': {
+      transform: 'translateX(-50%) scaleX(1)',
+    },
+  },
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }: { theme: any }) => ({
+  borderRadius: theme.shape.borderRadius * 2,
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    transform: 'scale(1.05)',
+  },
+  '&:active': {
+    transform: 'scale(0.95)',
+  },
+}));
+
+const LogoBox = styled(Box)(({ theme }: { theme: any }) => ({
+  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'scale(1.05) rotate(-2deg)',
+    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+  },
+}));
+
+export function Navigation() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileAnchorRef = useRef<HTMLButtonElement>(null);
+
+  const { user, isAdmin, toggleAdmin, cart, toggleCart } = useStore();
+  const cartCount = cart.reduce((acc: number, item) => acc + item.quantity, 0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleProfileMenuToggle = () => {
+    setProfileMenuOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuOpen(false);
+  };
+
+  const handleClickAway = (event: Event | React.SyntheticEvent) => {
+    if (profileAnchorRef.current &&
+      event.target instanceof Node &&
+      !profileAnchorRef.current.contains(event.target)) {
+      setProfileMenuOpen(false);
+    }
+  };
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
+
+  const navItems = [
+    { label: 'Accueil', path: '/', icon: <Home fontSize="small" /> },
+    { label: 'Boutique', path: '/shop', icon: <Store fontSize="small" /> },
+    { label: 'À propos', path: '/about', icon: <Info fontSize="small" /> },
+    { label: 'Contact', path: '/contact', icon: <ContactMail fontSize="small" /> },
+  ];
+
+  const userMenuItems = [
+    ...(isAdmin ? [
+      {
+        label: 'Tableau de bord',
+        icon: <Dashboard fontSize="small" />,
+        path: '/admin'
+      },
+    ] : []),
+    {
+      label: 'Mon compte',
+      icon: <AccountCircle fontSize="small" />,
+      path: '/account'
+    },
+    {
+      label: 'Mes favoris',
+      icon: <Favorite fontSize="small" />,
+      path: '/favorites'
+    },
+    {
+      label: isAdmin ? 'Désactiver Mode Admin' : 'Activer Mode Admin',
+      icon: <AdminPanelSettings fontSize="small" color={isAdmin ? 'error' : 'inherit'} />,
+      onClick: () => {
+        toggleAdmin();
+        setProfileMenuOpen(false);
+      }
+    },
+    {
+      label: 'Déconnexion',
+      icon: <Logout fontSize="small" />,
+      onClick: async () => {
+        setProfileMenuOpen(false);
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+          // Redirect to home page after logout
+          router.push('/');
+          router.refresh();
+        } catch (error) {
+          console.error('Logout error:', error);
+          // Still redirect even if logout fails
+          router.push('/');
+        }
+      }
+    },
+  ];
+
+  const drawer = (
+    <Box
+      sx={{
+        width: { xs: '100%', sm: 400 },
+        maxWidth: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.paper',
+      }}
+    >
+      {/* Drawer Header */}
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <LogoBox
+            sx={{
+              width: 48,
+              height: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '1.25rem',
+            }}
+          >
+            DS
+          </LogoBox>
+          <Box>
+            <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
+              Dame Sarr
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Import & Commerce
+            </Typography>
+          </Box>
+        </Stack>
+        <StyledIconButton onClick={handleDrawerToggle} size="large">
+          <CloseIcon />
+        </StyledIconButton>
+      </Box>
+
+      <Divider />
+
+      {/* Search in drawer */}
+      <Box sx={{ p: 3 }}>
+        <form onSubmit={handleSearch}>
+          <SearchContainer sx={{ p: 1.5 }}>
+            <InputBase
+              fullWidth
+              placeholder="Rechercher des produits..."
+              value={searchQuery}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              startAdornment={
+                <SearchIcon sx={{ color: 'text.secondary', mr: 1.5 }} />
+              }
+            />
+          </SearchContainer>
+        </form>
+      </Box>
+
+      <Divider />
+
+      {/* Navigation Links */}
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+        <List>
+          {navItems.map((item) => (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                component={Link}
+                href={item.path}
+                selected={pathname === item.path}
+                onClick={() => setMobileOpen(false)}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.5,
+                  '&.Mui-selected': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                    color: 'primary.main',
+                    fontWeight: 600,
+                    '& .MuiListItemIcon-root': {
+                      color: 'primary.main',
+                    },
+                  },
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.08),
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontWeight: pathname === item.path ? 600 : 500,
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+
+        {isAdmin && (
+          <Box>
+            <Divider sx={{ my: 2 }} />
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  toggleAdmin?.();
+                  setMobileOpen(false);
+                }}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.5,
+                  bgcolor: alpha(theme.palette.error.main, 0.08),
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
+                  <AdminPanelSettings />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Mode Admin"
+                  primaryTypographyProps={{
+                    fontWeight: 600,
+                    color: 'error.main',
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          </Box>
+        )}
+      </Box>
+
+      {/* User Section */}
+      <Divider />
+      {user ? (
+        <Box sx={{ p: 3, bgcolor: alpha(theme.palette.primary.main, 0.03) }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar
+              src={user.avatar}
+              alt={user.name}
+              sx={{
+                width: 56,
+                height: 56,
+                border: `2px solid ${theme.palette.primary.main}`,
+              }}
+            >
+              {user.name?.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {user.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {user.email}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+      ) : (
+        <Box sx={{ p: 3 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            component={Link}
+            href="/login"
+            onClick={() => setMobileOpen(false)}
+          >
+            Se connecter
+          </Button>
+        </Box>
+      )}
+    </Box>
+  );
+
+  return (
+    <StyledAppBar
+      position="fixed"
+      elevation={scrolled ? 2 : 0}
+      sx={{
+        transform: scrolled ? 'translateY(0)' : 'translateY(0)',
+        py: scrolled ? 0.5 : 1.5,
+        zIndex: theme.zIndex.appBar,
+      }}
+    >
+      <Container maxWidth="xl">
+        <Toolbar
+          disableGutters
+          sx={{
+            minHeight: { xs: 64, md: 72 },
+            gap: { xs: 1, md: 3 },
+          }}
+        >
+          {/* Mobile Menu Button */}
+          <StyledIconButton
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </StyledIconButton>
+
+          {/* Logo */}
+          <Button
+            component={Link}
+            href="/"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              textTransform: 'none',
+              color: 'text.primary',
+              p: 1,
+              borderRadius: 2,
+              '&:hover': {
+                bgcolor: 'transparent',
+              },
+            }}
+          >
+            <LogoBox
+              sx={{
+                width: { xs: 40, md: 48 },
+                height: { xs: 40, md: 48 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mr: { xs: 1.5, md: 2 },
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: { xs: '1rem', md: '1.25rem' },
+              }}
+            >
+              DS
+            </LogoBox>
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                lineHeight={1.2}
+                sx={{
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                Dame Sarr
+              </Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                Import & Commerce
+              </Typography>
+            </Box>
+          </Button>
+
+          {/* Desktop Navigation */}
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              flexGrow: 1,
+              ml: 4,
+            }}
+          >
+            {navItems.map((item) => (
+              <NavButton
+                key={item.path}
+                component={Link}
+                href={item.path}
+                startIcon={item.icon}
+                className={pathname === item.path ? 'active' : ''}
+                sx={{
+                  color: pathname === item.path ? 'primary.main' : 'text.primary',
+                }}
+              >
+                {item.label}
+              </NavButton>
+            ))}
+          </Stack>
+
+          {/* Search - Desktop */}
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              width: 300,
+              mr: 2,
+            }}
+          >
+            <form onSubmit={handleSearch}>
+              <SearchContainer sx={{ p: 1 }}>
+                <SearchIcon
+                  sx={{
+                    position: 'absolute',
+                    left: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'text.secondary',
+                    fontSize: 20,
+                  }}
+                />
+                <InputBase
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  sx={{
+                    width: '100%',
+                    pl: 5,
+                    pr: 2,
+                    fontSize: '0.875rem',
+                  }}
+                />
+              </SearchContainer>
+            </form>
+          </Box>
+
+          {/* Right Side Actions */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            {/* User Menu */}
+            <StyledIconButton
+              ref={profileAnchorRef}
+              onClick={handleProfileMenuToggle}
+              sx={{ position: 'relative' }}
+            >
+              {user ? (
+                <Badge
+                  overlap="circular"
+                  variant="dot"
+                  color="success"
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+                    },
+                  }}
+                >
+                  <Avatar
+                    src={user.avatar}
+                    alt={user.name}
+                    sx={{ width: 36, height: 36 }}
+                  >
+                    {user.name?.charAt(0)}
+                  </Avatar>
+                </Badge>
+              ) : (
+                <UserIcon />
+              )}
+            </StyledIconButton>
+
+            {/* Cart */}
+            <StyledIconButton onClick={() => toggleCart()}>
+              <Badge
+                badgeContent={cartCount}
+                color="error"
+                max={99}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                  },
+                }}
+              >
+                <ShoppingCart />
+              </Badge>
+            </StyledIconButton>
+
+            {/* Admin Badge */}
+            {isAdmin && (
+              <Chip
+                icon={<AdminPanelSettings />}
+                label="Admin"
+                size="small"
+                color="error"
+                variant="outlined"
+                onClick={toggleAdmin}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  fontWeight: 600,
+                  borderWidth: 2,
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.error.main, 0.08),
+                  },
+                }}
+              />
+            )}
+          </Stack>
+
+          {/* User Menu Popper */}
+          <Popper
+            open={profileMenuOpen}
+            anchorEl={profileAnchorRef.current}
+            role={undefined}
+            placement="bottom-end"
+            transition
+            disablePortal
+            sx={{ zIndex: theme.zIndex.modal }}
+          >
+            {({ TransitionProps }: { TransitionProps: any }) => (
+              <Grow {...TransitionProps}>
+                <Paper
+                  elevation={8}
+                  sx={{
+                    minWidth: 260,
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    mt: 1.5,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  }}
+                >
+                  <ClickAwayListener onClickAway={handleClickAway}>
+                    <MenuList sx={{ p: 1 }}>
+                      {user ? (
+                        [
+                          <Box key="user-info" sx={{ px: 2, py: 2, mb: 1 }}>
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              {user.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {user.email}
+                            </Typography>
+                          </Box>,
+                          <Divider key="divider" sx={{ mb: 1 }} />,
+                          ...userMenuItems.map((item, index) => (
+                            <MenuItem
+                              key={`menu-item-${index}`}
+                              onClick={() => {
+                                if (item.onClick) {
+                                  item.onClick();
+                                } else if (item.path) {
+                                  router.push(item.path);
+                                  setProfileMenuOpen(false);
+                                }
+                              }}
+                              sx={{
+                                borderRadius: 1.5,
+                                py: 1.5,
+                                mb: 0.5,
+                                '&:hover': {
+                                  bgcolor: alpha(theme.palette.primary.main, 0.08),
+                                },
+                              }}
+                            >
+                              <ListItemIcon sx={{ minWidth: 40 }}>
+                                {item.icon}
+                              </ListItemIcon>
+                              <ListItemText>{item.label}</ListItemText>
+                            </MenuItem>
+                          ))
+                        ]
+                      ) : (
+                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="body2" color="text.secondary" mb={2}>
+                            Connectez-vous pour accéder à votre compte
+                          </Typography>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            component={Link}
+                            href="/login"
+                            onClick={() => setProfileMenuOpen(false)}
+                            startIcon={<AccountCircle />}
+                          >
+                            Se connecter
+                          </Button>
+                        </Box>
+                      )}
+                    </MenuList>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        </Toolbar>
+      </Container>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: { xs: '85vw', sm: 400 },
+            border: 'none',
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </StyledAppBar>
+  );
+}
