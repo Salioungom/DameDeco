@@ -1,391 +1,409 @@
+# Dame Sarr E-Commerce
 
-# E-commerce Site Mockup
+Site e-commerce moderne développé avec **Next.js**, **React 19** et **Material-UI** pour la vente de produits d'import depuis la Chine.
 
-Ce projet est une maquette fonctionnelle d'un site e-commerce moderne développé avec React et Vite. Il propose une interface utilisateur complète pour la gestion d'une boutique en ligne.
+## 🚀 Installation & Démarrage
 
-## Structure du Projet
-
-### Fichiers Racine
-- `index.html` - Point d'entrée de l'application
-- `package.json` - Configuration du projet et dépendances
-- `vite.config.ts` - Configuration de Vite
-- `README.md` - Documentation du projet
-
-### Dossier `src/`
-#### Fichiers Principaux
-- `App.tsx` - Composant principal de l'application qui gère le routage et l'état global
-- `main.tsx` - Point d'entrée React
-- `index.css` - Styles CSS globaux
-
-#### Documentation et Guides
-- `Attributions.md` - Attributions et crédits
-- `AVIS_CLIENTS_GUIDE.md` - Guide pour la gestion des avis clients
-- `GUIDE_GESTION_ADMIN.md` - Guide pour l'administration
-- `NAVIGATION_GUIDE.md` - Guide de navigation
-- `WHATSAPP_INFO.md` - Informations sur l'intégration WhatsApp
-
-#### Dossier `components/`
-##### Composants Principaux
-- `AboutPage.tsx` - Page À propos
-- `AddProductDialog.tsx` - Dialog pour ajouter des produits
-- `AdminDashboard.tsx` - Tableau de bord administrateur
-- `CartDrawer.tsx` - Panier latéral
-- `CategoryManagement.tsx` - Gestion des catégories
-- `CategoryPage.tsx` - Page de catégorie
-- `CheckoutPage.tsx` - Page de paiement
-- `Footer.tsx` - Pied de page
-- `HomePage.tsx` - Page d'accueil
-- `ManageCategoriesDialog.tsx` - Dialog de gestion des catégories
-- `Navigation.tsx` - Barre de navigation
-- `PaymentIcons.tsx` - Icônes de paiement
-- `ProductCard.tsx` - Carte de produit
-- `ProductDetailPage.tsx` - Page détaillée du produit
-- `ProductManagement.tsx` - Gestion des produits
-- `ProductReviews.tsx` - Avis sur les produits
-- `ShopPage.tsx` - Page principale de la boutique
-
-##### Composants UI (dans `components/ui/`)
-Une collection complète de composants d'interface utilisateur réutilisables incluant :
-- Accordéons, alertes, boutons
-- Formulaires, menus, modales
-- Tables, onglets, tooltips
-- Et bien d'autres composants d'UI
-
-#### Dossier `lib/`
-- `data.ts` - Données et types de l'application
-- `whatsapp.ts` - Intégration WhatsApp
-
-## Fonctionnalités Principales
-
-- 🛍️ Navigation fluide entre les produits et catégories
-- 🛒 Gestion du panier en temps réel
-- 👤 Mode client et administrateur
-- 💖 Système de favoris
-- ⭐ Système d'avis clients
-- 🌙 Mode sombre/clair
-- 📱 Design responsive
-- 💼 Prix différenciés (détail/gros)
-
-## Installation
-
-1. Installez les dépendances :
 ```bash
-npm install
-# ou
+# Installation des dépendances
 pnpm install
-```
 
-2. Lancez le serveur de développement :
-```bash
-npm run dev
-# ou
+# Lancement du serveur de développement Next.js
 pnpm dev
+
+# Build de production
+pnpm build
+
+# Démarrage production
+pnpm start
 ```
 
-## Technologies Utilisées
+Le site sera accessible sur [http://localhost:3000](http://localhost:3000)
 
-- React 18
-- Vite
-- Radix UI
-- Tailwind CSS
-- TypeScript
-- Sonner pour les notifications
-- Recharts pour les graphiques
+## 📁 Architecture du Projet
 
-## Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
-
-## Convention de nommage et mapping front ↔ backend (Option A)
-
-Dans ce projet nous avons choisi l'Option A : conserver exactement les mêmes noms de champs que le frontend (camelCase) dans la base de données et dans l'API. Cela garantit une correspondance 1:1 entre les objets JavaScript/TypeScript et les colonnes SQL.
-
-Principes clés
-- Les noms exposés à l'API sont identiques à ceux de `src/lib/data.ts` (ex : `originalPrice`, `wholesalePrice`, `averageRating`, etc.).
-- Les modèles Django utiliseront `db_column` pour forcer ces noms exacts en base si besoin.
-- Les endpoints JSON renverront les mêmes clés camelCase que le front.
-
-Mapping synthétique (front -> db column)
-- Category
-	- id -> id
-	- name -> name
-	- image -> image
-
-- Product
-	- id -> id
-	- name -> name
-	- category -> category (FK)
-	- price -> price
-	- originalPrice -> originalPrice
-	- wholesalePrice -> wholesalePrice
-	- description -> description
-	- image -> image
-	- images -> images (relation ProductImage)
-	- stock -> stock
-	- pieces -> pieces
-	- popular -> popular
-	- averageRating -> averageRating
-	- reviewCount -> reviewCount
-
-- Review
-	- id -> id
-	- productId -> productId (FK)
-	- customerName -> customerName
-	- customerEmail -> customerEmail
-	- rating -> rating
-	- comment -> comment
-	- date -> date
-	- verified -> verified
-	- helpful -> helpful
-
-- Order
-	- id -> id
-	- customer -> customer (FK or string)
-	- date -> date
-	- total -> total
-	- status -> status
-	- payment -> payment
-	- items -> items
-	- source -> source
-
-- Customer
-	- id -> id
-	- name -> name
-	- email -> email
-	- phone -> phone
-	- type -> type
-	- orders -> orders
-	- totalSpent -> totalSpent
-
-Exemple minimal de modèles Django (Option A) — extraits
 ```
-# catalog/models.py (extrait)
-from django.db import models
+DameDéco/
+├── src/
+│   ├── components/        # Composants React
+│   │   ├── ui/           # Composants UI personnalisés (52 composants)
+│   │   ├── figma/        # Composants d'images avec fallback
+│   │   ├── types/        # Type definitions
+│   │   ├── HomePage.tsx
+│   │   ├── ShopPage.tsx
+│   │   ├── ProductDetailPage.tsx
+│   │   ├── CategoryPage.tsx
+│   │   ├── AdminDashboard.tsx
+│   │   ├── Navigation.tsx
+│   │   └── ...
+│   ├── lib/
+│   │   ├── auth/         # Authentification (JWT, bcrypt)
+│   │   ├── db/           # Database layer
+│   │   ├── data.ts       # Types et données de démo
+│   │   ├── whatsapp.ts   # Configuration WhatsApp
+│   │   ├── api.ts        # API client
+│   │   └── types.ts      # Types globaux
+│   ├── App.tsx           # Routage et état global
+│   ├── main.tsx          # Point d'entrée React
+│   ├── Providers.tsx     # Context providers
+│   └── index.css         # Styles globaux CSS
+├── public/               # Assets statiques
+├── next.config.ts        # Configuration Next.js
+└── package.json
+```
+
+## ✨ Fonctionnalités
+
+- 🛍️ **Catalogue produits** avec navigation fluide
+- 🗂️ **Gestion par catégories**
+- 🛒 **Panier en temps réel** avec Zustand
+- 💖 **Système de favoris** (localStorage)
+- ⭐ **Avis clients** avec notation et vérification
+- 💼 **Prix différenciés** (détail/gros)
+- 📱 **Commande WhatsApp** en un clic
+- 👤 **Interface administrateur** complète
+- 🔐 **Authentification** JWT avec José
+- 🌙 **Mode sombre/clair** avec next-themes
+- 📱 **Design responsive** (Mobile-first)
+- 📊 **Tableaux de données** avec MUI Data Grid
+- 📅 **Date pickers** pour gestion
+
+## 🎨 Technologies
+
+### Core Framework
+- **Next.js 16.0.1** - Framework React avec SSR/SSG
+- **React 19.0.0** - Bibliothèque UI
+- **TypeScript 5.9.3** - Typage statique
+
+### UI & Styling
+- **Material-UI (MUI) v7.3.5** - Système de design principal
+  - MUI Icons Material
+  - MUI X Data Grid (tableaux)
+  - MUI X Date Pickers
+- **Emotion 11.14** - CSS-in-JS (styling engine MUI)
+- **Tailwind CSS v4** - Utilitaires CSS (usage limité)
+- **clsx** - Utilitaire classes conditionnelles
+- **tailwind-merge** - Merge classes utilitaires
+
+### État & Données
+- **Zustand 5.0.8** - Gestion d'état légère
+- **Axios 1.13.2** - Client HTTP
+- **localStorage** - Persistance locale (favoris, panier)
+
+### Authentification & Sécurité
+- **José 6.1.2** - Tokens JWT
+- **Bcrypt 6.0.0** - Hashing mots de passe
+- **cookies-next 6.1.1** - Gestion session cookies
+
+### Composants & UX
+- **embla-carousel-react 8.6** - Carrousels
+- **react-resizable-panels 3.0.6** - Panels redimensionnables
+- **cmdk 1.1.1** - Command palette
+- **next-themes 0.4.6** - Thème sombre/clair
+
+### Notifications
+- **Sonner 2.0.7** - Toast notifications
+- **Notistack 3.0.2** - Notifications empilables
+
+### Graphiques
+- **Recharts 2.15.4** - Graphiques et statistiques
+
+## 🎨 Architecture de Styling
+
+Le projet utilise une **architecture hybride** optimisée :
+
+### Pages & Composants Business (100% MUI)
+Tous les composants principaux utilisent exclusivement **Material-UI** avec la prop `sx` :
+- `HomePage.tsx`, `ShopPage.tsx`, `ProductCard.tsx`
+- `AdminDashboard.tsx`, `Navigation.tsx`
+- `CheckoutPage.tsx`, `AboutPage.tsx`
+
+**Style** : Emotion (CSS-in-JS via MUI)
+
+### Composants UI Génériques (MUI + Tailwind)
+Les composants utilitaires bas-niveau combinent MUI et Tailwind CSS :
+- `chart.tsx`, `sidebar.tsx`, `form.tsx`
+- `input-otp.tsx`, `collapsible.tsx`
+
+**Tailwind CSS** : Utilisé uniquement pour des utilitaires simples (spacing, flexbox, grid)
+**Raison** : Optimisation et rapidité pour composants génériques réutilisables
+
+### Règle d'Architecture
+```
+┌─────────────────────────────┐
+│   Business Components       │  → 100% MUI (sx prop)
+│   (Pages, Features)         │
+└─────────────────────────────┘
+            ↓ utilise
+┌─────────────────────────────┐
+│   UI Generic Components     │  → MUI + Tailwind CSS
+│   (Utilities, Primitives)   │
+└─────────────────────────────┘
+```
+
+**Avantage** : Meilleure séparation des responsabilités et performances optimales
 
 
+## 📖 Guide d'Utilisation
+
+### Navigation Client
+
+#### Page d'Accueil
+- Affichage des catégories principales
+- Produits populaires en vedette
+- Navigation rapide vers boutique/catégories
+
+#### Page Catégorie
+- Filtres et tri (prix, popularité, nom)
+- Affichage personnalisable (2/3/4 colonnes)
+- Actions rapides : panier, favoris, WhatsApp
+
+#### Page Produit
+- **Galerie d'images** avec miniatures
+- **Informations complètes** : prix, stock, description
+- **Badges** : Populaire, réduction, stock limité
+- **Actions** : 
+  - Sélection de quantité
+  - Ajout au panier
+  - Favoris
+  - Commander via WhatsApp
+- **Produits similaires** en bas de page
+- **Section avis** avec filtres
+
+### Administration
+
+#### Accès
+Cliquer sur "Admin" dans le menu pour activer le mode administrateur.
+
+#### Gestion des Catégories
+1. **Ajouter** : Nom + Image (URL ou upload)
+2. **Modifier** : Éditer nom/image
+3. **Supprimer** : Avec confirmation
+
+#### Gestion des Produits
+1. **Ajouter un produit** :
+   - Informations générales (nom, description, catégorie)
+   - Prix (détail, promotion, grossiste)
+   - Stock et nombre de pièces
+   - Galerie d'images (minimum 1)
+
+2. **Modifier** : Éditer toutes les propriétés
+
+3. **Supprimer** : Retrait définitif
+
+4. **Badges automatiques** :
+   - Réduction (-X%) si prix avant promo renseigné
+   - "Populaire" si marqué
+   - "Stock limité" si < 20 unités
+
+#### Tableau de Bord
+- **Statistiques** : Ventes, revenus, produits, clients
+- **Graphiques** : Évolution temporelle (Recharts)
+- **Commandes récentes** avec source (Site/WhatsApp)
+- **Gestion des avis clients**
+- **Tableaux de données** avec MUI Data Grid
+
+### Système d'Avis Clients
+
+#### Pour les Clients
+- **Consulter** : Notes et commentaires sur chaque produit
+- **Filtrer** : Par nombre d'étoiles
+- **Donner un avis** :
+  - Note 1-5 étoiles
+  - Nom (requis)
+  - Email (optionnel)
+  - Commentaire (min 10 caractères)
+
+#### Pour l'Admin
+- Statistiques globales (total avis, note moyenne)
+- Liste complète avec actions (voir/supprimer)
+- Badge "Achat vérifié" pour clients confirmés
+
+#### Structure Technique
+```typescript
+interface Review {
+  id: string;
+  productId: string;
+  customerName: string;
+  customerEmail?: string;
+  rating: number; // 1-5
+  comment: string;
+  date: string;
+  verified?: boolean;
+  helpful?: number;
+}
+```
+
+### Intégration WhatsApp
+
+#### Configuration
+**Numéro** : +221 78 595 06 01 (Dame Sarr Import & Commerce)
+
+#### Fonctionnalités
+- Bouton WhatsApp sur chaque produit
+- Message pré-rempli automatique :
+  - Nom du produit
+  - Référence
+  - Quantité
+  - Prix total
+  - Photo du produit
+
+#### Tracking Admin
+- Badge "WhatsApp" sur les commandes
+- Statistiques de source (Site vs WhatsApp)
+- Suivi complet de chaque commande
+
+#### Modification du Numéro
+Éditer `src/lib/whatsapp.ts` :
+```typescript
+export const WHATSAPP_CONFIG = {
+  phoneNumber: '221785950601', // Format: code pays + numéro
+  businessName: 'Dame Sarr Import & Commerce',
+};
+```
+
+## � Authentification
+
+Le projet intègre un système d'authentification complet :
+
+- **JWT Tokens** : Gestion sécurisée avec José
+- **Bcrypt** : Hashing des mots de passe (6 rounds)
+- **Cookies** : Session management avec cookies-next
+- **Rôles** : Client (détail/gros), Administrateur
+
+### Flow d'authentification
+1. Connexion → Génération token JWT
+2. Token stocké en cookie sécurisé
+3. Validation token sur chaque requête protégée
+4. Rôles et permissions gérés par le token
+
+## 🌐 API Layer
+
+- **Axios** : Client HTTP configuré pour les requêtes
+- **API Routes** : Backend Next.js
+- **Type Safety** : Types TypeScript complets
+- **Error Handling** : Gestion d'erreurs centralisée
+
+## �🗄️ Convention Backend (Option A)
+
+Le projet utilise une convention **camelCase** 1:1 entre frontend et backend.
+
+### Principes
+- Noms de champs identiques en TypeScript et en base de données
+- Utilisation de `db_column` dans Django pour forcer les noms camelCase
+- API renvoie les mêmes clés que le frontend
+
+### Exemples de Modèles Django
+
+#### Category
+```python
 class Category(models.Model):
-		id = models.CharField(primary_key=True, max_length=100, db_column='id')
-		name = models.CharField(max_length=200, db_column='name')
-		image = models.URLField(max_length=1000, db_column='image', blank=True)
+    id = models.CharField(primary_key=True, max_length=100, db_column='id')
+    name = models.CharField(max_length=200, db_column='name')
+    image = models.URLField(max_length=1000, db_column='image', blank=True)
+    
+    class Meta:
+        db_table = 'category'
+```
 
-		class Meta:
-				db_table = 'category'
-
+#### Product
+```python
 class Product(models.Model):
-		id = models.CharField(primary_key=True, max_length=100, db_column='id')
-		name = models.CharField(max_length=300, db_column='name')
-		category = models.ForeignKey(Category, on_delete=models.PROTECT, db_column='category', related_name='products')
-		price = models.DecimalField(max_digits=12, decimal_places=2, db_column='price')
-		originalPrice = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, db_column='originalPrice')
-		wholesalePrice = models.DecimalField(max_digits=12, decimal_places=2, db_column='wholesalePrice')
-		description = models.TextField(db_column='description', blank=True)
-		image = models.URLField(max_length=1000, db_column='image', blank=True)
-		stock = models.IntegerField(db_column='stock', default=0)
-		pieces = models.IntegerField(db_column='pieces', null=True, blank=True)
-		popular = models.BooleanField(db_column='popular', default=False)
-		averageRating = models.FloatField(db_column='averageRating', null=True, blank=True)
-		reviewCount = models.IntegerField(db_column='reviewCount', default=0)
-
-		class Meta:
-				db_table = 'product'
+    id = models.CharField(primary_key=True, max_length=100, db_column='id')
+    name = models.CharField(max_length=300, db_column='name')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, 
+                                 db_column='category', related_name='products')
+    price = models.DecimalField(max_digits=12, decimal_places=2, db_column='price')
+    originalPrice = models.DecimalField(max_digits=12, decimal_places=2, 
+                                        null=True, blank=True, db_column='originalPrice')
+    wholesalePrice = models.DecimalField(max_digits=12, decimal_places=2, 
+                                          db_column='wholesalePrice')
+    description = models.TextField(db_column='description', blank=True)
+    image = models.URLField(max_length=1000, db_column='image', blank=True)
+    stock = models.IntegerField(db_column='stock', default=0)
+    pieces = models.IntegerField(db_column='pieces', null=True, blank=True)
+    popular = models.BooleanField(db_column='popular', default=False)
+    averageRating = models.FloatField(db_column='averageRating', null=True, blank=True)
+    reviewCount = models.IntegerField(db_column='reviewCount', default=0)
+    
+    class Meta:
+        db_table = 'product'
 ```
 
-Notes
-- Cette méthode est non-idiomatique en Python (on préfère généralement snake_case), mais elle respecte strictement la contrainte de nommage 1:1 avec le frontend.
-- Veillez aux éventuelles contraintes du moteur SQL concernant la casse des colonnes (certains moteurs/clients SQL peuvent être sensibles à la casse ou requérir des guillemets pour les noms mixtes).
+### Mapping Complet
 
-Descriptions des fichiers et dossiers principaux (par composant)
+| Frontend | Base de données |
+|----------|----------------|
+| id | id |
+| name | name |
+| category | category (FK) |
+| price | price |
+| originalPrice | originalPrice |
+| wholesalePrice | wholesalePrice |
+| averageRating | averageRating |
+| reviewCount | reviewCount |
+| productId | productId (FK) |
+| customerName | customerName |
+| customerEmail | customerEmail |
 
-- `index.html` : page HTML d'entrée pour Vite/React.
-- `package.json` : configuration du projet, scripts (dev, build), dépendances.
-- `vite.config.ts` : configuration Vite (alias, plugins).
+## 🎯 Bonnes Pratiques
 
-- `src/main.tsx` : bootstrap React, attache l'app au DOM.
-- `src/App.tsx` : composant racine, gère le routage et l'état global.
-- `src/index.css` et `src/styles/globals.css` : styles globaux et thèmes (Tailwind + personnalisations).
+### Gestion des Avis
+1. Modérer régulièrement via dashboard admin
+2. Répondre aux avis négatifs professionnellement
+3. Marquer les avis vérifiés pour crédibilité
+4. Encourager les clients à laisser un avis post-achat
 
-- `src/lib/data.ts` : source de vérité côté frontend — typescript interfaces et jeux de données d'exemple (Product, Category, Review, Order, Customer). Utilisé par les pages de démonstration et le dashboard.
-- `src/lib/whatsapp.ts` : configuration et utilitaires pour l'intégration WhatsApp (numéro, message template).
+### WhatsApp Business
+1. Répondre dans les 2h maximum
+2. Confirmer disponibilité immédiatement
+3. Mettre à jour le statut dans le dashboard
+4. Archiver toutes les commandes dans le système
 
-- `src/components/` : composants React principaux :
-	- `HomePage.tsx` : page d'accueil présentant catégories et produits populaires.
-	- `ShopPage.tsx` : page catalogue/boutique avec filtres et tri.
-	- `CategoryPage.tsx` : liste des produits d'une catégorie.
-	- `ProductDetailPage.tsx` : page détaillée produit (galerie, description, avis, actions: panier/whatsapp).
-	- `ProductCard.tsx` : carte produit réutilisable (image, prix, badges, actions rapides).
-	- `CartDrawer.tsx` : composant panier (drawer) avec gestion des quantités.
-	- `CheckoutPage.tsx` : page de finalisation de commande (maquette).
-	- `AdminDashboard.tsx`, `ProductManagement.tsx`, `CategoryManagement.tsx` : interfaces d'administration mockup.
-	- `AddProductDialog.tsx`, `ManageCategoriesDialog.tsx` : modales pour créer/éditer des éléments (mockup admin).
-	- `ProductReviews.tsx` : affichage et ajout d'avis (guide et UI implémentés côté front).
+### Administration Quotidienne
+1. Mettre à jour les stocks
+2. Ajouter nouveaux produits avec images de qualité
+3. Gérer les promotions
+4. Vérifier les nouvelles commandes
 
-- `src/components/ui/` : bibliothèque de composants UI (basés sur Radix / primitives) : boutons, inputs, dialogs, toasts (sonner), accordions, table, carousel, etc. Ces composants sont réutilisés par les pages et facilitent l'homogénéité visuelle.
+## 📱 Design Responsive
 
-- `src/components/figma/ImageWithFallback.tsx` : petit utilitaire d'image avec fallback et lazy-loading.
+| Écran | Colonnes | Largeur |
+|-------|----------|---------|
+| Mobile | 1 | < 768px |
+| Tablet | 2 | 768-1023px |
+| Laptop | 3 | 1024-1279px |
+| Desktop | 4 | > 1280px |
 
-- `src/guidelines/Guidelines.md` : lignes directrices de design UI/UX.
+## 🔧 Scripts Disponibles
 
-- `src/Attributions.md` : crédits et licences des images/icônes utilisées.
-- `src/AVIS_CLIENTS_GUIDE.md`, `src/GUIDE_GESTION_ADMIN.md`, `src/NAVIGATION_GUIDE.md`, `src/WHATSAPP_INFO.md` : guides métiers et instructions (interface admin, avis clients, navigation produits et intégration WhatsApp). Ces fichiers contiennent des spécifications utiles pour le backend (ex : champs attendus, format message WhatsApp, statut des commandes).
+```bash
+# Développement
+pnpm dev             # Lance Next.js dev server sur port 3000
 
-Checklist pour l'implémentation backend (Option A)
-- Créer une app Django `catalog` pour Category/Product/Review/ProductImage.
-- Créer une app Django `orders` pour Order/OrderItem/Customer.
-- Utiliser `db_column` dans les champs pour correspondre aux noms camelCase du front.
-- Exposer des API via Django REST Framework en renvoyant des objets JSON avec les mêmes clés camelCase.
-- Écrire des tests d'intégration pour vérifier la compatibilité front ↔ API.
+# Production
+pnpm build           # Build optimisé pour production
+pnpm start           # Lance le serveur production
 
-Si vous souhaitez que je génère les fichiers Django complets (models.py, serializers.py, viewsets, urls) avec `db_column` appliqué exactement pour chaque champ, dites-le et je les créerai dans une archive ou je vous proposerai les fichiers prêts à copier dans une nouvelle app Django.
-
-## Exemples complets de modèles Django (Option A)
-
-Ci-dessous vous trouverez des exemples complets prêts à copier pour les apps `catalog`, `orders` et `accounts`. Ils utilisent la convention Option A (noms camelCase exposés et `db_column` pour forcer les mêmes noms en base).
-
-catalog/models.py
-```python
-from django.db import models
-from django.utils import timezone
-
-
-class Category(models.Model):
-	id = models.CharField(primary_key=True, max_length=100, db_column='id')
-	name = models.CharField(max_length=200, db_column='name')
-	image = models.URLField(max_length=1000, db_column='image', blank=True)
-
-	class Meta:
-		db_table = 'category'
-
-	def __str__(self):
-		return self.name
-
-
-class Product(models.Model):
-	id = models.CharField(primary_key=True, max_length=100, db_column='id')
-	name = models.CharField(max_length=300, db_column='name')
-	category = models.ForeignKey(Category, on_delete=models.PROTECT, db_column='category', related_name='products')
-	price = models.DecimalField(max_digits=12, decimal_places=2, db_column='price')
-	originalPrice = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, db_column='originalPrice')
-	wholesalePrice = models.DecimalField(max_digits=12, decimal_places=2, db_column='wholesalePrice')
-	description = models.TextField(db_column='description', blank=True)
-	image = models.URLField(max_length=1000, db_column='image', blank=True)
-	stock = models.IntegerField(db_column='stock', default=0)
-	pieces = models.IntegerField(db_column='pieces', null=True, blank=True)
-	popular = models.BooleanField(db_column='popular', default=False)
-	averageRating = models.FloatField(db_column='averageRating', null=True, blank=True)
-	reviewCount = models.IntegerField(db_column='reviewCount', default=0)
-	created_at = models.DateTimeField(db_column='created_at', default=timezone.now)
-	updated_at = models.DateTimeField(db_column='updated_at', auto_now=True)
-
-	class Meta:
-		db_table = 'product'
-
-	def __str__(self):
-		return self.name
-
-
-class ProductImage(models.Model):
-	id = models.AutoField(primary_key=True)
-	product = models.ForeignKey(Product, on_delete=models.CASCADE, db_column='product', related_name='images')
-	image = models.URLField(max_length=1000, db_column='image')
-	is_primary = models.BooleanField(db_column='is_primary', default=False)
-
-	class Meta:
-		db_table = 'product_image'
-
-	def __str__(self):
-		return f"Image for {self.product_id} -> {self.image}"
-
-
-class Review(models.Model):
-	id = models.CharField(primary_key=True, max_length=100, db_column='id')
-	product = models.ForeignKey(Product, on_delete=models.CASCADE, db_column='productId', related_name='reviews')
-	customerName = models.CharField(max_length=200, db_column='customerName')
-	customerEmail = models.EmailField(max_length=254, db_column='customerEmail', null=True, blank=True)
-	rating = models.IntegerField(db_column='rating')
-	comment = models.TextField(db_column='comment')
-	date = models.DateTimeField(db_column='date', default=timezone.now)
-	verified = models.BooleanField(db_column='verified', default=False)
-	helpful = models.IntegerField(db_column='helpful', default=0)
-
-	class Meta:
-		db_table = 'review'
-
-	def __str__(self):
-		return f"Review {self.id} on {self.product_id} by {self.customerName}"
+# Qualité de code
+pnpm lint            # ESLint avec --max-warnings=0
 ```
 
-orders/models.py
-```python
-from django.db import models
-from django.utils import timezone
+## 📄 Crédits
 
+- **Composants UI** : Composants personnalisés basés sur Material-UI v7
+- **Photos** : [Unsplash](https://unsplash.com) (Unsplash License)
+- **Icônes** : Material Icons (Apache License 2.0)
 
-class Customer(models.Model):
-	id = models.CharField(primary_key=True, max_length=100, db_column='id')
-	name = models.CharField(max_length=200, db_column='name')
-	email = models.EmailField(max_length=254, db_column='email', null=True, blank=True)
-	phone = models.CharField(max_length=50, db_column='phone', null=True, blank=True)
-	type = models.CharField(max_length=20, db_column='type', default='retail')
-	orders = models.IntegerField(db_column='orders', default=0)
-	totalSpent = models.DecimalField(max_digits=12, decimal_places=2, db_column='totalSpent', default=0)
+## 📞 Support
 
-	class Meta:
-		db_table = 'customer'
+Pour toute question :
+- **WhatsApp Business** : +221 78 595 06 01
+- **Contact** : Dame Sarr Import & Commerce
 
-	def __str__(self):
-		return self.name
+---
 
-
-class Order(models.Model):
-	id = models.CharField(primary_key=True, max_length=100, db_column='id')
-	customer = models.CharField(max_length=200, db_column='customer')
-	date = models.DateTimeField(db_column='date', default=timezone.now)
-	total = models.DecimalField(max_digits=12, decimal_places=2, db_column='total')
-	status = models.CharField(max_length=20, db_column='status')
-	payment = models.CharField(max_length=100, db_column='payment')
-	items = models.IntegerField(db_column='items', default=0)
-	source = models.CharField(max_length=20, db_column='source', null=True, blank=True)
-	created_at = models.DateTimeField(db_column='created_at', default=timezone.now)
-	updated_at = models.DateTimeField(db_column='updated_at', auto_now=True)
-
-	class Meta:
-		db_table = 'order'
-
-	def __str__(self):
-		return self.id
-
-
-class OrderItem(models.Model):
-	id = models.AutoField(primary_key=True)
-	order = models.ForeignKey(Order, on_delete=models.CASCADE, db_column='order', related_name='orderItems')
-	productId = models.CharField(max_length=100, db_column='productId')
-	quantity = models.IntegerField(db_column='quantity')
-	price = models.DecimalField(max_digits=12, decimal_places=2, db_column='price')
-
-	class Meta:
-		db_table = 'order_item'
-
-	def __str__(self):
-		return f"{self.productId} x{self.quantity} @ {self.price}"
-```
-
-accounts/models.py (optionnel)
-```python
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-
-class User(AbstractUser):
-	phone = models.CharField(max_length=50, blank=True, null=True, db_column='phone')
-	type = models.CharField(max_length=20, default='retail', db_column='type')
-	totalSpent = models.DecimalField(max_digits=12, decimal_places=2, default=0, db_column='totalSpent')
-
-	class Meta:
-		db_table = 'auth_user'
-```
-
-Notes:
-- Ces fichiers sont des exemples prêts à l'emploi. Après les avoir ajoutés à votre projet Django, n'oubliez pas d'ajouter les apps à `INSTALLED_APPS` et d'exécuter `makemigrations` / `migrate`.
-- Si vous préférez des `UUIDField` pour les identifiants, remplacez les `CharField` correspondants.
-
-Souhaitez-vous que je génère aussi un script d'import pour convertir les données de `src/lib/data.ts` en fixtures Django ?
+**Version** : 2.0  
+**Date** : Décembre 2024  
+**Framework** : Next.js 16 + React 19 + Material-UI v7  
+**Développé avec** : ❤️ pour Dame Sarr E-Commerce
