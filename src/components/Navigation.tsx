@@ -54,74 +54,121 @@ import { useStore } from '@/store/useStore';
 
 
 const StyledAppBar = styled(AppBar)(({ theme }: { theme: any }) => ({
-  background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.paper, 0.85)} 100%)`,
-  backdropFilter: 'blur(20px)',
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  boxShadow: `0 4px 30px ${alpha(theme.palette.common.black, 0.05)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.98)} 0%, ${alpha(theme.palette.background.paper, 0.95)} 100%)`,
+  backdropFilter: 'blur(25px) saturate(180%)',
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.15)}`,
+  boxShadow: `0 8px 40px ${alpha(theme.palette.common.black, 0.08)}`,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    boxShadow: `0 12px 50px ${alpha(theme.palette.common.black, 0.12)}`,
+  },
 }));
 
 const SearchContainer = styled(Box)(({ theme }: { theme: any }) => ({
   position: 'relative',
-  borderRadius: theme.shape.borderRadius * 3,
-  backgroundColor: alpha(theme.palette.primary.main, 0.05),
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+  borderRadius: theme.shape.borderRadius * 4,
+  backgroundColor: alpha(theme.palette.background.paper, 0.8),
+  border: `2px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+  backdropFilter: 'blur(10px)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '1px',
+    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.3)}, transparent)`,
+    opacity: 0,
+    transition: 'opacity 0.3s ease',
+  },
   '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-    borderColor: alpha(theme.palette.primary.main, 0.2),
-    boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.05)}`,
+    backgroundColor: alpha(theme.palette.background.paper, 0.95),
+    borderColor: alpha(theme.palette.primary.main, 0.25),
+    transform: 'translateY(-1px)',
+    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.15)}`,
+    '&::before': {
+      opacity: 1,
+    },
   },
   '&:focus-within': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    backgroundColor: theme.palette.background.paper,
     borderColor: theme.palette.primary.main,
-    boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
+    transform: 'translateY(-2px)',
+    boxShadow: `0 12px 35px ${alpha(theme.palette.primary.main, 0.2)}`,
+    '&::before': {
+      opacity: 1,
+    },
   },
 }));
 
 const NavButton = styled(Button)(({ theme }: { theme: any }) => ({
   position: 'relative',
   textTransform: 'none',
-  fontWeight: 500,
-  fontSize: '0.9375rem',
-  padding: '8px 16px',
-  borderRadius: theme.shape.borderRadius * 2.5,
-  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&::before': {
+  fontWeight: 600,
+  fontSize: '0.95rem',
+  padding: '10px 20px',
+  borderRadius: theme.shape.borderRadius * 3,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  letterSpacing: '0.01em',
+  '&::after': {
     content: '""',
     position: 'absolute',
-    bottom: 0,
+    bottom: '2px',
     left: '50%',
     transform: 'translateX(-50%) scaleX(0)',
-    width: '80%',
-    height: '2px',
-    background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+    width: '60%',
+    height: '3px',
+    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
     borderRadius: '2px',
-    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-    transform: 'translateY(-1px)',
-    '&::before': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    transform: 'translateY(-2px) scale(1.02)',
+    boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.2)}`,
+    '&::after': {
       transform: 'translateX(-50%) scaleX(1)',
     },
   },
   '&.active': {
     color: theme.palette.primary.main,
-    fontWeight: 600,
-    backgroundColor: alpha(theme.palette.primary.main, 0.12),
-    '&::before': {
+    fontWeight: 700,
+    backgroundColor: alpha(theme.palette.primary.main, 0.15),
+    transform: 'translateY(-1px)',
+    boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}`,
+    '&::after': {
       transform: 'translateX(-50%) scaleX(1)',
     },
   },
 }));
 
 const StyledIconButton = styled(IconButton)(({ theme }: { theme: any }) => ({
-  borderRadius: theme.shape.borderRadius * 2,
-  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  borderRadius: theme.shape.borderRadius * 2.5,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 0,
+    height: 0,
+    borderRadius: '50%',
+    background: alpha(theme.palette.primary.main, 0.1),
+    transform: 'translate(-50%, -50%)',
+    transition: 'all 0.4s ease',
+  },
   '&:hover': {
-    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-    transform: 'scale(1.05)',
+    backgroundColor: alpha(theme.palette.primary.main, 0.12),
+    transform: 'scale(1.08) translateY(-1px)',
+    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
+    '&::before': {
+      width: '100%',
+      height: '100%',
+    },
   },
   '&:active': {
     transform: 'scale(0.95)',
@@ -130,12 +177,30 @@ const StyledIconButton = styled(IconButton)(({ theme }: { theme: any }) => ({
 
 const LogoBox = styled(Box)(({ theme }: { theme: any }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  borderRadius: theme.shape.borderRadius * 2.5,
+  boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
+    borderRadius: 'inherit',
+    opacity: 0,
+    zIndex: -1,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
-    transform: 'scale(1.05) rotate(-2deg)',
-    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+    transform: 'scale(1.08) rotate(-3deg)',
+    boxShadow: `0 12px 35px ${alpha(theme.palette.primary.main, 0.4)}`,
+    '&::before': {
+      opacity: 1,
+    },
   },
 }));
 

@@ -5,13 +5,14 @@ import { ShopPage } from './components/ShopPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { CategoryPage } from './components/CategoryPage';
 import { CheckoutPage } from './components/CheckoutPage';
-import { AboutPage } from './components/AboutPage';
+import AboutPage from './components/AboutPage';
 import { AdminDashboard } from './components/AdminDashboard';
-import { CartDrawer, CartItem } from './components/CartDrawer';
+import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Product, Review } from './lib/data';
+import { CartItem } from './lib/types';
 
 type Page = 'home' | 'shop' | 'product' | 'category' | 'checkout' | 'about' | 'contact' | 'account' | 'orders' | 'admin';
 

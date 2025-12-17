@@ -2,25 +2,25 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { signAccessToken, signRefreshToken } from '@/lib/auth/jwt';
 import { setAuthCookies } from '@/lib/auth/cookies';
-import { getUserByEmail, storeRefreshToken } from '@/lib/db/users';
+import { getUserByIdentifier, storeRefreshToken } from '@/lib/db/users';
 
 export async function POST(req: Request) {
     try {
-        const { email, password } = await req.json();
+        const { email, password } = await req.json(); // Frontend might still send 'email' key for identifier
 
         if (!email || !password) {
-            return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+            return NextResponse.json({ error: 'Email/Téléphone et mot de passe sont requis' }, { status: 400 });
         }
 
-        const user = await getUserByEmail(email);
+        const user = await getUserByIdentifier(email);
         if (!user) {
             // Use generic error message to avoid enumeration
-            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+            return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
         }
 
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) {
-            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+            return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
         }
 
         const accessToken = await signAccessToken({ sub: user.id, role: user.role });
@@ -29,7 +29,13 @@ export async function POST(req: Request) {
         await storeRefreshToken(user.id, refreshToken);
 
         const res = NextResponse.json({
-            user: { id: user.id, email: user.email, role: user.role, name: user.name },
+            user: {
+                id: user.id,
+                email: user.email,
+                phone: user.phone,
+                role: user.role,
+                name: user.name
+            },
         });
 
         setAuthCookies(res, accessToken, refreshToken);
@@ -37,6 +43,6 @@ export async function POST(req: Request) {
         return res;
     } catch (error) {
         console.error('Login error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Erreur serveur interne' }, { status: 500 });
     }
 }

@@ -25,7 +25,11 @@ export default function Page() {
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
             onViewProduct={(p) => router.push(`/product/${p.id}`)}
-            onAddReview={(review) => addReview(product.id, review)}
+            onAddReview={(review) => addReview(product.id, {
+                ...review,
+                customerName: review.name,
+                customerEmail: review.email,
+            })}
         />
     );
 }

@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
-import { 
-  Add as Plus, 
-  Edit, 
-  Delete as Trash2, 
-  Visibility as Eye, 
-  CloudUpload as Upload, 
-  Close as X, 
-  Image as ImageIcon, 
-  Inventory as Package 
+import {
+  Add as Plus,
+  Edit,
+  Delete as Trash2,
+  Visibility as Eye,
+  CloudUpload as Upload,
+  Close as X,
+  Image as ImageIcon,
+  Inventory as Package
 } from '@mui/icons-material';
-import { 
-  Button, 
-  TextField, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
+import {
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  CardActions,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   DialogContentText,
   IconButton,
   Chip,
@@ -250,15 +250,15 @@ export function ProductManagement() {
 
   const handleCategoryChange = (e: React.ChangeEvent<{ value: string }>) => {
     if (e.target) {
-    setFormData({ ...formData, category: e.target.value });
+      setFormData({ ...formData, category: e.target.value });
     }
   };
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ 
-        display: 'flex', 
+      <Box sx={{
+        display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         alignItems: { xs: 'flex-start', sm: 'center' },
         justifyContent: 'space-between',
@@ -273,9 +273,9 @@ export function ProductManagement() {
             Gérez votre catalogue de produits avec galeries d'images
           </Typography>
         </Box>
-        <Button 
-          onClick={openAddDialog} 
-          variant="contained" 
+        <Button
+          onClick={openAddDialog}
+          variant="contained"
           color="primary"
           startIcon={<Plus />}
           sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
@@ -316,39 +316,39 @@ export function ProductManagement() {
                 <Box sx={{ position: 'absolute', top: 8, left: 8, right: 8, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     {product.popular && (
-                      <Chip 
-                        label="Populaire" 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: 'primary.light', 
+                      <Chip
+                        label="Populaire"
+                        size="small"
+                        sx={{
+                          bgcolor: 'primary.light',
                           color: 'primary.contrastText',
                           fontWeight: 'bold',
                           alignSelf: 'flex-start'
-                        }} 
+                        }}
                       />
                     )}
                     {discountPercentage(product) > 0 && (
-                      <Chip 
-                        label={`-${discountPercentage(product)}%`} 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: 'error.main', 
+                      <Chip
+                        label={`-${discountPercentage(product)}%`}
+                        size="small"
+                        sx={{
+                          bgcolor: 'error.main',
                           color: 'white',
                           fontWeight: 'bold',
                           alignSelf: 'flex-start',
                           '&:hover': { bgcolor: 'error.dark' }
-                        }} 
+                        }}
                       />
                     )}
                   </Box>
                   <Box>
                     {product.images && product.images.length > 1 && (
-                      <Chip 
+                      <Chip
                         icon={<ImageIcon fontSize="small" />}
                         label={product.images.length}
                         size="small"
-                        sx={{ 
-                          bgcolor: 'rgba(0, 0, 0, 0.6)', 
+                        sx={{
+                          bgcolor: 'rgba(0, 0, 0, 0.6)',
                           color: 'white',
                           '& .MuiChip-icon': { color: 'white' }
                         }}
@@ -359,14 +359,14 @@ export function ProductManagement() {
               </Box>
               <CardContent sx={{ pb: 2 }}>
                 <Box sx={{ mb: 1 }}>
-                  <Chip 
+                  <Chip
                     label={getCategoryName(product.category)}
                     variant="outlined"
                     size="small"
                     sx={{ mb: 1 }}
                   />
-                  <Typography 
-                    variant="subtitle1" 
+                  <Typography
+                    variant="subtitle1"
                     component="h3"
                     sx={{
                       display: '-webkit-box',
@@ -431,8 +431,8 @@ export function ProductManagement() {
                 <Typography color="text.secondary" gutterBottom>
                   Aucun produit disponible
                 </Typography>
-                <Button 
-                  onClick={openAddDialog} 
+                <Button
+                  onClick={openAddDialog}
                   variant="contained"
                   startIcon={<Plus />}
                   sx={{ mt: 2 }}
@@ -446,8 +446,8 @@ export function ProductManagement() {
       </Box>
 
       {/* Dialog Ajouter/Modifier */}
-      <Dialog 
-        open={isAddDialogOpen || isEditDialogOpen} 
+      <Dialog
+        open={isAddDialogOpen || isEditDialogOpen}
         onClose={() => {
           setIsAddDialogOpen(false);
           setIsEditDialogOpen(false);
@@ -476,7 +476,7 @@ export function ProductManagement() {
                 id="name"
                 placeholder="Ex: Ensemble draps luxe 6 pièces"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                 margin="normal"
                 variant="outlined"
               />
@@ -490,7 +490,7 @@ export function ProductManagement() {
                 id="description"
                 placeholder="Description détaillée du produit..."
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
                 margin="normal"
               />
             </Box>
@@ -501,7 +501,7 @@ export function ProductManagement() {
                 id="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: e.target.value })}
                 margin="normal"
                 variant="outlined"
               />
@@ -513,7 +513,7 @@ export function ProductManagement() {
                 id="wholesalePrice"
                 type="number"
                 value={formData.wholesalePrice}
-                onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesalePrice: e.target.value })}
                 margin="normal"
                 variant="outlined"
               />
@@ -525,7 +525,7 @@ export function ProductManagement() {
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, stock: e.target.value })}
                 margin="normal"
                 variant="outlined"
               />
@@ -549,8 +549,8 @@ export function ProductManagement() {
             </Box>
             <Box sx={{ gridColumn: '1 / -1' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   component="span"
                   startIcon={<Upload />}
                   size="small"
@@ -563,13 +563,13 @@ export function ProductManagement() {
                   label="Ajouter une image"
                   id="image"
                   value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setImageInput(e.target.value)}
                   margin="normal"
                   variant="outlined"
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <Button 
+                        <Button
                           color="primary"
                           variant="contained"
                           onClick={handleAddImage}
@@ -611,7 +611,7 @@ export function ProductManagement() {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                           e.stopPropagation();
                           handleRemoveImage(index);
                         }}
@@ -636,7 +636,7 @@ export function ProductManagement() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Button 
+          <Button
             onClick={() => {
               setIsAddDialogOpen(false);
               setIsEditDialogOpen(false);
@@ -660,8 +660,8 @@ export function ProductManagement() {
       </Dialog>
 
       {/* Dialog Voir */}
-      <Dialog 
-        open={isViewDialogOpen} 
+      <Dialog
+        open={isViewDialogOpen}
         onClose={() => setIsViewDialogOpen(false)}
         fullWidth
         maxWidth="md"
@@ -676,13 +676,13 @@ export function ProductManagement() {
               width: '100%'
             }}>
               <Box>
-                <Box sx={{ 
-                  position: 'relative', 
-                  width: '100%', 
-                  height: 400, 
-                  bgcolor: 'action.hover', 
-                  borderRadius: 1, 
-                  overflow: 'hidden' 
+                <Box sx={{
+                  position: 'relative',
+                  width: '100%',
+                  height: 400,
+                  bgcolor: 'action.hover',
+                  borderRadius: 1,
+                  overflow: 'hidden'
                 }}>
                   <img
                     src={selectedProduct.image}
@@ -695,7 +695,7 @@ export function ProductManagement() {
                   />
                 </Box>
                 {selectedProduct.images && selectedProduct.images.length > 1 && (
-                  <Box sx={{ 
+                  <Box sx={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
                     gap: 1,
@@ -746,17 +746,17 @@ export function ProductManagement() {
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       Prix détail
                     </Typography>
-                    <Typography 
-                      variant="h6" 
-                      color="primary" 
+                    <Typography
+                      variant="h6"
+                      color="primary"
                       gutterBottom
                       sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                     >
                       {selectedProduct.price.toLocaleString('fr-FR')} FCFA
                       {selectedProduct.originalPrice && (
-                        <Typography 
-                          variant="body2" 
-                          color="textSecondary" 
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
                           sx={{ textDecoration: 'line-through' }}
                         >
                           {selectedProduct.originalPrice.toLocaleString('fr-FR')} FCFA
@@ -828,7 +828,7 @@ export function ProductManagement() {
           <Button onClick={() => setProductToDelete(null)} color="primary">
             Annuler
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               if (productToDelete) {
                 handleDeleteProduct();

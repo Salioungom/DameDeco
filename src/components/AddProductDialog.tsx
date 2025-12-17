@@ -84,8 +84,8 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        if (typeof e.target?.result === 'string') {
-          setImages((prev) => [...prev, e.target.result as string]);
+        if (e.target && typeof e.target.result === 'string') {
+          setImages((prev) => [...prev, e.target!.result as string]);
         }
       };
       reader.readAsDataURL(file);
@@ -138,13 +138,13 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
 
   const reduction =
     formData.price &&
-    formData.originalPrice &&
-    parseFloat(formData.originalPrice) > parseFloat(formData.price)
+      formData.originalPrice &&
+      parseFloat(formData.originalPrice) > parseFloat(formData.price)
       ? Math.round(
-          ((parseFloat(formData.originalPrice) - parseFloat(formData.price)) /
-            parseFloat(formData.originalPrice)) *
-            100,
-        )
+        ((parseFloat(formData.originalPrice) - parseFloat(formData.price)) /
+          parseFloat(formData.originalPrice)) *
+        100,
+      )
       : 0;
 
   return (
@@ -160,7 +160,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
               <TextField
                 label="Nom du produit *"
                 value={formData.name}
-                onChange={(event) => setFormData((prev) => ({ ...prev, name: event.target.value }))}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, name: event.target.value }))}
                 placeholder="Ex: Ensemble draps luxe 6 pièces"
               />
               <TextField
@@ -168,7 +168,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                 multiline
                 minRows={3}
                 value={formData.description}
-                onChange={(event) =>
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   setFormData((prev) => ({ ...prev, description: event.target.value }))
                 }
                 placeholder="Décrivez le produit, ses matériaux, son origine..."
@@ -177,7 +177,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                 label="Catégorie *"
                 select
                 value={formData.category}
-                onChange={(event) =>
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                   setFormData((prev) => ({ ...prev, category: event.target.value }))
                 }
                 SelectProps={{ native: true }}
@@ -196,7 +196,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                     label="Prix détail (FCFA) *"
                     type="number"
                     value={formData.price}
-                    onChange={(event) =>
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData((prev) => ({ ...prev, price: event.target.value }))
                     }
                   />
@@ -206,7 +206,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                     label="Prix avant promo"
                     type="number"
                     value={formData.originalPrice}
-                    onChange={(event) =>
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData((prev) => ({ ...prev, originalPrice: event.target.value }))
                     }
                   />
@@ -216,7 +216,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                     label="Prix grossiste (FCFA) *"
                     type="number"
                     value={formData.wholesalePrice}
-                    onChange={(event) =>
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData((prev) => ({ ...prev, wholesalePrice: event.target.value }))
                     }
                   />
@@ -226,7 +226,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                     label="Stock disponible *"
                     type="number"
                     value={formData.stock}
-                    onChange={(event) =>
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData((prev) => ({ ...prev, stock: event.target.value }))
                     }
                   />
@@ -236,7 +236,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                     label="Nombre de pièces (optionnel)"
                     type="number"
                     value={formData.pieces}
-                    onChange={(event) =>
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setFormData((prev) => ({ ...prev, pieces: event.target.value }))
                     }
                   />
@@ -262,7 +262,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                 <TextField
                   label="Ou collez une URL d'image"
                   value={imageInput}
-                  onChange={(event) => setImageInput(event.target.value)}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => setImageInput(event.target.value)}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">

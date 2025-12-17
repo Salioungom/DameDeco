@@ -8,11 +8,16 @@ import { CartDrawer } from './CartDrawer';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 
+import { usePathname } from 'next/navigation';
+
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
+  const pathname = usePathname();
+  const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register');
+
   return (
     <AuthProvider>
       <SnackbarProvider
@@ -29,7 +34,7 @@ export function Providers({ children }: ProvidersProps) {
             overflowX: 'hidden',
           }}
         >
-          <Navigation />
+          {!isAuthPage && <Navigation />}
           <Box
             component="main"
             sx={{
@@ -37,12 +42,12 @@ export function Providers({ children }: ProvidersProps) {
               width: '100%',
               maxWidth: '100%',
               mx: 'auto',
-              pt: { xs: 8, md: 9 }, // Compensation pour header fixe
+              pt: isAuthPage ? 0 : { xs: 8, md: 9 }, // Compensation pour header fixe
             }}
           >
             {children}
           </Box>
-          <Footer />
+          {!isAuthPage && <Footer />}
           <CartDrawer />
           <Toaster />
         </Box>

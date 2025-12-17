@@ -60,7 +60,7 @@ export default function CreateAdminPage() {
               fullWidth
               label="Nom"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               required
               sx={{ mb: 2 }}
             />
@@ -69,7 +69,7 @@ export default function CreateAdminPage() {
               label="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               required
               sx={{ mb: 2 }}
             />
@@ -78,7 +78,7 @@ export default function CreateAdminPage() {
               label="Mot de passe"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               required
               sx={{ mb: 2 }}
             />

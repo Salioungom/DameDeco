@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 // Mock Data Types
 export interface User {
     id: string;
-    email: string;
+    email?: string;
+    phone?: string;
     passwordHash: string;
     role: 'admin' | 'client' | 'superadmin';
     name: string;
@@ -55,6 +56,14 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
     return users.find((u) => u.email === email);
 }
 
+export async function getUserByPhone(phone: string): Promise<User | undefined> {
+    return users.find((u) => u.phone === phone);
+}
+
+export async function getUserByIdentifier(identifier: string): Promise<User | undefined> {
+    return users.find((u) => u.email === identifier || u.phone === identifier);
+}
+
 export async function getUserById(id: string): Promise<User | undefined> {
     return users.find((u) => u.id === id);
 }
@@ -103,17 +112,31 @@ export async function revokeRefreshToken(userId: string) {
     }
 }
 
-export async function createUser(email: string, password: string, name: string, role: 'admin' | 'client' | 'superadmin'): Promise<User> {
+export async function createUser(
+    data: { email?: string; phone?: string; password: string; name: string; role: 'admin' | 'client' | 'superadmin' }
+): Promise<User> {
+    const { email, phone, password, name, role } = data;
+
     // Check if user already exists
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-        throw new Error('User with this email already exists');
+    if (email) {
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+            throw new Error('Un utilisateur avec cet email existe déjà');
+        }
+    }
+
+    if (phone) {
+        const existingUser = await getUserByPhone(phone);
+        if (existingUser) {
+            throw new Error('Un utilisateur avec ce numéro de téléphone existe déjà');
+        }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser: User = {
         id: String(users.length + 1),
         email,
+        phone,
         passwordHash,
         role,
         name,
