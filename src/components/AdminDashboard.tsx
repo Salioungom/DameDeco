@@ -35,6 +35,14 @@ import {
   alpha,
   Avatar,
   Divider,
+  Fade,
+  Zoom,
+  Skeleton,
+  LinearProgress,
+  Fab,
+  Tooltip,
+  Badge,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
@@ -48,13 +56,63 @@ import {
   Edit,
   Delete as Trash2,
   Add as Plus,
-  WhatsApp as MessageCircle,
-  FolderOpen,
+  Search,
+  FilterList,
+  Refresh,
+  Download,
+  Upload,
   Star,
+  WhatsApp,
+  Chat,
+  FolderOpen,
   Close as CloseIcon,
   Logout,
+  Notifications,
+  ArrowUpward,
+  ArrowDownward,
+  MoreVert,
+  Schedule,
+  LocalShipping,
+  CheckCircle,
+  Pending,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
-import { products, orders, customers, categories, Product, Order } from '../lib/data';
+import { products, orders, customers, categories } from '../lib/data';
+
+// Définition des types manquants
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  stock: number;
+  image?: string;
+  images?: string[];
+  description?: string;
+  wholesalePrice?: number;
+  pieces?: number;
+}
+
+interface Order {
+  id: string;
+  customerId: string;
+  customer?: string;
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  date?: string;
+  payment?: string;
+  source?: 'website' | 'whatsapp';
+  items?: any[];
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  type?: string;
+  orders?: number;
+}
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ProductManagement } from './ProductManagement';
 
@@ -96,7 +154,7 @@ export function AdminDashboard() {
   const totalOrders = orders.length;
   const totalProducts = products.length;
   const totalCustomers = customers.length;
-  const whatsappOrders = orders.filter(order => order.source === 'whatsapp').length;
+  const whatsappOrders = orders.filter(order => (order as any).source === 'whatsapp').length;
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
@@ -170,26 +228,56 @@ export function AdminDashboard() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'background.default', width: '100%' }}>
-      <Box sx={{ px: 3 }}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.background.default, 1)} 50%)`,
+      width: '100%' 
+    }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ 
+          mb: 4, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          p: 3,
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.light, 0.1)})`,
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          backdropFilter: 'blur(10px)'
+        }}>
           <Box>
-            <Typography variant="h4" gutterBottom>Dashboard Administrateur</Typography>
-            <Typography variant="body1" color="text.secondary">Gérez votre boutique en ligne</Typography>
+            <Typography 
+              variant="h3" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 700, 
+                color: 'primary.main',
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
+              Dashboard Administrateur
+            </Typography>
+            <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
+              Gérez votre boutique en ligne avec style
+            </Typography>
           </Box>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Logout />}
-            onClick={handleLogout}
-            sx={{ borderRadius: 2 }}
-          >
-            Déconnexion
-          </Button>
         </Box>
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange} 
+            variant="scrollable" 
+            scrollButtons="auto"
+            sx={{ 
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'center'
+              }
+            }}
+          >
             <Tab icon={<LayoutDashboard />} iconPosition="start" label="Vue d'ensemble" />
             <Tab icon={<Package />} iconPosition="start" label="Produits" />
             <Tab icon={<ShoppingCart />} iconPosition="start" label="Commandes" />
@@ -199,107 +287,343 @@ export function AdminDashboard() {
           </Tabs>
         </Box>
 
+        <Box>
         {/* Overview Tab */}
         <CustomTabPanel value={activeTab} index={0}>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
             <Grid item xs={12} sm={6} lg={2.4}>
-              <Card>
+              <Card 
+                elevation={8}
+                sx={{ 
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': { 
+                    transform: 'translateY(-8px) scale(1.02)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.light, 0.15)})`,
+                  },
+                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)}, ${alpha(theme.palette.primary.light, 0.1)})`,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+                  borderRadius: 3,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                  }
+                }}
+              >
                 <CardHeader
                   title="Revenu Total"
-                  titleTypographyProps={{ variant: 'subtitle2' }}
-                  action={<DollarSign fontSize="small" color="action" />}
+                  titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700, color: 'primary.main' }}
+                  action={
+                    <Box sx={{ 
+                      p: 1,
+                      borderRadius: 2,
+                      background: alpha(theme.palette.primary.main, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <DollarSign fontSize="small" sx={{ color: 'primary.main' }} />
+                    </Box>
+                  }
                   sx={{ pb: 0 }}
                 />
-                <CardContent>
-                  <Typography variant="h5" component="div">{totalRevenue.toLocaleString('fr-FR')} FCFA</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    <Typography component="span" variant="caption" color="success.main">+12.5%</Typography> ce mois
+                <CardContent sx={{ textAlign: 'center', pt: 1 }}>
+                  <Typography variant="h3" component="div" sx={{ 
+                    fontWeight: 800, 
+                    color: 'primary.main', 
+                    mb: 1,
+                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    {totalRevenue.toLocaleString('fr-FR')} FCFA
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 0.5,
+                    fontWeight: 600
+                  }}>
+                    <ArrowUpward fontSize="small" sx={{ color: 'success.main' }} />
+                    +12% ce mois
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} lg={2.4}>
-              <Card>
+              <Card 
+                elevation={8}
+                sx={{ 
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': { 
+                    transform: 'translateY(-8px) scale(1.02)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.08)}, ${alpha(theme.palette.info.light, 0.15)})`,
+                  },
+                  background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.05)}, ${alpha(theme.palette.info.light, 0.1)})`,
+                  border: `1px solid ${alpha(theme.palette.info.main, 0.15)}`,
+                  borderRadius: 3,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.info.light})`,
+                  }
+                }}
+              >
                 <CardHeader
                   title="Commandes"
-                  titleTypographyProps={{ variant: 'subtitle2' }}
-                  action={<ShoppingCart fontSize="small" color="action" />}
+                  titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700, color: 'info.main' }}
+                  action={
+                    <Box sx={{ 
+                      p: 1,
+                      borderRadius: 2,
+                      background: alpha(theme.palette.info.main, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <ShoppingCart fontSize="small" sx={{ color: 'info.main' }} />
+                    </Box>
+                  }
                   sx={{ pb: 0 }}
                 />
-                <CardContent>
-                  <Typography variant="h5" component="div">{totalOrders}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    <Typography component="span" variant="caption" color="success.main">+5</Typography> cette semaine
+                <CardContent sx={{ textAlign: 'center', pt: 1 }}>
+                  <Typography variant="h3" component="div" sx={{ 
+                    fontWeight: 800, 
+                    color: 'info.main', 
+                    mb: 1,
+                    background: `linear-gradient(45deg, ${theme.palette.info.main}, ${theme.palette.info.light})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    {totalOrders}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 0.5,
+                    fontWeight: 600
+                  }}>
+                    <ArrowUpward fontSize="small" sx={{ color: 'success.main' }} />
+                    <Typography component="span" variant="caption" color="success.main" fontWeight={600}>+5</Typography> cette semaine
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} lg={2.4}>
-              <Card>
+              <Card 
+                elevation={8}
+                sx={{ 
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': { 
+                    transform: 'translateY(-8px) scale(1.02)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.08)}, ${alpha(theme.palette.warning.light, 0.15)})`,
+                  },
+                  background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.05)}, ${alpha(theme.palette.warning.light, 0.1)})`,
+                  border: `1px solid ${alpha(theme.palette.warning.main, 0.15)}`,
+                  borderRadius: 3,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    background: `linear-gradient(90deg, ${theme.palette.warning.main}, ${theme.palette.warning.light})`,
+                  }
+                }}
+              >
                 <CardHeader
                   title="Produits"
-                  titleTypographyProps={{ variant: 'subtitle2' }}
-                  action={<Package fontSize="small" color="action" />}
+                  titleTypographyProps={{ variant: 'subtitle2', fontWeight: 700, color: 'warning.main' }}
+                  action={
+                    <Box sx={{ 
+                      p: 1,
+                      borderRadius: 2,
+                      background: alpha(theme.palette.warning.main, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Package fontSize="small" sx={{ color: 'warning.main' }} />
+                    </Box>
+                  }
                   sx={{ pb: 0 }}
                 />
-                <CardContent>
-                  <Typography variant="h5" component="div">{totalProducts}</Typography>
-                  <Typography variant="caption" color="text.secondary">En catalogue</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} lg={2.4}>
-              <Card>
-                <CardHeader
-                  title="Clients"
-                  titleTypographyProps={{ variant: 'subtitle2' }}
-                  action={<Users fontSize="small" color="action" />}
-                  sx={{ pb: 0 }}
-                />
-                <CardContent>
-                  <Typography variant="h5" component="div">{totalCustomers}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    <Typography component="span" variant="caption" color="success.main">+2</Typography> nouveaux ce mois
+                <CardContent sx={{ textAlign: 'center', pt: 1 }}>
+                  <Typography variant="h3" component="div" sx={{ 
+                    fontWeight: 800, 
+                    color: 'warning.main', 
+                    mb: 1,
+                    background: `linear-gradient(45deg, ${theme.palette.warning.main}, ${theme.palette.warning.light})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    {totalProducts}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontWeight: 600
+                  }}>
+                    En catalogue
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} lg={2.4}>
-              <Card>
+              <Card 
+                sx={{ 
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': { 
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8]
+                  },
+                  background: `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.05)}, ${alpha(theme.palette.success.light, 0.1)})`,
+                  border: `1px solid ${alpha(theme.palette.success.main, 0.1)}`
+                }}
+              >
                 <CardHeader
-                  title="WhatsApp"
-                  titleTypographyProps={{ variant: 'subtitle2' }}
-                  action={<MessageCircle fontSize="small" color="success" />}
+                  title="Clients"
+                  titleTypographyProps={{ variant: 'subtitle2', fontWeight: 600 }}
+                  action={<Users fontSize="small" sx={{ color: 'success.main' }} />}
                   sx={{ pb: 0 }}
                 />
-                <CardContent>
-                  <Typography variant="h5" component="div">{whatsappOrders}</Typography>
-                  <Typography variant="caption" color="text.secondary">Commandes WhatsApp</Typography>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" component="div" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
+                    {totalCustomers}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                    <TrendingUp fontSize="small" sx={{ color: 'success.main' }} />
+                    <Typography component="span" variant="caption" color="success.main" fontWeight={600}>+2</Typography> nouveaux ce mois
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} lg={2.4}>
+              <Card 
+                sx={{ 
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': { 
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8]
+                  },
+                  background: `linear-gradient(135deg, ${alpha('#25D366', 0.05)}, ${alpha('#25D366', 0.1)})`,
+                  border: `1px solid ${alpha('#25D366', 0.2)}`
+                }}
+              >
+                <CardHeader
+                  title="WhatsApp"
+                  titleTypographyProps={{ variant: 'subtitle2', fontWeight: 600 }}
+                  action={<Chat fontSize="small" sx={{ color: '#25D366' }} />}
+                  sx={{ pb: 0 }}
+                />
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" component="div" sx={{ fontWeight: 700, color: '#25D366', mb: 1 }}>
+                    {whatsappOrders}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    Commandes WhatsApp
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
             <Grid item xs={12} lg={6}>
-              <Card>
-                <CardHeader title="Commandes récentes" />
+              <Card sx={{ 
+                textAlign: 'center',
+                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)}, ${alpha(theme.palette.background.paper, 0.95)})`,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+              }}>
+                <CardHeader 
+                  title={
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      Commandes récentes
+                    </Typography>
+                  } 
+                  sx={{ 
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)}, ${alpha(theme.palette.primary.light, 0.05)})`
+                  }} 
+                />
                 <CardContent>
-                  <Stack spacing={2}>
-                    {orders.slice(0, 5).map((order) => (
-                      <Box key={order.id} display="flex" alignItems="center" justifyContent="space-between">
-                        <Box>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="body2">{order.customer}</Typography>
-                            {order.source === 'whatsapp' && (
-                              <MessageCircle sx={{ fontSize: 14, color: 'success.main' }} />
-                            )}
+                  <Stack spacing={2} sx={{ alignItems: 'center' }}>
+                    {orders.slice(0, 5).map((order, index) => (
+                      <Box 
+                        key={order.id} 
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`,
+                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateX(4px)',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)}, ${alpha(theme.palette.primary.light, 0.05)})`
+                          },
+                          width: '100%',
+                          maxWidth: 400
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <Box>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {(order as any).customer || `Client ${order.customerId}`}
+                              </Typography>
+                              {(order as any).source === 'whatsapp' && (
+                                <Chat sx={{ fontSize: 14, color: 'success.main' }} />
+                              )}
+                            </Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                              {order.id}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {(order as any).date ? new Date((order as any).date).toLocaleDateString('fr-FR') : 'Date non spécifiée'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {(order as any).payment || 'Paiement non spécifié'}
+                            </Typography>
                           </Box>
-                          <Typography variant="caption" color="text.secondary">{order.id}</Typography>
-                        </Box>
-                        <Box textAlign="right">
-                          <Typography variant="body2">{order.total.toLocaleString('fr-FR')} FCFA</Typography>
-                          <Chip label={order.status} color={getStatusColor(order.status)} size="small" />
+                          <Box textAlign="right">
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              {order.total.toLocaleString('fr-FR')} FCFA
+                            </Typography>
+                            <Chip 
+                              label={order.status} 
+                              color={getStatusColor(order.status)} 
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          </Box>
                         </Box>
                       </Box>
                     ))}
@@ -308,22 +632,61 @@ export function AdminDashboard() {
               </Card>
             </Grid>
             <Grid item xs={12} lg={6}>
-              <Card>
-                <CardHeader title="Produits populaires" />
+              <Card sx={{ 
+                textAlign: 'center',
+                background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)}, ${alpha(theme.palette.background.paper, 0.95)})`,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+              }}>
+                <CardHeader 
+                  title={
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      Produits populaires
+                    </Typography>
+                  } 
+                  sx={{ 
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.02)}, ${alpha(theme.palette.warning.light, 0.05)})`
+                  }} 
+                />
                 <CardContent>
-                  <Stack spacing={2}>
+                  <Stack spacing={2} sx={{ alignItems: 'center' }}>
                     {products
                       .filter((p) => p.popular)
                       .slice(0, 5)
-                      .map((product) => (
-                        <Box key={product.id} display="flex" alignItems="center" justifyContent="space-between">
-                          <Box>
-                            <Typography variant="body2" noWrap>{product.name}</Typography>
-                            <Typography variant="caption" color="text.secondary">Stock: {product.stock}</Typography>
+                      .map((product, index) => (
+                        <Box 
+                          key={product.id} 
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.9)})`,
+                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                            transition: 'all 0.3s ease-in-out',
+                            '&:hover': {
+                              transform: 'translateX(4px)',
+                              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                              background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.02)}, ${alpha(theme.palette.warning.light, 0.05)})`
+                            },
+                            width: '100%',
+                            maxWidth: 400
+                          }}
+                        >
+                          <Box display="flex" alignItems="center" justifyContent="space-between">
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                                {product.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                Stock: {product.stock}
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2" color="primary" sx={{ fontWeight: 700 }}>
+                              {product.price.toLocaleString('fr-FR')} FCFA
+                            </Typography>
                           </Box>
-                          <Typography variant="body2" color="primary">
-                            {product.price.toLocaleString('fr-FR')} FCFA
-                          </Typography>
                         </Box>
                       ))}
                   </Stack>
@@ -360,15 +723,20 @@ export function AdminDashboard() {
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{new Date(order.date).toLocaleDateString('fr-FR')}</TableCell>
-                      <TableCell>{order.items}</TableCell>
+                      <TableCell>{(order as any).customer || `Client ${order.customerId}`}</TableCell>
+                      <TableCell>{(order as any).date ? new Date((order as any).date).toLocaleDateString('fr-FR') : 'Date non spécifiée'}</TableCell>
                       <TableCell>
-                        <Chip label={order.payment} variant="outlined" size="small" />
+                        {(order as any).items && Array.isArray((order as any).items) 
+                          ? `${(order as any).items.length} article(s)` 
+                          : 'N/A'
+                        }
                       </TableCell>
                       <TableCell>
-                        {order.source === 'whatsapp' ? (
-                          <Chip icon={<MessageCircle sx={{ fontSize: 14 }} />} label="WhatsApp" color="success" size="small" />
+                        <Chip label={(order as any).payment || 'Non spécifié'} variant="outlined" size="small" />
+                      </TableCell>
+                      <TableCell>
+                        {(order as any).source === 'whatsapp' ? (
+                          <Chip icon={<Chat sx={{ fontSize: 14 }} />} label="WhatsApp" color="success" size="small" />
                         ) : (
                           <Chip label="Site Web" variant="outlined" size="small" />
                         )}
@@ -555,14 +923,14 @@ export function AdminDashboard() {
                       <TableCell>{customer.phone}</TableCell>
                       <TableCell>
                         <Chip
-                          label={customer.type === 'wholesale' ? 'Grossiste' : 'Détail'}
-                          color={customer.type === 'wholesale' ? 'primary' : 'default'}
-                          variant={customer.type === 'wholesale' ? 'filled' : 'outlined'}
+                          label={(customer as any).type === 'wholesale' ? 'Grossiste' : 'Détail'}
+                          color={(customer as any).type === 'wholesale' ? 'primary' : 'default'}
+                          variant={(customer as any).type === 'wholesale' ? 'filled' : 'outlined'}
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>{customer.orders}</TableCell>
-                      <TableCell>{customer.totalSpent.toLocaleString('fr-FR')} FCFA</TableCell>
+                      <TableCell>{(customer as any).orders || 'N/A'}</TableCell>
+                      <TableCell>{customer.totalSpent?.toLocaleString('fr-FR') || '0'} FCFA</TableCell>
                       <TableCell>
                         <IconButton size="small" onClick={() => handleViewCustomer(customer)}>
                           <Eye fontSize="small" />
@@ -620,7 +988,7 @@ export function AdminDashboard() {
                 <CardHeader
                   title={
                     <Box display="flex" alignItems="center" gap={1}>
-                      <MessageCircle sx={{ color: 'success.main' }} />
+                      <Chat sx={{ color: 'success.main' }} />
                       Configuration WhatsApp
                     </Box>
                   }
@@ -639,7 +1007,7 @@ export function AdminDashboard() {
                     />
                     <Paper variant="outlined" sx={{ p: 2, bgcolor: alpha('#4caf50', 0.1), borderColor: alpha('#4caf50', 0.3) }}>
                       <Box display="flex" gap={1}>
-                        <MessageCircle sx={{ color: 'success.main', mt: 0.5 }} fontSize="small" />
+                        <Chat sx={{ color: 'success.main', mt: 0.5 }} fontSize="small" />
                         <Box>
                           <Typography variant="subtitle2" color="success.dark">Commandes WhatsApp actives</Typography>
                           <Typography variant="caption" color="success.dark">
@@ -678,61 +1046,65 @@ export function AdminDashboard() {
             <Stack spacing={3} sx={{ mt: 1 }}>
               <Box sx={{ position: 'relative', paddingTop: '56.25%', bgcolor: 'action.hover', borderRadius: 1, overflow: 'hidden' }}>
                 <ImageWithFallback
-                  src={selectedProduct.image}
-                  alt={selectedProduct.name}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  src={selectedProduct?.image || ''}
+                  alt={selectedProduct?.name || 'Produit'}
+                  sx={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
                 />
               </Box>
-              {selectedProduct.images.length > 1 && (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>Galerie d'images ({selectedProduct.images.length})</Typography>
-                  <Grid container spacing={1}>
-                    {selectedProduct.images.map((img, idx) => (
-                      <Grid item xs={3} key={idx}>
-                        <Box sx={{ position: 'relative', paddingTop: '100%', bgcolor: 'action.hover', borderRadius: 1, overflow: 'hidden' }}>
-                          <ImageWithFallback
-                            src={img}
-                            alt={`${selectedProduct.name} ${idx + 1}`}
-                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
+              {selectedProduct?.images && (selectedProduct?.images?.length || 0) > 0 && (
+                <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                  {selectedProduct?.images?.map((img: any, idx: number) => (
+                    <Box key={idx} sx={{ width: 60, height: 60, borderRadius: 1, overflow: 'hidden' }}>
+                      <ImageWithFallback
+                        src={img}
+                        alt={`${selectedProduct?.name || 'Produit'} ${idx + 1}`}
+                        sx={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                  ))}
                 </Box>
               )}
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Nom</Typography>
-                  <Typography variant="body1">{selectedProduct.name}</Typography>
+                  <Typography variant="body1">{selectedProduct?.name}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Catégorie</Typography>
-                  <Typography variant="body1">{categories.find((c) => c.id === selectedProduct.category)?.name}</Typography>
+                  <Typography variant="body1">{categories.find((c) => c.id === selectedProduct?.category)?.name}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Prix détail</Typography>
-                  <Typography variant="body1">{selectedProduct.price.toLocaleString('fr-FR')} FCFA</Typography>
+                  <Typography variant="body1">{selectedProduct?.price.toLocaleString('fr-FR')} FCFA</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary">Prix grossiste</Typography>
-                  <Typography variant="body1">{selectedProduct.wholesalePrice.toLocaleString('fr-FR')} FCFA</Typography>
+                  <Typography variant="caption" color="text.secondary">Prix gros</Typography>
+                  <Typography variant="body1">{selectedProduct?.wholesalePrice?.toLocaleString('fr-FR') || 'N/A'} FCFA</Typography>
                 </Grid>
                 <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">Pièces</Typography>
+                  <Typography variant="body1">{selectedProduct?.pieces || 'N/A'}</Typography>
+                </Grid>
+                <Grid item xs={12}>
                   <Typography variant="caption" color="text.secondary">Stock</Typography>
-                  <Typography variant="body1">{selectedProduct.stock} unités</Typography>
+                  <Typography variant="body1">{selectedProduct?.stock} unités</Typography>
                 </Grid>
-                {selectedProduct.pieces && (
-                  <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">Nombre de pièces</Typography>
-                    <Typography variant="body1">{selectedProduct.pieces}</Typography>
-                  </Grid>
-                )}
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary">Description</Typography>
+                  <Typography variant="body2">{selectedProduct?.description || 'Aucune description'}</Typography>
+                </Grid>
               </Grid>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Description</Typography>
-                <Typography variant="body2" color="text.secondary">{selectedProduct.description}</Typography>
-              </Box>
             </Stack>
           )}
         </DialogContent>
@@ -772,54 +1144,52 @@ export function AdminDashboard() {
       </Dialog>
 
       {/* View Order Dialog */}
-      <Dialog open={isViewOrderOpen} onClose={() => setIsViewOrderOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={isViewOrderOpen} onClose={() => setIsViewOrderOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Détails de la commande</DialogTitle>
         <DialogContent>
           {selectedOrder && (
-            <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack spacing={3} sx={{ mt: 1 }}>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary">Numéro de commande</Typography>
-                  <Typography variant="body2">{selectedOrder.id}</Typography>
+                  <Typography variant="caption" color="text.secondary">ID Commande</Typography>
+                  <Typography variant="body1">{selectedOrder?.id}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Client</Typography>
-                  <Typography variant="body2">{selectedOrder.customer}</Typography>
+                  <Typography variant="body1">{(selectedOrder as any)?.customer || `Client ${selectedOrder?.customerId}`}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Date</Typography>
-                  <Typography variant="body2">{new Date(selectedOrder.date).toLocaleDateString('fr-FR')}</Typography>
+                  <Typography variant="body1">
+                    {(selectedOrder as any).date ? new Date((selectedOrder as any).date).toLocaleDateString('fr-FR') : 'Date non spécifiée'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">Montant total</Typography>
+                  <Typography variant="body1">{selectedOrder?.total.toLocaleString('fr-FR')} FCFA</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Statut</Typography>
-                  <Chip label={selectedOrder.status} color={getStatusColor(selectedOrder.status)} size="small" />
+                  <Chip label={selectedOrder?.status} color={getStatusColor(selectedOrder?.status || '')} size="small" />
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary">Méthode de paiement</Typography>
-                  <Typography variant="body2">{selectedOrder.payment}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="text.secondary">Nombre d'articles</Typography>
-                  <Typography variant="body2">{selectedOrder.items}</Typography>
+                  <Typography variant="caption" color="text.secondary">Paiement</Typography>
+                  <Typography variant="body1">{(selectedOrder as any)?.payment || 'Non spécifié'}</Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant="caption" color="text.secondary">Source de commande</Typography>
-                  <Box>
-                    {selectedOrder.source === 'whatsapp' ? (
-                      <Chip icon={<MessageCircle sx={{ fontSize: 14 }} />} label="WhatsApp" color="success" size="small" />
+                  <Typography variant="caption" color="text.secondary">Source</Typography>
+                  <Typography variant="body1">
+                    {(selectedOrder as any)?.source === 'whatsapp' ? (
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Chat sx={{ fontSize: 16, color: 'success.main' }} />
+                        WhatsApp
+                      </Box>
                     ) : (
-                      <Chip label="Site Web" variant="outlined" size="small" />
+                      'Site web'
                     )}
-                  </Box>
+                  </Typography>
                 </Grid>
               </Grid>
-              <Divider />
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="subtitle1">Total</Typography>
-                <Typography variant="h6" color="primary">
-                  {selectedOrder.total.toLocaleString('fr-FR')} FCFA
-                </Typography>
-              </Box>
             </Stack>
           )}
         </DialogContent>
@@ -838,32 +1208,32 @@ export function AdminDashboard() {
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Nom complet</Typography>
-                  <Typography variant="body2">{selectedCustomer.name}</Typography>
+                  <Typography variant="body2">{selectedCustomer?.name}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Type de client</Typography>
                   <Chip
-                    label={selectedCustomer.type === 'wholesale' ? 'Grossiste' : 'Détail'}
-                    color={selectedCustomer.type === 'wholesale' ? 'primary' : 'default'}
+                    label={(selectedCustomer as any)?.type === 'wholesale' ? 'Grossiste' : 'Détail'}
+                    color={(selectedCustomer as any)?.type === 'wholesale' ? 'primary' : 'default'}
                     size="small"
                   />
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Email</Typography>
-                  <Typography variant="body2">{selectedCustomer.email}</Typography>
+                  <Typography variant="body2">{selectedCustomer?.email}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Téléphone</Typography>
-                  <Typography variant="body2">{selectedCustomer.phone}</Typography>
+                  <Typography variant="body2">{selectedCustomer?.phone}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Nombre de commandes</Typography>
-                  <Typography variant="body2">{selectedCustomer.orders}</Typography>
+                  <Typography variant="body2">{(selectedCustomer as any)?.orders || 'N/A'}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">Total dépensé</Typography>
                   <Typography variant="body2" color="primary">
-                    {selectedCustomer.totalSpent.toLocaleString('fr-FR')} FCFA
+                    {selectedCustomer?.totalSpent?.toLocaleString('fr-FR') || '0'} FCFA
                   </Typography>
                 </Grid>
               </Grid>
@@ -875,6 +1245,7 @@ export function AdminDashboard() {
           <Button onClick={() => setIsViewCustomerOpen(false)} variant="contained">Contacter</Button>
         </DialogActions>
       </Dialog>
+      </Container>
     </Box>
   );
 }

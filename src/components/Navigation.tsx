@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
 import {
   AppBar,
   Toolbar,
@@ -210,14 +211,18 @@ export function Navigation() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const [scrolled, setScrolled] = useState(false);
+  // Utiliser AuthContext au lieu de l'état local
+  const { user, isAuthenticated, logout } = useAuth();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileAnchorRef = useRef<HTMLButtonElement>(null);
 
-  const { user, isAdmin, toggleAdmin, cart, toggleCart } = useStore();
+  const { isAdmin, toggleAdmin, cart, toggleCart } = useStore();
   const cartCount = cart.reduce((acc: number, item) => acc + item.quantity, 0);
+
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -228,7 +233,7 @@ export function Navigation() {
   }, []);
 
   const handleProfileMenuToggle = () => {
-    setProfileMenuOpen((prevOpen) => !prevOpen);
+    setProfileMenuOpen((prevOpen: boolean) => !prevOpen);
   };
 
   const handleProfileMenuClose = () => {
@@ -263,48 +268,56 @@ export function Navigation() {
   ];
 
   const userMenuItems = [
-    ...(isAdmin ? [
+    // Menu simplifié pour admin/superadmin
+    ...(user?.role === 'superadmin' ? [
       {
         label: 'Tableau de bord',
         icon: <Dashboard fontSize="small" />,
-        path: '/admin'
+        path: '/superadmin/dashboard'  // ✅ Dashboard SuperAdmin
       },
-    ] : []),
-    {
-      label: 'Mon compte',
-      icon: <AccountCircle fontSize="small" />,
-      path: '/account'
-    },
-    {
-      label: 'Mes favoris',
-      icon: <Favorite fontSize="small" />,
-      path: '/favorites'
-    },
-    {
-      label: isAdmin ? 'Désactiver Mode Admin' : 'Activer Mode Admin',
-      icon: <AdminPanelSettings fontSize="small" color={isAdmin ? 'error' : 'inherit'} />,
-      onClick: () => {
-        toggleAdmin();
-        setProfileMenuOpen(false);
-      }
-    },
-    {
-      label: 'Déconnexion',
-      icon: <Logout fontSize="small" />,
-      onClick: async () => {
-        setProfileMenuOpen(false);
-        try {
-          await fetch('/api/auth/logout', { method: 'POST' });
-          // Redirect to home page after logout
-          router.push('/');
-          router.refresh();
-        } catch (error) {
-          console.error('Logout error:', error);
-          // Still redirect even if logout fails
-          router.push('/');
+      {
+        label: 'Déconnexion',
+        icon: <Logout fontSize="small" />,
+        onClick: async () => {
+          setProfileMenuOpen(false);
+          await logout();
         }
-      }
-    },
+      },
+    ] : user?.role === 'admin' ? [
+      {
+        label: 'Tableau de bord',
+        icon: <Dashboard fontSize="small" />,
+        path: '/admin/security/summary'  // ✅ Admin security
+      },
+      {
+        label: 'Déconnexion',
+        icon: <Logout fontSize="small" />,
+        onClick: async () => {
+          setProfileMenuOpen(false);
+          await logout();
+        }
+      },
+    ] : [
+      // Menu normal pour les clients
+      {
+        label: 'Mon profil',
+        icon: <AccountCircle fontSize="small" />,
+        path: '/account'
+      },
+      {
+        label: 'Mes favoris',
+        icon: <Favorite fontSize="small" />,
+        path: '/favorites'
+      },
+      {
+        label: 'Déconnexion',
+        icon: <Logout fontSize="small" />,
+        onClick: async () => {
+          setProfileMenuOpen(false);
+          await logout();
+        }
+      },
+    ]),
   ];
 
   const drawer = (
@@ -448,18 +461,18 @@ export function Navigation() {
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
               src={user.avatar}
-              alt={user.name}
+              alt={user.full_name}
               sx={{
                 width: 56,
                 height: 56,
                 border: `2px solid ${theme.palette.primary.main}`,
               }}
             >
-              {user.name?.charAt(0)}
+              {user.full_name?.charAt(0)}
             </Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight={600}>
-                {user.name}
+                {user.full_name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {user.email}
@@ -468,16 +481,26 @@ export function Navigation() {
           </Stack>
         </Box>
       ) : (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 2 }}>
           <Button
             fullWidth
             variant="contained"
-            size="large"
             component={Link}
             href="/login"
             onClick={() => setMobileOpen(false)}
+            sx={{ mb: 1, py: 1 }}
           >
             Se connecter
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            component={Link}
+            href="/register"
+            onClick={() => setMobileOpen(false)}
+            sx={{ py: 1 }}
+          >
+            Créer un compte
           </Button>
         </Box>
       )}
@@ -637,22 +660,21 @@ export function Navigation() {
                   variant="dot"
                   color="success"
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-                    },
-                  }}
                 >
                   <Avatar
-                    src={user.avatar}
-                    alt={user.name}
-                    sx={{ width: 36, height: 36 }}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      bgcolor: 'primary.main',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                    }}
                   >
-                    {user.name?.charAt(0)}
+                    {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                   </Avatar>
                 </Badge>
               ) : (
-                <UserIcon />
+                <AccountCircle sx={{ fontSize: 28 }} />
               )}
             </StyledIconButton>
 
@@ -664,8 +686,8 @@ export function Navigation() {
                 max={99}
                 sx={{
                   '& .MuiBadge-badge': {
-                    fontWeight: 700,
-                    fontSize: '0.7rem',
+                    fontWeight: 950,
+                    fontSize: '0.5rem',
                   },
                 }}
               >
@@ -720,13 +742,59 @@ export function Navigation() {
                     <MenuList sx={{ p: 1 }}>
                       {user ? (
                         [
-                          <Box key="user-info" sx={{ px: 2, py: 2, mb: 1 }}>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                              {user.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {user.email}
-                            </Typography>
+                          <Box key="user-info" sx={{ 
+                            px: 2, 
+                            py: 2.5, 
+                            mb: 1,
+                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                            borderRadius: 2,
+                            border: '1px solid rgba(99, 102, 241, 0.1)'
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                              <Avatar
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  bgcolor: 'primary.main',
+                                  fontSize: '1rem',
+                                  fontWeight: 600,
+                                  mr: 2,
+                                  border: '2px solid',
+                                  borderColor: 'primary.light'
+                                }}
+                              >
+                                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                              </Avatar>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ lineHeight: 1.2 }}>
+                                  {user.full_name || 'Utilisateur'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mt: 0.2 }}>
+                                  {user.email}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            {user.role && (
+                              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Chip 
+                                  size="small" 
+                                  label={
+                                    user.role === 'superadmin' ? '👑 SuperAdmin' : 
+                                    user.role === 'admin' ? '⚙️ Admin' : 
+                                    user.role === 'client' ? '👤 Client' :
+                                    user.role
+                                  }
+                                  color="primary" 
+                                  variant="filled"
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    fontSize: '0.7rem',
+                                    height: 24,
+                                    borderRadius: 1
+                                  }}
+                                />
+                              </Box>
+                            )}
                           </Box>,
                           <Divider key="divider" sx={{ mb: 1 }} />,
                           ...userMenuItems.map((item, index) => (
@@ -737,28 +805,34 @@ export function Navigation() {
                                   item.onClick();
                                 } else if (item.path) {
                                   router.push(item.path);
-                                  setProfileMenuOpen(false);
                                 }
+                                setProfileMenuOpen(false);
                               }}
                               sx={{
                                 borderRadius: 1.5,
-                                py: 1.5,
-                                mb: 0.5,
+                                py: 1.2,
+                                mb: 0.3,
                                 '&:hover': {
                                   bgcolor: alpha(theme.palette.primary.main, 0.08),
                                 },
                               }}
                             >
-                              <ListItemIcon sx={{ minWidth: 40 }}>
+                              <ListItemIcon sx={{ minWidth: 36 }}>
                                 {item.icon}
                               </ListItemIcon>
-                              <ListItemText>{item.label}</ListItemText>
+                              <ListItemText 
+                                primary={item.label}
+                                primaryTypographyProps={{
+                                  fontSize: '0.875rem',
+                                  fontWeight: 500
+                                }}
+                              />
                             </MenuItem>
                           ))
                         ]
                       ) : (
-                        <Box sx={{ p: 2, textAlign: 'center' }}>
-                          <Typography variant="body2" color="text.secondary" mb={2}>
+                        <Box sx={{ p: 1.5, textAlign: 'center' }}>
+                          <Typography variant="body2" color="text.secondary" mb={1.5}>
                             Connectez-vous pour accéder à votre compte
                           </Typography>
                           <Button
@@ -768,8 +842,20 @@ export function Navigation() {
                             href="/login"
                             onClick={() => setProfileMenuOpen(false)}
                             startIcon={<AccountCircle />}
+                            sx={{ mb: 1, py: 0.75 }}
                           >
                             Se connecter
+                          </Button>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            component={Link}
+                            href="/register"
+                            onClick={() => setProfileMenuOpen(false)}
+                            startIcon={<UserIcon />}
+                            sx={{ py: 0.75 }}
+                          >
+                            Créer un compte
                           </Button>
                         </Box>
                       )}

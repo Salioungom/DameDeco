@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { products, categories } from '../lib/data';
 import ProductCard from './ProductCard';
-import { Product } from '../lib/data';
+import { Product, Category } from '../lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PaymentIcons } from './PaymentIcons';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ export function HomePage({
 }: HomePageProps) {
   const theme = useTheme();
   const router = useRouter();
-  const popularProducts = products.filter((p) => p.popular);
+  const popularProducts = products.filter((p: Product) => p.popular);
 
   const handleNavigate = (path: string) => {
     if (onNavigate) {
@@ -362,7 +362,7 @@ export function HomePage({
             </Typography>
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-            {categories.map((category) => (
+            {categories.map((category: Category) => (
               <Box key={category.id}>
                 <Card
                   sx={{
@@ -389,7 +389,9 @@ export function HomePage({
                       <ImageWithFallback
                         src={category.image}
                         alt={category.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        width={400}
+                        height={200}
+                        className="w-full h-full object-cover"
                       />
                     </Box>
                     <Box
@@ -441,7 +443,7 @@ export function HomePage({
             </Button>
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-            {popularProducts.map((product) => (
+            {popularProducts.map((product: Product) => (
               <Box key={product.id}>
                 <ProductCard
                   product={product}

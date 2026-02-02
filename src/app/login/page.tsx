@@ -24,10 +24,12 @@ import {
     ArrowBack,
 } from '@mui/icons-material';
 import NextLink from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
     const theme = useTheme();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -40,43 +42,47 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-                credentials: 'include',
-            });
-
-            if (!res.ok) {
-                const json = await res.json();
-                throw new Error(json?.error || 'Échec de la connexion');
-            }
-
-            const { user } = await res.json();
-
-            // Verify auth was set by fetching /api/auth/me
-            const meRes = await fetch('/api/auth/me', { credentials: 'include' });
-            if (!meRes.ok) {
-                throw new Error('Impossible de vérifier l´authentification');
-            }
-
-            const meData = await meRes.json();
-            const authenticatedUser = meData.user;
-
-            // Redirect based on role
-            if (authenticatedUser?.role === 'superadmin') {
-                router.push('/superadmin/dashboard');
-            } else if (authenticatedUser?.role === 'admin') {
-                router.push('/admin/dashboard');
+            console.log('Login - Tentative de connexion avec:', email);
+            
+            // Utiliser le contexte d'authentification
+            const result = await login(email, password);
+            
+            console.log('Login - Résultat de la connexion:', result);
+            
+            if (result.success) {
+                console.log('Login - Connexion réussie, vérification du token stocké...');
+                console.log('Login - localStorage après connexion:', Object.keys(localStorage));
+                
+                // Vérifier que le token est bien stocké
+                const storedToken = localStorage.getItem('accessToken');
+                console.log('Login - Token stocké:', storedToken ? '✅ Présent' : '❌ Absent');
+                
+                // Attendre un peu que le AuthContext se synchronise
+                setTimeout(() => {
+                    console.log('Login - Redirection vers la page appropriée...');
+                    
+                    // Redirection basée sur le rôle
+                    const user = result.user;
+                    console.log('Login - Utilisateur:', user);
+                    
+                    if (user?.role === 'superadmin') {
+                        console.log('Login - Redirection vers /dashboards');
+                        router.push('/dashboards');
+                    } else if (user?.role === 'admin') {
+                        console.log('Login - Redirection vers /dashboard');
+                        router.push('/dashboard');
+                    } else {
+                        console.log('Login - Redirection vers /');
+                        router.push('/');
+                    }
+                    router.refresh();
+                }, 200); // 200ms de délai pour la synchronisation
             } else {
-                router.push('/');
+                setError(result.error || 'Erreur de connexion');
             }
-
-            // Force a router refresh to update server components/middleware state if needed
-            router.refresh();
-
         } catch (err: any) {
-            setError(err.message);
+            console.error('Erreur login:', err);
+            setError(err.message || 'Erreur de connexion');
         } finally {
             setLoading(false);
         }
@@ -294,6 +300,25 @@ export default function LoginPage() {
                                 }}
                             />
 
+                            <Box sx={{ mb: 2, textAlign: 'right' }}>
+                                <MuiLink
+                                    component={NextLink}
+                                    href="/forgot-password"
+                                    sx={{
+                                        color: theme.palette.primary.main,
+                                        textDecoration: 'none',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500,
+                                        '&:hover': {
+                                            textDecoration: 'underline',
+                                            color: theme.palette.primary.dark,
+                                        },
+                                    }}
+                                >
+                                    Mot de passe oublié ?
+                                </MuiLink>
+                            </Box>
+
                             <Button
                                 type="submit"
                                 fullWidth
@@ -358,56 +383,6 @@ export default function LoginPage() {
                         >
                             Créer un compte
                         </Button>
-
-                        {/* Demo Accounts Info */}
-                        <Box
-                            sx={{
-                                mt: 4,
-                                p: 3,
-                                borderRadius: 2,
-                                bgcolor: alpha(theme.palette.info.main, 0.05),
-                                border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
-                            }}
-                        >
-                            <Typography
-                                variant="subtitle2"
-                                color="info.main"
-                                fontWeight={600}
-                                gutterBottom
-                                sx={{ mb: 2 }}
-                            >
-                                📝 Comptes de démonstration
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                {[
-                                    { role: 'SuperAdmin', email: 'superadmin@example.com', pass: 'super123' },
-                                    { role: 'Admin', email: 'admin@example.com', pass: 'admin123' },
-                                    { role: 'Client', email: 'client@example.com', pass: 'client123' },
-                                ].map((account, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            p: 1.5,
-                                            borderRadius: 1,
-                                            bgcolor: 'background.paper',
-                                            border: `1px solid ${theme.palette.divider}`,
-                                            transition: 'all 0.2s',
-                                            '&:hover': {
-                                                bgcolor: alpha(theme.palette.primary.main, 0.05),
-                                                borderColor: theme.palette.primary.main,
-                                            },
-                                        }}
-                                    >
-                                        <Typography variant="caption" fontWeight={600} display="block" color="primary">
-                                            {account.role}
-                                        </Typography>
-                                        <Typography variant="caption" display="block" color="text.secondary">
-                                            {account.email} / {account.pass}
-                                        </Typography>
-                                    </Box>
-                                ))}
-                            </Box>
-                        </Box>
                     </Box>
                 </Box>
             </Container>
