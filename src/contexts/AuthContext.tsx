@@ -54,11 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchUser = async () => {
         try {
             const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-            console.log('AuthContext - Token from localStorage:', token);
-            console.log('AuthContext - localStorage keys:', Object.keys(localStorage));
+            console.log('AuthContext - Token from localStorage:', token ? 'Token exists' : 'No token found');
             
             if (!token) {
-                console.log('AuthContext - No token found');
+                console.log('AuthContext - No token found, setting unauthenticated state');
                 setState({
                     user: null,
                     accessToken: null,
@@ -66,57 +65,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     requires2FA: false,
                     roles: [],
                 });
+                setLoading(false);
                 return;
             }
 
-            console.log('AuthContext - Calling http://localhost:8000/api/v1/auth/me...');
-            const res = await fetch('http://localhost:8000/api/v1/auth/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            console.log('AuthContext - Attempting to fetch user data...');
             
-            console.log('AuthContext - /api/v1/auth/me response status:', res.status);
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`;
+            console.log('AuthContext - API URL:', apiUrl);
             
-            if (res.ok) {
-                const data = await res.json();
-                console.log('AuthContext - /api/v1/auth/me response data:', data);
-                const user = data.user || data; // Supporter les deux formats
-                console.log('AuthContext - Extracted user:', user);
+            try {
+                // Add a timeout to the fetch request (5 seconds)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+                const res = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId); // Clear the timeout if the request completes
+
+                console.log('AuthContext - Response status:', res.status);
                 
-                if (!user) {
-                    console.log('AuthContext - No user found in response');
-                    setState({
-                        user: null,
-                        accessToken: token,
-                        isAuthenticated: false,
-                        requires2FA: false,
-                        roles: [],
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('AuthContext - API Error:', {
+                        status: res.status,
+                        statusText: res.statusText,
+                        error: errorText
                     });
-                } else {
-                    console.log('AuthContext - User authenticated successfully:', user.role);
-                    setState({
-                        user,
-                        accessToken: token,
-                        isAuthenticated: true,
-                        requires2FA: data.requires2FA || false,
-                        roles: user.role ? [user.role] : [],
-                    });
+                    
+                    if (res.status === 401) {
+                        console.log('AuthContext - Unauthorized, clearing token');
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('token');
+                    }
+                    
+                    throw new Error(`API request failed with status ${res.status}: ${res.statusText}`);
                 }
-            } else {
-                console.log('AuthContext - /api/v1/auth/me failed, status:', res.status);
-                const errorData = await res.text();
-                console.log('AuthContext - Error response:', errorData);
-                // Token invalid, clear it
+
+                const data = await res.json();
+                console.log('AuthContext - User data received:', data);
+                
+                const user = data.user || data;
+                if (!user) {
+                    throw new Error('No user data in response');
+                }
+
+                console.log('AuthContext - Setting authenticated user:', user);
+                setState({
+                    user,
+                    accessToken: token,
+                    isAuthenticated: true,
+                    requires2FA: data.requires2FA || false,
+                    roles: user.role ? [user.role] : [],
+                });
+
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    if (error.name === 'AbortError') {
+                        console.error('AuthContext - Request timed out. The server might be down or too slow to respond.');
+                        throw new Error('Connection timeout. Please check if the backend server is running and accessible.');
+                    } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                        console.error('AuthContext - Network error. Please check your internet connection and ensure the backend server is running.');
+                        throw new Error('Cannot connect to the server. Please check your network connection and try again.');
+                    }
+                    console.error('AuthContext - Error in fetchUser:', error);
+                } else {
+                    console.error('AuthContext - Unknown error in fetchUser:', error);
+                }
+                // Clear invalid token on error
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('token');
-                setState({
-                    user: null,
-                    accessToken: null,
-                    isAuthenticated: false,
-                    requires2FA: false,
-                    roles: [],
-                });
+                throw error;
             }
         } catch (error) {
             console.error('AuthContext - Error fetching user:', error);
@@ -138,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (identifier: string, password: string) => {
         try {
-            const res = await fetch('http://localhost:8000/api/v1/auth/login', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -200,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const register = async (data: RegisterData) => {
         try {
-            const res = await fetch('/api/v1/auth/register', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -224,7 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = async () => {
         try {
             if (state.accessToken) {
-                await fetch('http://localhost:8000/api/v1/auth/logout', {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/logout`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${state.accessToken}`,
@@ -248,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refreshAccessToken = async () => {
         try {
-            const res = await fetch('/api/v1/auth/refresh', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -275,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const verifyOTP = async (otp: string, method: 'totp' | 'email') => {
         try {
-            const res = await fetch('/api/v1/auth/verify-otp', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

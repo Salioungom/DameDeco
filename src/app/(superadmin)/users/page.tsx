@@ -102,7 +102,7 @@ export default function SuperadminUsersPage() {
       
       // Utiliser skip et limit selon la documentation FastAPI
       // Test avec l'URL la plus simple possible
-      const res = await fetch(`http://localhost:8000/api/v1/users/`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -236,7 +236,7 @@ export default function SuperadminUsersPage() {
         throw new Error('Non authentifié');
       }
 
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userToEdit.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToEdit.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -278,7 +278,7 @@ export default function SuperadminUsersPage() {
         throw new Error('Non authentifié');
       }
 
-      const res = await fetch(`http://localhost:8000/api/v1/users/${userToDelete.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

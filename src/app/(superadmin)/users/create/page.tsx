@@ -119,7 +119,7 @@ export default function CreateAdminPage() {
         is_active: true
       };
 
-      const res = await fetch('http://localhost:8000/api/v1/users/', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

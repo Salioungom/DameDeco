@@ -43,7 +43,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
     const checkStrength = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/v1/auth/password/strength', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/password/strength`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -19,7 +20,8 @@ import {
   Star,
   WhatsApp as MessageCircle,
 } from '@mui/icons-material';
-import { products, categories } from '../lib/data';
+import { products } from '../lib/data';
+import { homeService } from '../services/home.service';
 import ProductCard from './ProductCard';
 import { Product, Category } from '../lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -51,7 +53,25 @@ export function HomePage({
 }: HomePageProps) {
   const theme = useTheme();
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const popularProducts = products.filter((p: Product) => p.popular);
+
+  // Charger les catégories depuis l'API au montage du composant
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const fetchedCategories = await homeService.getActiveCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   const handleNavigate = (path: string) => {
     if (onNavigate) {
@@ -361,64 +381,82 @@ export function HomePage({
               Explorez notre large gamme de produits pour embellir votre intérieur
             </Typography>
           </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-            {categories.map((category: Category) => (
-              <Box key={category.id}>
-                <Card
-                  sx={{
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      boxShadow: theme.shadows[8],
-                    },
-                    '&:hover [data-role="category-media"]': {
-                      transform: 'scale(1.1)',
-                    },
-                  }}
-                  onClick={() => onViewCategory ? onViewCategory(category.id) : handleNavigate('shop')}
-                >
-                  <CardContent sx={{ p: 0, position: 'relative', height: 200 }}>
-                    <Box
-                      data-role="category-media"
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        transition: 'transform 0.3s',
-                      }}
-                    >
-                      <ImageWithFallback
-                        src={category.image}
-                        alt={category.name}
-                        width={400}
-                        height={200}
-                        className="w-full h-full object-cover"
+          
+          {/* État de chargement */}
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Typography>Chargement des catégories...</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+              {categories.map((category: Category) => (
+                <Box key={category.id}>
+                  <Card
+                    sx={{
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        boxShadow: theme.shadows[8],
+                      },
+                      '&:hover [data-role="category-media"]': {
+                        transform: 'scale(1.1)',
+                      },
+                    }}
+                    onClick={() => onViewCategory ? onViewCategory(category.id) : handleNavigate('shop')}
+                  >
+                    <CardContent sx={{ p: 0, position: 'relative', height: 200 }}>
+                      <Box
+                        data-role="category-media"
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          transition: 'transform 0.3s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'grey.100'
+                        }}
+                      >
+                        {category.image ? (
+                          <ImageWithFallback
+                            src={category.image}
+                            alt={category.name}
+                            width={400}
+                            height={200}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Box sx={{ fontSize: '3rem', color: 'text.secondary' }}>
+                            {category.icon}
+                          </Box>
+                        )}
+                      </Box>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                        }}
                       />
-                    </Box>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-                      }}
-                    />
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        position: 'absolute',
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        color: 'white',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {category.name}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Box>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          color: 'white',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {category.name}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Box>
+          )}
         </Container>
       </Box>
 

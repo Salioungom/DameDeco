@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -43,6 +43,7 @@ import {
   Tooltip,
   Badge,
   useMediaQuery,
+  CircularProgress,
 } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
@@ -76,6 +77,7 @@ import {
   CheckCircle,
   Pending,
   Error as ErrorIcon,
+  Category,
 } from '@mui/icons-material';
 import { products, orders, customers, categories } from '../lib/data';
 
@@ -115,6 +117,7 @@ interface Customer {
 }
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ProductManagement } from './ProductManagement';
+import { CategoriesManagement } from './CategoriesManagement';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -280,6 +283,7 @@ export function AdminDashboard() {
           >
             <Tab icon={<LayoutDashboard />} iconPosition="start" label="Vue d'ensemble" />
             <Tab icon={<Package />} iconPosition="start" label="Produits" />
+            <Tab icon={<Category />} iconPosition="start" label="Categories" />
             <Tab icon={<ShoppingCart />} iconPosition="start" label="Commandes" />
             <Tab icon={<Star />} iconPosition="start" label="Avis Clients" />
             <Tab icon={<Users />} iconPosition="start" label="Clients" />
@@ -701,8 +705,13 @@ export function AdminDashboard() {
           <ProductManagement />
         </CustomTabPanel>
 
-        {/* Orders Tab */}
+        {/* Categories Tab */}
         <CustomTabPanel value={activeTab} index={2}>
+          <CategoriesManagement />
+        </CustomTabPanel>
+
+        {/* Orders Tab */}
+        <CustomTabPanel value={activeTab} index={3}>
           <Card>
             <CardContent sx={{ p: 0 }}>
               <Table>
@@ -770,7 +779,7 @@ export function AdminDashboard() {
         </CustomTabPanel>
 
         {/* Reviews Tab */}
-        <CustomTabPanel value={activeTab} index={3}>
+        <CustomTabPanel value={activeTab} index={4}>
           <Card sx={{ mb: 4 }}>
             <CardHeader
               title="Avis Clients"
@@ -900,7 +909,7 @@ export function AdminDashboard() {
         </CustomTabPanel>
 
         {/* Customers Tab */}
-        <CustomTabPanel value={activeTab} index={4}>
+        <CustomTabPanel value={activeTab} index={5}>
           <Card>
             <CardContent sx={{ p: 0 }}>
               <Table>
@@ -945,7 +954,7 @@ export function AdminDashboard() {
         </CustomTabPanel>
 
         {/* Settings Tab */}
-        <CustomTabPanel value={activeTab} index={5}>
+        <CustomTabPanel value={activeTab} index={6}>
           <Grid container spacing={3}>
             <Grid item xs={12} lg={6}>
               <Card>

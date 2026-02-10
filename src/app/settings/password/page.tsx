@@ -35,7 +35,7 @@ export default function PasswordPage() {
     setSuccess('');
 
     try {
-      const response = await fetch('/api/v1/auth/password/change', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/password/change`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function PasswordPage() {
 
   const checkPasswordStrength = async (password: string) => {
     try {
-      const response = await fetch('/api/v1/auth/password/strength', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/password/strength`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
