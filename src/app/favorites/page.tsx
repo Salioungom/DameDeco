@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -8,38 +8,82 @@ import {
     Grid,
     Card,
     CardContent,
-    CardMedia,
     IconButton,
     Button,
     Chip,
     Paper,
     alpha,
+    CircularProgress,
+    Alert,
 } from '@mui/material';
 import {
     Favorite,
     FavoriteBorder,
     ShoppingCart,
-    Delete,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
-import { products } from '@/lib/data';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import Link from 'next/link';
+import { productService } from '@/services/product.service';
+import { Product } from '@/lib/types';
 
 export default function FavoritesPage() {
     const { favorites, toggleFavorite, addToCart } = useStore();
+    const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const favoriteProducts = products.filter((product) =>
-        favorites.includes(product.id)
-    );
+    useEffect(() => {
+        const loadFavorites = async () => {
+            if (favorites.length === 0) {
+                setFavoriteProducts([]);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                // Fetch each product by ID. 
+                // Optimization: If backend supports getByIds, use that.
+                // Otherwise Promise.all is acceptable for client-side favorites (usually small list).
+                const promises = favorites.map(id => productService.getProductById(id)); // Assuming getProduct throws if not found
+                const results = await Promise.allSettled(promises);
+
+                const foundProducts: Product[] = [];
+                results.forEach(result => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        foundProducts.push(result.value);
+                    }
+                });
+                setFavoriteProducts(foundProducts);
+            } catch (err) {
+                console.error("Error loading favorites", err);
+                setError("Impossible de charger certains favoris.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadFavorites();
+    }, [favorites]);
 
     const handleRemoveFavorite = (productId: string) => {
         toggleFavorite(productId);
+        // Optimistically remove from view
+        setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
     };
 
-    const handleAddToCart = (product: any) => {
+    const handleAddToCart = (product: Product) => {
         addToCart(product);
     };
+
+    if (loading) {
+        return (
+            <Container maxWidth="lg" sx={{ mt: 12, mb: 8, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress />
+            </Container>
+        );
+    }
 
     if (favoriteProducts.length === 0) {
         return (
@@ -82,6 +126,7 @@ export default function FavoritesPage() {
                 <Typography variant="body1" color="text.secondary">
                     {favoriteProducts.length} produit{favoriteProducts.length > 1 ? 's' : ''} dans vos favoris
                 </Typography>
+                {error && <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert>}
             </Box>
 
             <Grid container spacing={3}>
@@ -130,7 +175,7 @@ export default function FavoritesPage() {
                                 }}
                             >
                                 <ImageWithFallback
-                                    src={product.image}
+                                    src={product.cover_image_url || ''}
                                     alt={product.name}
                                     style={{
                                         position: 'absolute',
@@ -141,7 +186,7 @@ export default function FavoritesPage() {
                                         objectFit: 'cover',
                                     }}
                                 />
-                                {product.popular && (
+                                {product.is_featured && (
                                     <Chip
                                         label="Populaire"
                                         color="error"

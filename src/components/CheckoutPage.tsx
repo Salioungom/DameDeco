@@ -72,8 +72,8 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
 
   const subtotal = items.reduce((sum, item) => {
     const price =
-      item.priceType === 'wholesale' ? item.product.wholesalePrice : item.product.price;
-    return sum + price * item.quantity;
+      item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
+    return sum + (price || 0) * item.quantity;
   }, 0);
 
   const deliveryFee = deliveryMethod === 'delivery' ? 3000 : 0;
@@ -298,7 +298,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                 <Stack spacing={3}>
                   <Stack spacing={2}>
                     {items.map((item) => {
-                      const price = item.priceType === 'wholesale' ? item.product.wholesalePrice : item.product.price;
+                      const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
                       return (
                         <Box key={item.product.id} display="flex" gap={2}>
                           <Box
@@ -311,11 +311,11 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                               flexShrink: 0,
                             }}
                           >
-                          <ImageWithFallback
-                            src={item.product.image}
-                            alt={item.product.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
+                            <ImageWithFallback
+                              src={item.product.cover_image_url || ''}
+                              alt={item.product.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
                           </Box>
 
                           <Box flex={1} minWidth={0}>
@@ -326,7 +326,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                               Qté: {item.quantity}
                             </Typography>
                             <Typography variant="body2" color="primary">
-                              {(price * item.quantity).toLocaleString('fr-FR')} FCFA
+                              {((price || 0) * item.quantity).toLocaleString('fr-FR')} FCFA
                             </Typography>
                           </Box>
                         </Box>

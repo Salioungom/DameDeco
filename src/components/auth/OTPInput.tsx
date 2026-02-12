@@ -25,7 +25,7 @@ export function OTPInput({ value, onChange, length = 6, disabled = false }: OTPI
     const newOTP = value.split('');
     newOTP[index] = val;
     const otpString = newOTP.join('');
-    
+
     onChange(otpString);
 
     // Auto-focus next input
@@ -56,10 +56,10 @@ export function OTPInput({ value, onChange, length = 6, disabled = false }: OTPI
       {Array.from({ length }, (_, index) => (
         <TextField
           key={index}
-          inputRef={(el) => (inputRefs.current[index] = el)}
+          inputRef={(el: HTMLInputElement | null) => (inputRefs.current[index] = el)}
           value={value[index] || ''}
-          onChange={(e) => handleChange(index, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(index, e.target.value)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}
           onPaste={index === 0 ? handlePaste : undefined}
           variant="outlined"
           inputProps={{

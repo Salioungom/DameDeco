@@ -1,21 +1,15 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { styled as muiStyled, alpha, type Theme as MuiTheme } from '@mui/material/styles';
-
-// Désactiver les vérifications de type pour les composants stylisés
-// @ts-nocheck
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Card,
   CardContent,
   CardActions,
   Typography,
-  Button,
   IconButton,
   Box,
   Stack,
   Chip,
-  Badge,
   Tooltip,
   useTheme as useMuiTheme,
   Skeleton
@@ -26,47 +20,10 @@ import {
   WhatsApp,
   Favorite,
   FavoriteBorder,
-  Star,
-  StarBorder,
   Info as InfoIcon
 } from '@mui/icons-material';
-import { Product } from '../lib/data';
+import { Product } from '../types/product';
 import { orderViaWhatsApp } from '../lib/whatsapp';
-// Composant personnalisé pour l'image avec fallback
-const ImageWithFallback = ({
-  src,
-  alt,
-  width,
-  height,
-  style,
-  fallback,
-  ...props
-}: {
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  style: React.CSSProperties;
-  fallback: React.ReactNode;
-} & React.ImgHTMLAttributes<HTMLImageElement>) => {
-  const [hasError, setHasError] = useState(false);
-
-  if (hasError) {
-    return <>{fallback}</>;
-  }
-
-  return (
-    <img
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      style={style}
-      onError={() => setHasError(true)}
-      {...props}
-    />
-  );
-};
 
 // Styles personnalisés
 interface StyledCardProps {
@@ -133,8 +90,6 @@ const ProductImage = muiStyled(Box)(({ theme }: any) => ({
   },
 }));
 
-// Déplacer cette ligne à la fin du fichier
-
 const FavoriteButton = muiStyled(IconButton)(({ theme }: any) => ({
   position: 'absolute',
   top: theme.spacing(1),
@@ -195,30 +150,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleWhatsAppOrder = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    const price = userType === 'wholesale' && product.wholesalePrice
-      ? product.wholesalePrice
+    const price = userType === 'wholesale' && product.wholesale_price
+      ? product.wholesale_price
       : product.price;
     orderViaWhatsApp(
       product.name,
       price,
       1, // quantity
-      product.image,
+      product.cover_image_url,
       product.id,
       product.description
     );
   }, [product, userType]);
 
   // Calculer le taux de réduction
-  const discountPercentage = product.originalPrice && product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discountPercentage = product.original_price && product.original_price > product.price
+    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;
-
-  // Calculer la note moyenne
-  const averageRating = product.reviews && product.reviews.length > 0
-    ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-    : 0;
-
-  const reviewCount = (product.reviews && product.reviews.length) || 0;
 
   const handleCardClick = useCallback((e: React.MouseEvent) => {
     // Ne pas déclencher la navigation si on clique sur un bouton
@@ -263,9 +211,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
     >
       <ProductImageWrapper>
         <ProductImage>
-          {product.image ? (
+          {product.cover_image_url ? (
             <img
-              src={product.image}
+              src={product.cover_image_url}
               alt={product.name}
               style={{
                 width: '100%',
@@ -320,7 +268,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             alignItems: 'flex-start',
           }}
         >
-          {product.stock !== undefined && product.stock < 20 && (
+          {product.inventory_quantity !== undefined && product.inventory_quantity < 20 && (
             <Chip
               label="Stock limité"
               color="error"
@@ -328,7 +276,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               sx={{ fontWeight: 'bold' }}
             />
           )}
-          {product.originalPrice && product.originalPrice > product.price && (
+          {product.original_price && product.original_price > product.price && (
             <Chip
               label={`-${discountPercentage}%`}
               color="error"
@@ -362,38 +310,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </ProductImageWrapper>
 
       <CardContent sx={{ flexGrow: 1, p: 2 }}>
-        {/* Note et avis avec chargement paresseux */}
-        {reviewCount > 0 && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ display: 'flex', mr: 1 }}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Box
-                  key={star}
-                  component="span"
-                  sx={{
-                    color: star <= Math.round(averageRating)
-                      ? 'warning.main'
-                      : 'action.disabled',
-                  }}
-                >
-                  {star <= Math.round(averageRating) ? (
-                    <Star fontSize="small" />
-                  ) : (
-                    <StarBorder fontSize="small" />
-                  )}
-                </Box>
-              ))}
-            </Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              component="span"
-            >
-              ({reviewCount} avis)
-            </Typography>
-          </Box>
-        )}
-
         {/* Nom du produit */}
         <Typography
           gutterBottom
@@ -413,7 +329,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Prix */}
         <Box sx={{ mt: 'auto' }}>
-          {product.originalPrice && product.originalPrice > product.price && (
+          {product.original_price && product.original_price > product.price && (
             <Typography
               variant="body2"
               color="text.secondary"
@@ -422,7 +338,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               {new Intl.NumberFormat('fr-FR', {
                 style: 'currency',
                 currency: 'XOF',
-              }).format(product.originalPrice)}
+              }).format(product.original_price)}
             </Typography>
           )}
           <Typography
@@ -435,11 +351,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
               style: 'currency',
               currency: 'XOF',
             }).format(
-              userType === 'wholesale' && product.wholesalePrice
-                ? product.wholesalePrice
+              userType === 'wholesale' && product.wholesale_price
+                ? product.wholesale_price
                 : product.price
             )}
-            {userType === 'wholesale' && product.wholesalePrice && (
+            {userType === 'wholesale' && product.wholesale_price && (
               <Typography
                 component="span"
                 variant="caption"
@@ -453,7 +369,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {userType === 'wholesale' && (
             <Typography variant="caption" color="text.secondary" display="block">
-              {product.wholesalePrice ? `Prix spécial pour commandes en gros` : 'Contactez-nous pour les prix de gros'}
+              {product.wholesale_price ? `Prix spécial pour commandes en gros` : 'Contactez-nous pour les prix de gros'}
             </Typography>
           )}
         </Box>

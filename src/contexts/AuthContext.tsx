@@ -92,11 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.log('AuthContext - Response status:', res.status);
                 
                 if (!res.ok) {
-                    const errorText = await res.text();
+                    let errorData;
+                    try {
+                        errorData = await res.json();
+                    } catch {
+                        errorData = await res.text();
+                    }
+                    
                     console.error('AuthContext - API Error:', {
                         status: res.status,
                         statusText: res.statusText,
-                        error: errorText
+                        error: errorData
                     });
                     
                     if (res.status === 401) {

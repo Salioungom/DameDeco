@@ -28,7 +28,7 @@ function ProfileContent() {
                             <TextField
                                 fullWidth
                                 label="Nom"
-                                value={user?.name || ''}
+                                value={user?.full_name || ''}
                                 disabled={!editing}
                                 variant="outlined"
                             />

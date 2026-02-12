@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image, { ImageProps } from 'next/image';
 import { Box } from '@mui/material';
 
-interface ImageWithFallbackProps extends Omit<ImageProps, 'onError' | 'src' | 'style' | 'width' | 'height'> {
+interface ImageWithFallbackProps extends Omit<ImageProps, 'onError' | 'src' | 'width' | 'height'> {
   src: string;
   fallbackSrc?: string;
   alt: string;
@@ -104,6 +104,7 @@ export function ImageWithFallback({
           objectFit: 'cover',
           opacity: isLoading ? 0.7 : 1,
           transition: 'opacity 0.3s ease',
+          ...(props.style as React.CSSProperties),
         }}
       />
     </Box>

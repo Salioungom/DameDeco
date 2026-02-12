@@ -24,6 +24,7 @@ import ProductCard from './ProductCard';
 import { useCategories } from '../hooks/useCategories';
 import { LoadingSpinner } from './common/LoadingSpinner';
 import type { Product } from '../lib/types';
+import { productService } from '../services/product.service';
 
 interface CategoryPageProps {
     onAddToCart: (product: Product) => void;
@@ -31,7 +32,6 @@ interface CategoryPageProps {
     userType: 'retail' | 'wholesale';
     favorites: string[];
     onToggleFavorite: (productId: string) => void;
-    products: Product[]; // Les produits seront passés en paramètre depuis le parent
 }
 
 export function CategoryPage({
@@ -40,26 +40,35 @@ export function CategoryPage({
     userType,
     favorites,
     onToggleFavorite,
-    products,
 }: CategoryPageProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const categorySlug = searchParams.get('slug');
-    const theme = useTheme();
     const [sortBy, setSortBy] = useState<string>('popular');
     const { categories, loading: categoriesLoading, error: categoriesError, getCategoryBySlug } = useCategories();
     const [currentCategory, setCurrentCategory] = useState<any>(null);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!categorySlug) return;
-        
-        const loadCategory = async () => {
+
+        const loadCategoryAndProducts = async () => {
             try {
                 setLoading(true);
                 const category = await getCategoryBySlug(categorySlug);
                 setCurrentCategory(category);
+
+                if (category) {
+                    // Fetch products for this category
+                    const response = await productService.getProducts({
+                        category_id: Number(category.id),
+                        limit: 100
+                    });
+                    setProducts(response.items);
+                }
+
                 setError(null);
             } catch (err) {
                 setError('Erreur lors du chargement de la catégorie');
@@ -69,7 +78,7 @@ export function CategoryPage({
             }
         };
 
-        loadCategory();
+        loadCategoryAndProducts();
     }, [categorySlug, getCategoryBySlug]);
 
     // Si on est en train de charger les catégories ou la catégorie courante
@@ -113,28 +122,23 @@ export function CategoryPage({
         );
     }
 
-    // Filtrer les produits par catégorie (en utilisant l'ID de la catégorie)
-    const categoryProducts = products.filter(
-        (product) => product.category === currentCategory.id.toString()
-    );
-
     // Trier les produits
-    const filteredProducts = [...categoryProducts].sort((a, b) => {
+    const filteredProducts = [...products].sort((a, b) => {
         if (sortBy === 'price-asc') {
-            const priceA = userType === 'wholesale' ? a.wholesalePrice : a.price;
-            const priceB = userType === 'wholesale' ? b.wholesalePrice : b.price;
+            const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
+            const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
             return priceA - priceB;
         }
         if (sortBy === 'price-desc') {
-            const priceA = userType === 'wholesale' ? a.wholesalePrice : a.price;
-            const priceB = userType === 'wholesale' ? b.wholesalePrice : b.price;
+            const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
+            const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
             return priceB - priceA;
         }
         if (sortBy === 'name') {
             return a.name.localeCompare(b.name);
         }
         if (sortBy === 'popular') {
-            return (b.popular ? 1 : 0) - (a.popular ? 1 : 0);
+            return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
         }
         return 0;
     });
@@ -167,7 +171,7 @@ export function CategoryPage({
                     >
                         Retour
                     </Button>
-                    
+
                     <Box sx={{ flexGrow: 1 }}>
                         <Typography variant="h4" component="h1" fontWeight={700}>
                             {currentCategory?.name || 'Catégorie'}
@@ -178,7 +182,7 @@ export function CategoryPage({
                             </Typography>
                         )}
                     </Box>
-                    
+
                     <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
                         <InputLabel id="sort-by-label">Trier par</InputLabel>
                         <Select

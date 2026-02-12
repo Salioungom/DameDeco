@@ -52,7 +52,12 @@ export const useStore = create<StoreState>()(
                         };
                     }
                     return {
-                        cart: [...state.cart, { product, quantity, priceType: state.userType }],
+                        cart: [...state.cart, {
+                            product,
+                            quantity,
+                            priceType: state.userType,
+                            addedAt: new Date().toISOString()
+                        }],
                         isCartOpen: true,
                     };
                 }),

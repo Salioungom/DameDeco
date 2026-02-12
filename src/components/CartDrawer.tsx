@@ -30,9 +30,9 @@ export function CartDrawer() {
   const total = cart.reduce((sum, item) => {
     const price =
       item.priceType === 'wholesale'
-        ? item.product.wholesalePrice
+        ? item.product.wholesale_price
         : item.product.price;
-    return sum + price * item.quantity;
+    return sum + (price || 0) * item.quantity;
   }, 0);
 
   const handleCheckout = () => {
@@ -78,32 +78,32 @@ export function CartDrawer() {
                 {cart.map((item) => {
                   const price =
                     item.priceType === 'wholesale'
-                      ? item.product.wholesalePrice
+                      ? item.product.wholesale_price
                       : item.product.price;
                   return (
                     <Box key={item.product.id} sx={{ display: 'flex', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        bgcolor: 'action.hover',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <ImageWithFallback
-                        src={item.product.image}
-                        alt={item.product.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </Box>
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          bgcolor: 'action.hover',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <ImageWithFallback
+                          src={item.product.cover_image_url || ''}
+                          alt={item.product.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="subtitle2" noWrap gutterBottom>
                           {item.product.name}
                         </Typography>
                         <Typography variant="body2" color="primary" fontWeight="bold" gutterBottom>
-                          {price.toLocaleString('fr-FR')} FCFA
+                          {(price || 0).toLocaleString('fr-FR')} FCFA
                         </Typography>
                         <Stack direction="row" alignItems="center" spacing={1}>
                           <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1 }}>

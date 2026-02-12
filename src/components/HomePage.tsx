@@ -17,23 +17,20 @@ import {
   Inventory2 as Package,
   LocalShipping as Truck,
   Security as Shield,
-  Star,
-  WhatsApp as MessageCircle,
 } from '@mui/icons-material';
-import { products } from '../lib/data';
 import { homeService } from '../services/home.service';
+import { productService } from '../services/product.service';
 import ProductCard from './ProductCard';
 import { Product, Category } from '../lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PaymentIcons } from './PaymentIcons';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 // Image bannière depuis le dossier public
 const bannerImage = '/banner.png';
 
 interface HomePageProps {
-  onNavigate?: (page: string, category?: string) => void; // Optional now as we use router
+  onNavigate?: (page: string, category?: string) => void;
   onAddToCart: (product: Product) => void;
   onViewProduct: (product: Product) => void;
   onViewCategory?: (categoryId: string) => void;
@@ -54,23 +51,27 @@ export function HomePage({
   const theme = useTheme();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const popularProducts = products.filter((p: Product) => p.popular);
 
-  // Charger les catégories depuis l'API au montage du composant
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
-        const fetchedCategories = await homeService.getActiveCategories();
+        setLoading(true);
+        const [fetchedCategories, productResponse] = await Promise.all([
+          homeService.getActiveCategories(),
+          productService.getProducts({ limit: 8 })
+        ]);
         setCategories(fetchedCategories);
+        setPopularProducts(productResponse.items);
       } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error('Error loading home data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCategories();
+    loadData();
   }, []);
 
   const handleNavigate = (path: string) => {
@@ -112,7 +113,6 @@ export function HomePage({
           },
         }}
       >
-        {/* Dégradé par-dessus l'image - ajusté pour laisser les drapeaux visibles */}
         <Box sx={{
           position: 'absolute',
           inset: 0,
@@ -120,7 +120,6 @@ export function HomePage({
           zIndex: 1,
         }} />
 
-        {/* Conteneur du contenu déplacé vers le bas */}
         <Box sx={{
           maxWidth: '1200px',
           width: '100%',
@@ -244,43 +243,13 @@ export function HomePage({
 
         <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
           <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 8 } }}>
-            <Typography
-              variant="overline"
-              sx={{
-                color: 'primary.main',
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                display: 'inline-block',
-                mb: 1.5,
-                fontSize: '0.85rem',
-              }}
-            >
+            <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5, display: 'inline-block', mb: 1.5, fontSize: '0.85rem' }}>
               Nos Avantages
             </Typography>
-            <Typography
-              variant="h3"
-              component="h2"
-              sx={{
-                fontWeight: 800,
-                mb: 3,
-                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-                lineHeight: 1.2,
-                color: 'text.primary',
-              }}
-            >
+            <Typography variant="h3" component="h2" sx={{ fontWeight: 800, mb: 3, fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }, lineHeight: 1.2, color: 'text.primary' }}>
               Pourquoi nous choisir ?
             </Typography>
-            <Typography
-              variant="h6"
-              component="p"
-              sx={{
-                maxWidth: '700px',
-                mx: 'auto',
-                color: 'text.secondary',
-                fontSize: { xs: '1rem', md: '1.1rem' },
-                lineHeight: 1.7,
-              }}
-            >
+            <Typography variant="h6" component="p" sx={{ maxWidth: '700px', mx: 'auto', color: 'text.secondary', fontSize: { xs: '1rem', md: '1.1rem' }, lineHeight: 1.7 }}>
               Découvrez ce qui fait de nous le choix idéal pour tous vos besoins d'achat en ligne
             </Typography>
           </Box>
@@ -305,57 +274,16 @@ export function HomePage({
               },
             ].map((feature, index) => (
               <Box key={index}>
-                <Box
-                  sx={{
-                    textAlign: 'center',
-                    p: { xs: 3, md: 4 },
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.05)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 15px 40px rgba(0, 0, 0, 0.1)',
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      bgcolor: alpha(theme.palette.primary.main, 0.1),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 3,
-                    }}
-                  >
+                <Box sx={{
+                  textAlign: 'center', p: { xs: 3, md: 4 }, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: 'background.paper', borderRadius: 2, boxShadow: '0 8px 30px rgba(0, 0, 0, 0.05)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.1)' }
+                }}>
+                  <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: alpha(theme.palette.primary.main, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
                     {feature.icon}
                   </Box>
-                  <Typography
-                    variant="h5"
-                    component="h3"
-                    sx={{
-                      mb: 2,
-                      fontWeight: 700,
-                      color: 'text.primary',
-                    }}
-                  >
+                  <Typography variant="h5" component="h3" sx={{ mb: 2, fontWeight: 700, color: 'text.primary' }}>
                     {feature.title}
                   </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: 'text.secondary',
-                      lineHeight: 1.7,
-                      maxWidth: '320px',
-                    }}
-                  >
+                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7, maxWidth: '320px' }}>
                     {feature.description}
                   </Typography>
                   {feature.paymentMethods && (
@@ -381,8 +309,7 @@ export function HomePage({
               Explorez notre large gamme de produits pour embellir votre intérieur
             </Typography>
           </Box>
-          
-          {/* État de chargement */}
+
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <Typography>Chargement des catégories...</Typography>
@@ -395,12 +322,8 @@ export function HomePage({
                     sx={{
                       cursor: 'pointer',
                       overflow: 'hidden',
-                      '&:hover': {
-                        boxShadow: theme.shadows[8],
-                      },
-                      '&:hover [data-role="category-media"]': {
-                        transform: 'scale(1.1)',
-                      },
+                      '&:hover': { boxShadow: theme.shadows[8] },
+                      '&:hover [data-role="category-media"]': { transform: 'scale(1.1)' },
                     }}
                     onClick={() => onViewCategory ? onViewCategory(category.id) : handleNavigate('shop')}
                   >
@@ -431,24 +354,8 @@ export function HomePage({
                           </Box>
                         )}
                       </Box>
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-                        }}
-                      />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          position: 'absolute',
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          color: 'white',
-                          fontWeight: 'bold',
-                        }}
-                      >
+                      <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} />
+                      <Typography variant="h6" sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, color: 'white', fontWeight: 'bold' }}>
                         {category.name}
                       </Typography>
                     </CardContent>
@@ -460,7 +367,7 @@ export function HomePage({
         </Container>
       </Box>
 
-      {/* Popular Products */}
+      {/* Popular Products - Now Fetched from API */}
       <Box sx={{ py: 8, bgcolor: alpha(theme.palette.secondary.main, 0.05) }}>
         <Container maxWidth="xl">
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
@@ -480,20 +387,27 @@ export function HomePage({
               Voir tout
             </Button>
           </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-            {popularProducts.map((product: Product) => (
-              <Box key={product.id}>
-                <ProductCard
-                  product={product}
-                  onAddToCart={onAddToCart}
-                  onViewDetails={onViewProduct}
-                  userType={userType}
-                  isFavorite={favorites.includes(product.id)}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              </Box>
-            ))}
-          </Box>
+
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Typography>Chargement des produits...</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+              {popularProducts.map((product: Product) => (
+                <Box key={product.id}>
+                  <ProductCard
+                    product={product}
+                    onAddToCart={onAddToCart}
+                    onViewDetails={onViewProduct}
+                    userType={userType}
+                    isFavorite={favorites.includes(product.id)}
+                    onToggleFavorite={onToggleFavorite}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
         </Container>
       </Box>
 

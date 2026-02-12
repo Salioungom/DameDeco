@@ -83,26 +83,33 @@ export default function RegisterPage() {
 
             // Utiliser le format selon les spécifications backend FINALES
             const response = await authAPI.register(formData);
-            const data = response;
 
-            if (data.success) {
-                setSuccess('Compte créé avec succès ! Veuillez vérifier votre email.');
-                // Rediriger vers verify-otp après 2 secondes avec l'email
-                setTimeout(() => {
-                    router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
-                }, 2000);
-            } else {
-                // Gérer les erreurs de validation backend
-                if (data.detail && Array.isArray(data.detail)) {
-                    const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
-                    throw new Error(errorMessages);
-                } else {
-                    throw new Error(data.detail || 'Échec de l\'inscription');
+            // Si la promesse est résolue, l'inscription est réussie
+            setSuccess('Compte créé avec succès ! Veuillez vérifier votre email.');
+            // Rediriger vers verify-otp après 2 secondes avec l'email
+            setTimeout(() => {
+                router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+            }, 2000);
+
+
+        } catch (err: any) {
+            console.error('Erreur inscription:', err);
+            let errorMessage = err.message || 'Erreur d\'inscription';
+
+            // Tenter d'extraire le message d'erreur de la réponse API
+            if (err.response && err.response.data) {
+                if (err.response.data.detail) {
+                    if (Array.isArray(err.response.data.detail)) {
+                        errorMessage = err.response.data.detail.map((e: any) => e.msg).join(', ');
+                    } else {
+                        errorMessage = err.response.data.detail;
+                    }
+                } else if (err.response.data.message) {
+                    errorMessage = err.response.data.message;
                 }
             }
 
-        } catch (err: any) {
-            setError(err.message || 'Erreur d\'inscription');
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

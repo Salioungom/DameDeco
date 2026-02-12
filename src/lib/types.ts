@@ -17,23 +17,9 @@ export interface Review {
     helpful?: number; // Nombre de "utile"
 }
 
-export interface Product {
-    id: string;
-    name: string;
-    category: string;
-    price: number;
-    originalPrice?: number; // Prix avant promo
-    wholesalePrice: number;
-    description: string;
-    image: string;
-    images: string[];
-    stock: number;
-    pieces?: number;
-    popular?: boolean;
-    reviews?: Review[];
-    averageRating?: number;
-    reviewCount?: number;
-}
+import { Product as ApiProduct } from '@/types/product';
+
+export type Product = ApiProduct;
 
 export interface Order {
     id: string;

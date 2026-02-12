@@ -17,14 +17,16 @@ import {
   FormControl,
   InputLabel,
   Stack,
-  Paper,
   IconButton,
   useTheme,
   useMediaQuery,
+  CircularProgress
 } from '@mui/material';
 import { FilterList as Filter, Close as X } from '@mui/icons-material';
 import ProductCard from './ProductCard';
-import { Product, products, categories } from '../lib/data';
+import { productService } from '../services/product.service';
+import { homeService } from '../services/home.service';
+import { Product, Category } from '../lib/types';
 
 interface ShopPageProps {
   onAddToCart: (product: Product) => void;
@@ -46,16 +48,37 @@ export function ShopPage({
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [priceRange, setPriceRange] = useState<number[]>([0, 150000]);
+  const [sortBy, setSortBy] = useState<string>('popular');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // Fetch Data
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [cats, prods] = await Promise.all([
+          homeService.getActiveCategories(),
+          productService.getProducts({ limit: 1000 }) // Fetch all for client-side filtering
+        ]);
+        setCategories(cats);
+        setProducts(prods.items);
+      } catch (error) {
+        console.error("Error fetching shop data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+
     return () => setIsMounted(false);
   }, []);
-  const [sortBy, setSortBy] = useState<string>('popular');
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (initialCategory) {
@@ -73,10 +96,16 @@ export function ShopPage({
 
   const filteredProducts = products
     .filter((product) => {
-      if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
-        return false;
+      // Filter by Category
+      // Note: product.category_id is a number, selectedCategories are likely strings (ids)
+      if (selectedCategories.length > 0) {
+        // Convert category_id to string for comparison
+        if (!selectedCategories.includes(product.category_id.toString())) {
+          return false;
+        }
       }
-      const price = userType === 'wholesale' ? product.wholesalePrice : product.price;
+
+      const price = userType === 'wholesale' && product.wholesale_price ? product.wholesale_price : product.price;
       if (price < priceRange[0] || price > priceRange[1]) {
         return false;
       }
@@ -84,20 +113,21 @@ export function ShopPage({
     })
     .sort((a, b) => {
       if (sortBy === 'price-asc') {
-        const priceA = userType === 'wholesale' ? a.wholesalePrice : a.price;
-        const priceB = userType === 'wholesale' ? b.wholesalePrice : b.price;
+        const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
+        const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
         return priceA - priceB;
       }
       if (sortBy === 'price-desc') {
-        const priceA = userType === 'wholesale' ? a.wholesalePrice : a.price;
-        const priceB = userType === 'wholesale' ? b.wholesalePrice : b.price;
+        const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
+        const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
         return priceB - priceA;
       }
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
       }
       if (sortBy === 'popular') {
-        return (b.popular ? 1 : 0) - (a.popular ? 1 : 0);
+        // Use is_featured or similar
+        return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
       }
       return 0;
     });
@@ -231,63 +261,69 @@ export function ShopPage({
               width: isDesktop ? 'calc(100% - 280px)' : '100%',
             }}
           >
-            <Grid
-              container
-              spacing={{ xs: 2, sm: 3, md: 4 }}
-              sx={{
-                '& .MuiGrid-item': {
-                  display: 'flex',
-                  justifyContent: 'center',
-                }
-              }}
-            >
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <Grid
-                    item
-                    key={product.id}
-                    xs={12}
-                    sm={6}
-                    md={6}
-                    lg={4}
-                    xl={3}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Box sx={{ width: '100%', maxWidth: 400 }}>
-                      <ProductCard
-                        product={product}
-                        onAddToCart={onAddToCart}
-                        onViewDetails={onViewProduct}
-                        userType={userType}
-                        isFavorite={favorites.includes(product.id)}
-                        onToggleFavorite={onToggleFavorite}
-                      />
+            {loading ? (
+              <Box display="flex" justifyContent="center" py={8}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid
+                container
+                spacing={{ xs: 2, sm: 3, md: 4 }}
+                sx={{
+                  '& .MuiGrid-item': {
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }
+                }}
+              >
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <Grid
+                      item
+                      key={product.id}
+                      xs={12}
+                      sm={6}
+                      md={6}
+                      lg={4}
+                      xl={3}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Box sx={{ width: '100%', maxWidth: 400 }}>
+                        <ProductCard
+                          product={product}
+                          onAddToCart={onAddToCart}
+                          onViewDetails={onViewProduct}
+                          userType={userType}
+                          isFavorite={favorites.includes(product.id)}
+                          onToggleFavorite={onToggleFavorite}
+                        />
+                      </Box>
+                    </Grid>
+                  ))
+                ) : (
+                  <Grid item xs={12}>
+                    <Box sx={{ textAlign: 'center', py: 6 }}>
+                      <Typography variant="h6" color="text.secondary">
+                        Aucun produit trouvé avec ces critères
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          setSelectedCategories([]);
+                          setPriceRange([0, 150000]);
+                        }}
+                        sx={{ mt: 2 }}
+                      >
+                        Réinitialiser les filtres
+                      </Button>
                     </Box>
                   </Grid>
-                ))
-              ) : (
-                <Grid item xs={12}>
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Typography variant="h6" color="text.secondary">
-                      Aucun produit trouvé avec ces critères
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        setSelectedCategories([]);
-                        setPriceRange([0, 150000]);
-                      }}
-                      sx={{ mt: 2 }}
-                    >
-                      Réinitialiser les filtres
-                    </Button>
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
+                )}
+              </Grid>
+            )}
           </Box>
         </Box>
       </Container>

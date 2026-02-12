@@ -30,7 +30,7 @@ export default function CartPage() {
     const router = useRouter();
     const [showCheckout, setShowCheckout] = useState(false);
     const [orderPlaced, setOrderPlaced] = useState(false);
-    
+
     // Formulaire de livraison
     const [shippingInfo, setShippingInfo] = useState({
         name: '',
@@ -42,8 +42,8 @@ export default function CartPage() {
     });
 
     const total = cart.reduce((sum, item) => {
-        const price = item.priceType === 'wholesale' ? item.product.wholesalePrice : item.product.price;
-        return sum + price * item.quantity;
+        const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
+        return sum + (price || 0) * item.quantity;
     }, 0);
 
     const handleCheckout = () => {
@@ -66,7 +66,7 @@ export default function CartPage() {
 
         clearCart();
         setOrderPlaced(true);
-        
+
         setTimeout(() => {
             router.push('/');
         }, 3000);
@@ -135,16 +135,16 @@ export default function CartPage() {
                             <TableBody>
                                 {cart.map((item, index) => {
                                     const price = item.priceType === 'wholesale'
-                                        ? item.product.wholesalePrice
+                                        ? item.product.wholesale_price
                                         : item.product.price;
-                                    const itemTotal = price * item.quantity;
+                                    const itemTotal = (price || 0) * item.quantity;
 
                                     return (
                                         <TableRow key={`${item.product.id}-${index}`}>
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <img
-                                                        src={item.product.image}
+                                                        src={item.product.cover_image_url || ''}
                                                         alt={item.product.name}
                                                         style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
                                                     />
@@ -156,7 +156,7 @@ export default function CartPage() {
                                                     </Box>
                                                 </Box>
                                             </TableCell>
-                                            <TableCell>{price.toFixed(2)} €</TableCell>
+                                            <TableCell>{(price || 0).toFixed(2)} €</TableCell>
                                             <TableCell>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <IconButton
@@ -227,14 +227,14 @@ export default function CartPage() {
                             <Typography variant="h6" gutterBottom>
                                 Informations de livraison
                             </Typography>
-                            
+
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
                                         label="Nom complet"
                                         value={shippingInfo.name}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({...shippingInfo, name: e.target.value})}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
                                         margin="normal"
                                         required
                                     />
@@ -245,7 +245,7 @@ export default function CartPage() {
                                         label="Email"
                                         type="email"
                                         value={shippingInfo.email}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({...shippingInfo, email: e.target.value})}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, email: e.target.value })}
                                         margin="normal"
                                     />
                                 </Grid>
@@ -254,7 +254,7 @@ export default function CartPage() {
                                         fullWidth
                                         label="Téléphone"
                                         value={shippingInfo.phone}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({...shippingInfo, phone: e.target.value})}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
                                         margin="normal"
                                         required
                                     />
@@ -264,7 +264,7 @@ export default function CartPage() {
                                         fullWidth
                                         label="Ville"
                                         value={shippingInfo.city}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
                                         margin="normal"
                                     />
                                 </Grid>
@@ -275,7 +275,7 @@ export default function CartPage() {
                                         multiline
                                         rows={2}
                                         value={shippingInfo.address}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
                                         margin="normal"
                                         required
                                     />
@@ -283,17 +283,17 @@ export default function CartPage() {
                             </Grid>
 
                             <Divider sx={{ my: 3 }} />
-                            
+
                             <Typography variant="h6" gutterBottom>
                                 Méthode de paiement
                             </Typography>
-                            
+
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {['wave', 'orange-money', 'cash'].map((method) => (
                                     <Button
                                         key={method}
                                         variant={shippingInfo.paymentMethod === method ? 'contained' : 'outlined'}
-                                        onClick={() => setShippingInfo({...shippingInfo, paymentMethod: method})}
+                                        onClick={() => setShippingInfo({ ...shippingInfo, paymentMethod: method })}
                                     >
                                         {method === 'wave' ? 'Wave' : method === 'orange-money' ? 'Orange Money' : 'Espèces'}
                                     </Button>
@@ -307,12 +307,12 @@ export default function CartPage() {
                             <Typography variant="h6" gutterBottom>
                                 Récapitulatif
                             </Typography>
-                            
+
                             {cart.map((item, index) => {
-                                const price = item.priceType === 'wholesale' 
-                                    ? item.product.wholesalePrice 
+                                const price = item.priceType === 'wholesale'
+                                    ? item.product.wholesale_price
                                     : item.product.price;
-                                const itemTotal = price * item.quantity;
+                                const itemTotal = (price || 0) * item.quantity;
 
                                 return (
                                     <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -325,9 +325,9 @@ export default function CartPage() {
                                     </Box>
                                 );
                             })}
-                            
+
                             <Divider sx={{ my: 2 }} />
-                            
+
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
                                 <Typography variant="h6">Total:</Typography>
                                 <Typography variant="h6" color="primary">

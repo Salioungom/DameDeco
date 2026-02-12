@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -12,9 +12,8 @@ import {
   Tab,
   Stack,
   IconButton,
-  Paper,
-  alpha,
-  useTheme,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   ShoppingCart,
@@ -28,11 +27,11 @@ import {
   Favorite as Heart,
   FavoriteBorder as HeartOutline,
 } from '@mui/icons-material';
-import { Product, products, Review } from '../lib/data';
+import { Product } from '../types/product';
+import { productService } from '../services/product.service';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { orderViaWhatsApp } from '../lib/whatsapp';
 import ProductCard from './ProductCard';
-import { ProductReviews } from './ProductReviews';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -42,7 +41,8 @@ interface ProductDetailPageProps {
   favorites: string[];
   onToggleFavorite: (productId: string) => void;
   onViewProduct: (product: Product) => void;
-  onAddReview: (review: Omit<Review, 'id' | 'date' | 'helpful' | 'productId' | 'customerName' | 'customerEmail'> & { name: string; email?: string }) => void;
+  // Reviews temporarily disabled as they are not in the current backend schema
+  onAddReview?: (review: any) => void;
 }
 
 interface TabPanelProps {
@@ -77,19 +77,49 @@ export function ProductDetailPage({
   onViewProduct,
   onAddReview,
 }: ProductDetailPageProps) {
-  const theme = useTheme();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [tabValue, setTabValue] = useState(0);
-  const price = userType === 'wholesale' ? product.wholesalePrice : product.price;
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [loadingSimilar, setLoadingSimilar] = useState(true);
 
-  // Trouver les produits similaires (même catégorie, excluant le produit actuel)
-  const similarProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const price = userType === 'wholesale' && product.wholesale_price ? product.wholesale_price : product.price;
+
+  // Fetch similar products
+  useEffect(() => {
+    let mounted = true;
+    const fetchSimilar = async () => {
+      try {
+        setLoadingSimilar(true);
+        const response = await productService.getProducts({
+          category_id: product.category_id,
+          limit: 5 // Fetch 5 to ensure we have enough after filtering out current
+        });
+        if (mounted) {
+          // Filter out current product and slice to 4
+          setSimilarProducts(response.items.filter(p => p.id !== product.id).slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Failed to fetch similar products", error);
+      } finally {
+        if (mounted) setLoadingSimilar(false);
+      }
+    };
+
+    if (product.category_id) {
+      fetchSimilar();
+    } else {
+      setLoadingSimilar(false);
+    }
+
+    return () => { mounted = false; };
+  }, [product.category_id, product.id]);
+
+  const images = product.images?.map(img => img.image_url) || (product.cover_image_url ? [product.cover_image_url] : []);
+  const displayImage = images[selectedImage] || product.cover_image_url || '';
 
   const handleWhatsAppOrder = () => {
-    orderViaWhatsApp(product.name, price, quantity, product.images[selectedImage], product.id);
+    orderViaWhatsApp(product.name, price, quantity, displayImage, product.id);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -130,14 +160,14 @@ export function ProductDetailPage({
                   }}
                 >
                   <ImageWithFallback
-                    src={product.images[selectedImage]}
+                    src={displayImage}
                     alt={product.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </Box>
-                {product.images.length > 1 && (
+                {images.length > 1 && (
                   <Chip
-                    label={`${selectedImage + 1} / ${product.images.length}`}
+                    label={`${selectedImage + 1} / ${images.length}`}
                     size="small"
                     sx={{
                       position: 'absolute',
@@ -150,17 +180,17 @@ export function ProductDetailPage({
                 )}
               </Box>
 
-              {product.images.length > 1 && (
+              {images.length > 1 && (
                 <Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Galerie photos ({product.images.length})
+                    Galerie photos ({images.length})
                   </Typography>
-                  <Box sx={{ 
-                    display: 'grid', 
+                  <Box sx={{
+                    display: 'grid',
                     gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-                    gap: 1 
+                    gap: 1
                   }}>
-                    {product.images.map((image, index) => (
+                    {images.map((image, index) => (
                       <Box key={index} sx={{ width: '100%' }}>
                         <Box
                           component="button"
@@ -209,11 +239,9 @@ export function ProductDetailPage({
             <Stack spacing={3}>
               <Box>
                 <Stack direction="row" spacing={1} mb={2}>
-                  {product.popular && <Chip label="Populaire" color="secondary" size="small" />}
-                  {product.pieces && (
-                    <Chip label={`${product.pieces} pièces`} variant="outlined" size="small" />
-                  )}
-                  {product.stock < 20 && (
+                  {product.is_featured && <Chip label="Populaire" color="secondary" size="small" />}
+                  {product.is_new && <Chip label="Nouveau" color="primary" size="small" />}
+                  {product.inventory_quantity < 20 && (
                     <Chip label="Stock limité" color="error" size="small" />
                   )}
                 </Stack>
@@ -226,9 +254,9 @@ export function ProductDetailPage({
                     <Typography variant="h4" color="primary" fontWeight="bold">
                       {price.toLocaleString('fr-FR')} FCFA
                     </Typography>
-                    {product.originalPrice && userType !== 'wholesale' && (
+                    {product.original_price && userType !== 'wholesale' && (
                       <Typography variant="h6" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-                        {product.originalPrice.toLocaleString('fr-FR')} FCFA
+                        {product.original_price.toLocaleString('fr-FR')} FCFA
                       </Typography>
                     )}
                     {userType === 'wholesale' && (
@@ -238,15 +266,15 @@ export function ProductDetailPage({
                     )}
                   </Stack>
 
-                  {product.originalPrice && userType !== 'wholesale' && (
+                  {product.original_price && userType !== 'wholesale' && (
                     <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                       <Chip
-                        label={`-${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% DE RÉDUCTION`}
+                        label={`-${Math.round(((product.original_price - product.price) / product.original_price) * 100)}% DE RÉDUCTION`}
                         color="error"
                         size="small"
                       />
                       <Typography variant="body2" color="text.secondary">
-                        Économisez {(product.originalPrice - product.price).toLocaleString('fr-FR')} FCFA
+                        Économisez {(product.original_price - product.price).toLocaleString('fr-FR')} FCFA
                       </Typography>
                     </Stack>
                   )}
@@ -278,7 +306,7 @@ export function ProductDetailPage({
                     <Typography sx={{ width: 40, textAlign: 'center' }}>{quantity}</Typography>
                     <IconButton
                       onClick={() => setQuantity(quantity + 1)}
-                      disabled={quantity >= product.stock}
+                      disabled={quantity >= product.inventory_quantity}
                       size="small"
                       sx={{ border: 1, borderColor: 'divider' }}
                     >
@@ -286,7 +314,7 @@ export function ProductDetailPage({
                     </IconButton>
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    {product.stock} en stock
+                    {product.inventory_quantity} en stock
                   </Typography>
                 </Stack>
 
@@ -296,7 +324,7 @@ export function ProductDetailPage({
                     size="large"
                     startIcon={<ShoppingCart />}
                     onClick={() => onAddToCart(product, quantity)}
-                    disabled={product.stock === 0}
+                    disabled={product.inventory_quantity === 0}
                     sx={{ flex: 1, py: 1.5 }}
                   >
                     Ajouter au panier
@@ -348,7 +376,6 @@ export function ProductDetailPage({
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                   <Tabs value={tabValue} onChange={handleTabChange} aria-label="product tabs" variant="scrollable" scrollButtons="auto">
                     <Tab label="Description" />
-                    <Tab label={`Avis (${product.reviews?.length || 0})`} />
                     <Tab label="Livraison" />
                     <Tab label="Paiement" />
                   </Tabs>
@@ -359,32 +386,12 @@ export function ProductDetailPage({
                   <Box component="ul" sx={{ pl: 2 }}>
                     <li><Typography variant="body2">Importé directement de Chine</Typography></li>
                     <li><Typography variant="body2">Qualité premium contrôlée</Typography></li>
-                    {product.pieces && <li><Typography variant="body2">Ensemble de {product.pieces} pièces</Typography></li>}
-                    <li><Typography variant="body2">Matériaux de haute qualité</Typography></li>
+                    <li><Typography variant="body2">SKU: {product.sku}</Typography></li>
+                    {product.weight && <li><Typography variant="body2">Poids: {product.weight} kg</Typography></li>}
+                    {product.dimensions && <li><Typography variant="body2">Dimensions: {product.dimensions}</Typography></li>}
                   </Box>
                 </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={1}>
-                  <ProductReviews
-                    productId={product.id}
-                    reviews={(product.reviews || []).map(r => ({
-                      id: r.id,
-                      name: r.customerName,
-                      email: r.customerEmail,
-                      rating: r.rating,
-                      comment: r.comment,
-                      date: r.date,
-                      verified: r.verified,
-                      helpful: r.helpful
-                    }))}
-                    onAddReview={(review) => onAddReview({
-                      name: review.name,
-                      email: review.email,
-                      rating: review.rating,
-                      comment: review.comment
-                    })}
-                  />
-                </CustomTabPanel>
-                <CustomTabPanel value={tabValue} index={2}>
                   <Stack spacing={2}>
                     <Box>
                       <Typography variant="subtitle2" gutterBottom>Livraison à Dakar</Typography>
@@ -406,7 +413,7 @@ export function ProductDetailPage({
                     </Box>
                   </Stack>
                 </CustomTabPanel>
-                <CustomTabPanel value={tabValue} index={3}>
+                <CustomTabPanel value={tabValue} index={2}>
                   <Stack spacing={2}>
                     <Box>
                       <Typography variant="subtitle2" gutterBottom>Mobile Money</Typography>
@@ -434,7 +441,11 @@ export function ProductDetailPage({
         </Box>
 
         {/* Produits Similaires */}
-        {similarProducts.length > 0 && (
+        {loadingSimilar ? (
+          <Box display="flex" justifyContent="center" my={8}>
+            <CircularProgress />
+          </Box>
+        ) : similarProducts.length > 0 && (
           <Box mt={8}>
             <Divider sx={{ mb: 4 }} />
             <Box mb={4}>

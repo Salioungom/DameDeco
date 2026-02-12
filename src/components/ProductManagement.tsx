@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Add as Plus,
   Edit,
@@ -7,7 +7,10 @@ import {
   CloudUpload as Upload,
   Close as X,
   Image as ImageIcon,
-  Inventory as Package
+  Inventory as Package,
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon
 } from '@mui/icons-material';
 import {
   Button,
@@ -33,20 +36,27 @@ import {
   Paper,
   InputAdornment,
   Select as MuiSelect,
-  SelectChangeEvent
+  Pagination,
+  Grid,
+  Stack,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
+  Divider
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-// Suppression de l'import inutile de Theme
+import { styled, alpha } from '@mui/material/styles';
 import { enqueueSnackbar } from 'notistack';
-import { products as initialProducts, categories as initialCategories, Product, Category } from '../lib/data';
+import { productService } from '../services/product.service';
+import { categoryService, Category } from '../services/category.service';
+import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
-
 // Styles personnalisés
-
-// Type pour les propriétés des composants stylisés
-
+// Note: Theme is imported from @mui/material/styles. If it still shows namespace error, any might be necessary but Theme is the standard type.
 const StyledCard = styled(Card)(({ theme }: { theme: any }) => ({
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
   '&:hover': {
     boxShadow: theme.shadows[8],
     transform: 'translateY(-4px)',
@@ -54,68 +64,165 @@ const StyledCard = styled(Card)(({ theme }: { theme: any }) => ({
   },
 }));
 
-const StyledBadge = styled(Chip)(({ theme }: { theme: any }) => ({
-  '& .MuiChip-label': {
-    right: -3,
-    top: 13,
-    border: `2px solid ${theme.palette.background.paper}`,
-    padding: '0 4px',
-  },
-}));
-
-const StyledButton = styled(Button)({
-  textTransform: 'none',
-  fontWeight: 500,
-});
-
-const STORAGE_KEY = 'dame-sarr-categories';
-
 export function ProductManagement() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : initialCategories;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // State
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<{
+    sku?: string;
+    name?: string;
+  }>({});
+
+  // Pagination & Filters
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(12);
+  const [total, setTotal] = useState(0);
+  const [filters, setFilters] = useState({
+    search: '',
+    category_id: '' as string | number,
+    status: '' as ProductStatus | '',
   });
+
+  // Dialogs
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    originalPrice: '',
-    wholesalePrice: '',
-    stock: '',
-    category: '',
-    pieces: '',
-  });
-  const [images, setImages] = useState<string[]>([]);
-  const [imageInput, setImageInput] = useState('');
 
-  // Écouter les changements de catégories
-  useEffect(() => {
-    const handleCategoriesUpdate = (event: any) => {
-      setCategories(event.detail);
-    };
-    window.addEventListener('categoriesUpdated', handleCategoriesUpdate);
-    return () => window.removeEventListener('categoriesUpdated', handleCategoriesUpdate);
+  // Form Data
+  const [formData, setFormData] = useState<Partial<CreateProductData>>({
+    name: '',
+    sku: '',
+    slug: '',
+    description: '',
+    short_description: '',
+    price: 0,
+    original_price: 0,
+    wholesale_price: 0,
+    inventory_quantity: 0,
+    pieces: 1,
+    status: ProductStatus.ACTIVE,
+    category_id: 0,
+    meta_title: '',
+  });
+
+  // Image Handling
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch Data
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await productService.getProducts({
+        search: filters.search || undefined,
+        category_id: filters.category_id ? Number(filters.category_id) : undefined,
+        status: filters.status || undefined,
+        skip: (page - 1) * limit,
+        limit,
+      });
+      setProducts(response.items);
+      setTotal(response.total);
+    } catch (err: any) {
+      setError(err.message);
+      enqueueSnackbar(err.message, { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit, filters]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await categoryService.getCategories({ limit: 100 });
+      setCategories(response.items);
+    } catch (err) {
+      console.error('Failed to fetch categories', err);
+    }
   }, []);
 
-  const openAddDialog = () => {
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Handlers
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
+      sku: '',
+      slug: '',
       description: '',
-      price: '',
-      originalPrice: '',
-      wholesalePrice: '',
-      stock: '',
-      category: '',
-      pieces: '',
+      short_description: '',
+      price: 0,
+      original_price: 0,
+      wholesale_price: 0,
+      inventory_quantity: 0,
+      pieces: 1,
+      category_id: 0,
+      status: ProductStatus.ACTIVE,
+      meta_title: '',
     });
-    setImages([]);
-    setImageInput('');
+    setCoverImage(null);
+    setGalleryImages([]);
+    setCoverPreview(null);
+    setGalleryPreviews([]);
+  };
+
+  // Vérifier l'unicité du SKU et du nom
+  const checkUniqueness = async (sku: string, name: string, excludeId?: string) => {
+    try {
+      const response = await productService.getProducts({ search: sku });
+      const skuExists = response.items.some(p => 
+        p.sku.toLowerCase() === sku.toLowerCase() && (!excludeId || p.id !== excludeId)
+      );
+      
+      const nameResponse = await productService.getProducts({ search: name });
+      const nameExists = nameResponse.items.some(p => 
+        p.name.toLowerCase() === name.toLowerCase() && (!excludeId || p.id !== excludeId)
+      );
+      
+      return { skuExists, nameExists };
+    } catch (error) {
+      return { skuExists: false, nameExists: false };
+    }
+  };
+
+  // Générer un SKU unique
+  const generateUniqueSKU = (baseName: string) => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 4);
+    const cleanName = baseName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substr(0, 8);
+    return `${cleanName}_${timestamp}_${random}`;
+  };
+
+  const openAddDialog = () => {
+    resetForm();
     setIsAddDialogOpen(true);
   };
 
@@ -123,15 +230,22 @@ export function ProductManagement() {
     setSelectedProduct(product);
     setFormData({
       name: product.name,
+      sku: product.sku,
+      slug: product.slug,
       description: product.description,
-      price: product.price.toString(),
-      originalPrice: product.originalPrice?.toString() || '',
-      wholesalePrice: product.wholesalePrice.toString(),
-      stock: product.stock.toString(),
-      category: product.category,
-      pieces: product.pieces?.toString() || '',
+      short_description: product.short_description,
+      price: product.price,
+      original_price: product.original_price,
+      wholesale_price: product.wholesale_price,
+      inventory_quantity: product.inventory_quantity,
+      pieces: product.pieces || 1,
+      category_id: product.category_id,
+      status: product.status,
+      meta_title: product.meta_title,
     });
-    setImages(product.images || [product.image]);
+    setCoverImage(null);
+    setGalleryImages([]);
+    setCoverPreview(product.cover_image_url || null);
     setIsEditDialogOpen(true);
   };
 
@@ -140,710 +254,977 @@ export function ProductManagement() {
     setIsViewDialogOpen(true);
   };
 
-  const handleAddImage = () => {
-    if (imageInput.trim()) {
-      setImages([...images, imageInput.trim()]);
-      setImageInput('');
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setImages([...images, event.target.result as string]);
-        }
+      if (type === 'cover') {
+        const file = e.target.files[0];
+        setCoverImage(file);
+        setCoverPreview(URL.createObjectURL(file));
+      } else {
+        const files = Array.from(e.target.files);
+        setGalleryImages(prev => [...prev, ...files]);
+        const newPreviews = files.map(f => URL.createObjectURL(f));
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+      }
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages(prev => prev.filter((_, i) => i !== index));
+    setGalleryPreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleCreateProduct = async () => {
+    if (!formData.name || !formData.price || !formData.category_id) {
+      enqueueSnackbar('Veuillez remplir les champs obligatoires', { variant: 'error' });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // Générer un SKU unique si non fourni
+      const sku = formData.sku || generateUniqueSKU(formData.name);
+      
+      // Vérifier l'unicité
+      const { skuExists, nameExists } = await checkUniqueness(sku, formData.name);
+      
+      if (skuExists) {
+        enqueueSnackbar('Un produit avec ce SKU existe déjà', { variant: 'error' });
+        return;
+      }
+      
+      if (nameExists) {
+        enqueueSnackbar('Un produit avec ce nom existe déjà', { variant: 'error' });
+        return;
+      }
+
+      const data: CreateProductData = {
+        name: formData.name!,
+        sku,
+        slug: formData.slug || formData.name!.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        description: formData.description,
+        short_description: formData.short_description,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        wholesale_price: formData.wholesale_price ? Number(formData.wholesale_price) : undefined,
+        inventory_quantity: Number(formData.inventory_quantity),
+        pieces: Number(formData.pieces),
+        category_id: Number(formData.category_id),
+        status: formData.status,
+        meta_title: formData.meta_title,
+        is_featured: false,
+        is_new: true,
+        min_order_quantity: 1,
       };
-      reader.readAsDataURL(file);
+
+      const newProduct = await productService.createProduct(data);
+
+      if (coverImage) {
+        await productService.uploadCoverImage(newProduct.id, coverImage);
+      }
+
+      for (let i = 0; i < galleryImages.length; i++) {
+        await productService.uploadGalleryImage(newProduct.id, galleryImages[i], i);
+      }
+
+      enqueueSnackbar('Produit créé avec succès', { variant: 'success' });
+      setIsAddDialogOpen(false);
+      resetForm();
+      fetchProducts();
+    } catch (err: any) {
+      console.error('Erreur création produit:', err);
+      
+      // Gérer les erreurs spécifiques
+      if (err.status === 409) {
+        enqueueSnackbar('Conflit de données : SKU ou nom déjà utilisé', { variant: 'error' });
+      } else if (err.status === 400 && err.message?.includes('already exists')) {
+        enqueueSnackbar('Ce produit existe déjà dans la base de données', { variant: 'error' });
+      } else if (err.message?.includes('UPDATE_FAILED')) {
+        enqueueSnackbar('Échec de la mise à jour : vérifiez que toutes les données sont valides', { variant: 'error' });
+      } else {
+        enqueueSnackbar(err.message || 'Erreur lors de la création', { variant: 'error' });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAddProduct = () => {
-    if (!formData.name || !formData.category || !formData.price || !formData.wholesalePrice || !formData.stock) {
-      enqueueSnackbar('Veuillez remplir tous les champs obligatoires', { variant: 'error' });
-      return;
-    }
-
-    if (images.length === 0) {
-      enqueueSnackbar('Veuillez ajouter au moins une image', { variant: 'error' });
-      return;
-    }
-
-    const newProduct: Product = {
-      id: `prod-${Date.now()}`,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      wholesalePrice: parseFloat(formData.wholesalePrice),
-      image: images[0],
-      images: images,
-      category: formData.category,
-      stock: parseInt(formData.stock),
-      pieces: formData.pieces ? parseInt(formData.pieces) : undefined,
-      popular: false,
-    };
-
-    setProducts([...products, newProduct]);
-    enqueueSnackbar('Produit ajouté avec succès', { variant: 'success' });
-    setIsAddDialogOpen(false);
-  };
-
-  const handleEditProduct = () => {
+  const handleUpdateProduct = async () => {
     if (!selectedProduct) return;
 
-    if (!formData.name || !formData.category || !formData.price || !formData.wholesalePrice || !formData.stock) {
-      enqueueSnackbar('Veuillez remplir tous les champs obligatoires', { variant: 'error' });
-      return;
+    try {
+      setIsSubmitting(true);
+
+      // Vérifier l'unicité si SKU ou nom modifié
+      if (formData.sku && formData.sku !== selectedProduct.sku || formData.name && formData.name !== selectedProduct.name) {
+        const { skuExists, nameExists } = await checkUniqueness(
+          formData.sku || selectedProduct.sku,
+          formData.name || selectedProduct.name,
+          selectedProduct.id
+        );
+        
+        if (skuExists) {
+          enqueueSnackbar('Un produit avec ce SKU existe déjà', { variant: 'error' });
+          return;
+        }
+        
+        if (nameExists) {
+          enqueueSnackbar('Un produit avec ce nom existe déjà', { variant: 'error' });
+          return;
+        }
+      }
+
+      await productService.updateProduct(selectedProduct.id, {
+        name: formData.name,
+        sku: formData.sku,
+        slug: formData.slug,
+        description: formData.description,
+        short_description: formData.short_description,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        wholesale_price: formData.wholesale_price ? Number(formData.wholesale_price) : undefined,
+        inventory_quantity: Number(formData.inventory_quantity),
+        pieces: Number(formData.pieces),
+        category_id: Number(formData.category_id),
+        status: formData.status,
+        meta_title: formData.meta_title,
+      });
+
+      if (coverImage) {
+        await productService.uploadCoverImage(selectedProduct.id, coverImage);
+      }
+
+      for (let i = 0; i < galleryImages.length; i++) {
+        await productService.uploadGalleryImage(selectedProduct.id, galleryImages[i], i);
+      }
+
+      enqueueSnackbar('Produit mis à jour', { variant: 'success' });
+      setIsEditDialogOpen(false);
+      setSelectedProduct(null);
+      fetchProducts();
+    } catch (err: any) {
+      console.error('Erreur mise à jour produit:', err);
+      
+      // Gérer les erreurs 409 (Conflict) et 400 (Bad Request)
+      if (err.status === 409) {
+        enqueueSnackbar('Conflit de données : SKU ou nom déjà utilisé', { variant: 'error' });
+      } else if (err.status === 400 && err.message?.includes('already exists')) {
+        enqueueSnackbar('Ce produit existe déjà dans la base de données', { variant: 'error' });
+      } else {
+        enqueueSnackbar(err.message, { variant: 'error' });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (images.length === 0) {
-      enqueueSnackbar('Veuillez ajouter au moins une image', { variant: 'error' });
-      return;
-    }
-
-    const updatedProduct: Product = {
-      ...selectedProduct,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      wholesalePrice: parseFloat(formData.wholesalePrice),
-      image: images[0],
-      images: images,
-      category: formData.category,
-      stock: parseInt(formData.stock),
-      pieces: formData.pieces ? parseInt(formData.pieces) : undefined,
-    };
-
-    setProducts(products.map((p) => (p.id === selectedProduct.id ? updatedProduct : p)));
-    enqueueSnackbar('Produit modifié avec succès', { variant: 'success' });
-    setIsEditDialogOpen(false);
-    setSelectedProduct(null);
   };
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!productToDelete) return;
-    setProducts(products.filter((p) => p.id !== productToDelete.id));
-    enqueueSnackbar('Produit supprimé avec succès', { variant: 'success' });
-    setProductToDelete(null);
-  };
-
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find((c: any) => c.id === categoryId);
-    return category?.name || categoryId;
-  };
-
-  const discountPercentage = (product: Product) => {
-    if (!product.originalPrice) return 0;
-    return Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-  };
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleCategoryChange = (e: React.ChangeEvent<{ value: string }>) => {
-    if (e.target) {
-      setFormData({ ...formData, category: e.target.value });
+    try {
+      await productService.deleteProduct(productToDelete.id);
+      enqueueSnackbar('Produit supprimé', { variant: 'success' });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      fetchProducts();
+    } catch (err: any) {
+      console.error('Erreur suppression produit:', err);
+      
+      // Gérer les erreurs spécifiques de suppression
+      if (err.message?.includes('référencé par d\'autres éléments')) {
+        enqueueSnackbar('Impossible de supprimer ce produit : il est utilisé dans des commandes ou paniers', { variant: 'error' });
+      } else if (err.message?.includes('DELETION_FAILED')) {
+        enqueueSnackbar('Ce produit ne peut pas être supprimé car il est lié à des commandes ou autres données', { variant: 'error' });
+      } else if (err.message?.includes('constraint') || err.message?.includes('foreign key')) {
+        enqueueSnackbar('Ce produit ne peut pas être supprimé car il est lié à d\'autres données', { variant: 'error' });
+      } else {
+        enqueueSnackbar(err.message || 'Erreur lors de la suppression', { variant: 'error' });
+      }
     }
+  };
+
+  const getCategoryName = (id: number) => {
+    const cat = categories.find(c => c.id === id);
+    return cat ? cat.name : 'Inconnue';
+  };
+
+  const discountPercentage = (price: number, original?: number) => {
+    if (!original || original <= price) return 0;
+    return Math.round(((original - price) / original) * 100);
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
       <Box sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: { xs: 'flex-start', sm: 'center' },
+        flexDirection: { xs: 'column', md: 'row' },
         justifyContent: 'space-between',
+        alignItems: { md: 'center' },
         mb: 4,
         gap: 2
       }}>
         <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
             Gestion des Produits
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Gérez votre catalogue de produits avec galeries d'images
+            Catalogue de {total} produits
           </Typography>
         </Box>
         <Button
-          onClick={openAddDialog}
           variant="contained"
-          color="primary"
           startIcon={<Plus />}
-          sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' } }}
+          onClick={openAddDialog}
+          sx={{ px: 3, py: 1 }}
         >
-          Ajouter un produit
+          Nouveau Produit
         </Button>
       </Box>
 
-      {/* Liste des produits */}
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: 'repeat(2, 1fr)',
-          md: 'repeat(3, 1fr)',
-          lg: 'repeat(4, 1fr)'
-        },
-        gap: 2,
-        width: '100%'
-      }}>
-        {products.map((product) => (
-          <Box key={product.id} sx={{ width: '100%' }}>
-            <StyledCard>
-              <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', bgcolor: 'action.hover' }}>
-                <ImageWithFallback
-                  src={product.image}
-                  alt={product.name}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'transform 0.3s',
-                  }}
-                />
-                <Box sx={{ position: 'absolute', top: 8, left: 8, right: 8, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    {product.popular && (
-                      <Chip
-                        label="Populaire"
-                        size="small"
-                        sx={{
-                          bgcolor: 'primary.light',
-                          color: 'primary.contrastText',
-                          fontWeight: 'bold',
-                          alignSelf: 'flex-start'
-                        }}
-                      />
-                    )}
-                    {discountPercentage(product) > 0 && (
-                      <Chip
-                        label={`-${discountPercentage(product)}%`}
-                        size="small"
-                        sx={{
-                          bgcolor: 'error.main',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          alignSelf: 'flex-start',
-                          '&:hover': { bgcolor: 'error.dark' }
-                        }}
-                      />
-                    )}
+      <Card sx={{ mb: 4, p: 2 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              placeholder="Rechercher un produit..."
+              value={filters.search || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('search', e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
+              }}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Catégorie</InputLabel>
+              <MuiSelect
+                value={filters.category_id || ''}
+                label="Catégorie"
+                onChange={(e: any) => handleFilterChange('category_id', e.target.value)}
+              >
+                <MenuItem value="">Toutes</MenuItem>
+                {categories.map(cat => (
+                  <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                ))}
+              </MuiSelect>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Statut</InputLabel>
+              <MuiSelect
+                value={filters.status || ''}
+                label="Statut"
+                onChange={(e: any) => handleFilterChange('status', e.target.value)}
+              >
+                <MenuItem value="">Tous</MenuItem>
+                <MenuItem value={ProductStatus.ACTIVE}>Active</MenuItem>
+                <MenuItem value={ProductStatus.DRAFT}>Brouillon</MenuItem>
+                <MenuItem value={ProductStatus.ARCHIVED}>Archivé</MenuItem>
+                <MenuItem value={ProductStatus.OUT_OF_STOCK}>Rupture</MenuItem>
+              </MuiSelect>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              fullWidth
+              onClick={fetchProducts}
+            >
+              Actualiser
+            </Button>
+          </Grid>
+        </Grid>
+      </Card>
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={8}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : products.length === 0 ? (
+        <Box textAlign="center" py={8}>
+          <Package sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">Aucun produit trouvé</Typography>
+        </Box>
+      ) : (
+        <>
+          <Grid container spacing={3}>
+            {products.map((product) => (
+              <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+                <StyledCard>
+                  <Box sx={{ position: 'relative', pt: '100%', bgcolor: 'action.hover' }}>
+                    <ImageWithFallback
+                      src={product.cover_image_url || ''}
+                      alt={product.name}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      {product.status !== ProductStatus.ACTIVE && (
+                        <Chip label={product.status} color="default" size="small" />
+                      )}
+                      {discountPercentage(product.price, product.original_price) > 0 && (
+                        <Chip
+                          label={`-${discountPercentage(product.price, product.original_price)}%`}
+                          color="error"
+                          size="small"
+                        />
+                      )}
+                    </Box>
                   </Box>
-                  <Box>
-                    {product.images && product.images.length > 1 && (
-                      <Chip
-                        icon={<ImageIcon fontSize="small" />}
-                        label={product.images.length}
-                        size="small"
-                        sx={{
-                          bgcolor: 'rgba(0, 0, 0, 0.6)',
-                          color: 'white',
-                          '& .MuiChip-icon': { color: 'white' }
-                        }}
-                      />
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-              <CardContent sx={{ pb: 2 }}>
-                <Box sx={{ mb: 1 }}>
-                  <Chip
-                    label={getCategoryName(product.category)}
-                    variant="outlined"
-                    size="small"
-                    sx={{ mb: 1 }}
-                  />
-                  <Typography
-                    variant="subtitle1"
-                    component="h3"
-                    sx={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      minHeight: '3em',
-                    }}
-                  >
-                    {product.name}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                  <Typography color="primary" variant="h6">
-                    {product.price.toLocaleString('fr-FR')} FCFA
-                  </Typography>
-                  {product.originalPrice && (
-                    <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-                      {product.originalPrice.toLocaleString()} XOF
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      {getCategoryName(product.category_id)}
                     </Typography>
-                  )}
-                </Box>
-                <Typography variant="caption" color="text.secondary">Stock: {product.stock}</Typography>
-              </CardContent>
-              <CardActions sx={{ p: 2, pt: 0 }}>
-                <StyledButton
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  startIcon={<Eye fontSize="small" />}
-                  onClick={() => openViewDialog(product)}
-                >
-                  Voir
-                </StyledButton>
-                <StyledButton
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  startIcon={<Edit fontSize="small" />}
-                  onClick={() => openEditDialog(product)}
-                >
-                  Modifier
-                </StyledButton>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => setProductToDelete(product)}
-                  sx={{ ml: 'auto' }}
-                >
-                  <Trash2 fontSize="small" />
-                </IconButton>
-              </CardActions>
-            </StyledCard>
-          </Box>
-        ))}
+                    <Typography variant="subtitle1" fontWeight={600} noWrap title={product.name}>
+                      {product.name}
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={1} mt={1}>
+                      <Typography variant="h6" color="primary">
+                        {product.price.toLocaleString()} XOF
+                      </Typography>
+                      {product.original_price && product.original_price > product.price && (
+                        <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.disabled' }}>
+                          {product.original_price.toLocaleString()} XOF
+                        </Typography>
+                      )}
+                    </Box>
+                    <Typography variant="caption" display="block" color="text.secondary" mt={1}>
+                      Stock: {product.inventory_quantity} | Grossiste: {product.wholesale_price?.toLocaleString() || '-'}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ p: 2, pt: 0 }}>
+                    <IconButton size="small" onClick={() => openViewDialog(product)}>
+                      <Eye fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" color="primary" onClick={() => openEditDialog(product)}>
+                      <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" color="error" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }}>
+                      <Trash2 fontSize="small" />
+                    </IconButton>
+                  </CardActions>
+                </StyledCard>
+              </Grid>
+            ))}
+          </Grid>
 
-        {products.length === 0 && (
-          <Box sx={{ gridRow: '1 / -1', gridColumn: '1 / -1' }}>
-            <Card>
-              <CardContent sx={{ py: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Package sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                <Typography color="text.secondary" gutterBottom>
-                  Aucun produit disponible
-                </Typography>
-                <Button
-                  onClick={openAddDialog}
-                  variant="contained"
-                  startIcon={<Plus />}
-                  sx={{ mt: 2 }}
-                >
-                  Ajouter votre premier produit
-                </Button>
-              </CardContent>
-            </Card>
+          <Box mt={4} display="flex" justifyContent="center">
+            <Pagination
+              count={Math.ceil(total / limit)}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+            />
           </Box>
-        )}
-      </Box>
+        </>
+      )}
 
-      {/* Dialog Ajouter/Modifier */}
       <Dialog
         open={isAddDialogOpen || isEditDialogOpen}
-        onClose={() => {
-          setIsAddDialogOpen(false);
-          setIsEditDialogOpen(false);
-          setSelectedProduct(null);
-        }}
-        fullWidth
+        onClose={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
         maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 4, boxShadow: theme.shadows[20] }
+        }}
       >
-        <DialogTitle>
-          {isAddDialogOpen ? 'Ajouter un produit' : 'Modifier le produit'}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            Remplissez les informations du produit et ajoutez des images
-          </DialogContentText>
+        <DialogTitle sx={{
+          fontWeight: 800,
+          pb: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}>
           <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(12, 1fr)',
-            gap: 3,
-            mt: 1
+            p: 1,
+            borderRadius: 1.5,
+            bgcolor: alpha(theme.palette.primary.main, 0.1),
+            color: 'primary.main',
+            display: 'flex'
           }}>
-            <Box sx={{ gridColumn: '1 / -1' }}>
+            {isAddDialogOpen ? <Plus /> : <Edit />}
+          </Box>
+          {isAddDialogOpen ? 'Nouveau Produit' : 'Modifier le Produit'}
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 4, bgcolor: 'background.default' }}>
+          <Grid container spacing={4}>
+            {/* SECTION: INFORMATIONS GÉNÉRALES */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Package sx={{ color: 'primary.main', fontSize: 20 }} />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                    Informations Générales
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Détails essentiels du produit
+                  </Typography>
+                </Box>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+            </Grid>
+
+            {/* Ligne 1: Nom & Catégorie */}
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Nom du produit *"
-                id="name"
-                placeholder="Ex: Ensemble draps luxe 6 pièces"
-                value={formData.name}
+                label="Nom du produit"
+                placeholder="Ex: iPhone 15 Pro"
+                value={formData.name || ''}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
-                margin="normal"
+                required
                 variant="outlined"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: 'background.paper',
+                    '&:hover': {
+                      bgcolor: 'background.paper',
+                    }
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ gridColumn: '1 / -1' }}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label="Description"
-                id="description"
-                placeholder="Description détaillée du produit..."
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
-                margin="normal"
-              />
-            </Box>
-            <Box sx={{ gridColumn: '1 / 7' }}>
-              <TextField
-                fullWidth
-                label="Prix détail *"
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: e.target.value })}
-                margin="normal"
-                variant="outlined"
-              />
-            </Box>
-            <Box sx={{ gridColumn: '7 / -1' }}>
-              <TextField
-                fullWidth
-                label="Prix grossiste *"
-                id="wholesalePrice"
-                type="number"
-                value={formData.wholesalePrice}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesalePrice: e.target.value })}
-                margin="normal"
-                variant="outlined"
-              />
-            </Box>
-            <Box sx={{ gridColumn: '1 / 7' }}>
-              <TextField
-                fullWidth
-                label="Stock *"
-                id="stock"
-                type="number"
-                value={formData.stock}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, stock: e.target.value })}
-                margin="normal"
-                variant="outlined"
-              />
-            </Box>
-            <Box sx={{ gridColumn: '7 / -1' }}>
-              <FormControl fullWidth>
-                <InputLabel id="category-label">Catégorie *</InputLabel>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Catégorie</InputLabel>
                 <MuiSelect
-                  labelId="category-label"
-                  label="Catégorie *"
-                  value={formData.category}
-                  onChange={handleCategoryChange}
+                  value={formData.category_id || ''}
+                  label="Catégorie"
+                  onChange={(e: any) => setFormData({ ...formData, category_id: Number(e.target.value) })}
+                  sx={{ bgcolor: 'background.paper' }}
                 >
-                  {categories.map((category: Category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
+                  {categories.map(cat => (
+                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                   ))}
                 </MuiSelect>
               </FormControl>
-            </Box>
-            <Box sx={{ gridColumn: '1 / -1' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Button
-                  variant="outlined"
-                  component="span"
-                  startIcon={<Upload />}
-                  size="small"
-                  sx={{ mr: 1 }}
-                >
-                  Téléverser
-                </Button>
-                <TextField
-                  fullWidth
-                  label="Ajouter une image"
-                  id="image"
-                  value={imageInput}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setImageInput(e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Button
-                          color="primary"
-                          variant="contained"
-                          onClick={handleAddImage}
-                        >
-                          Ajouter
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
+            </Grid>
+
+            {/* Ligne 2: SKU & Slug */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="SKU"
+                placeholder="Ex: IPHONE15PRO001"
+                value={formData.sku || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, sku: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Slug (URL)"
+                placeholder="Ex: iphone-15-pro"
+                value={formData.slug || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, slug: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+
+            {/* Ligne 3: Stock & Pièces */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Stock initial"
+                value={formData.inventory_quantity || 0}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, inventory_quantity: Number(e.target.value) })}
+                required
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Nombre de pièces"
+                value={formData.pieces || 1}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, pieces: Number(e.target.value) })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+
+            {/* Ligne 4: Statut & Meta Title */}
+            <Grid item xs={12} md={6}>
+              <Paper
+                variant="outlined"
+                sx={{
+                  height: '56px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  px: 2,
+                  bgcolor: formData.status === ProductStatus.ACTIVE
+                    ? alpha(theme.palette.success.main, 0.05)
+                    : alpha(theme.palette.grey[500], 0.05),
+                  borderColor: formData.status === ProductStatus.ACTIVE
+                    ? alpha(theme.palette.success.main, 0.3)
+                    : 'divider',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.status === ProductStatus.ACTIVE}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, status: e.target.checked ? ProductStatus.ACTIVE : ProductStatus.DRAFT })}
+                      color="success"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" fontWeight={600}>
+                        {formData.status === ProductStatus.ACTIVE ? "Actif" : "Brouillon"}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={formData.status === ProductStatus.ACTIVE ? "En ligne" : "Hors ligne"}
+                        color={formData.status === ProductStatus.ACTIVE ? "success" : "default"}
+                        sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600 }}
+                      />
+                    </Box>
+                  }
                 />
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Titre Meta (SEO)"
+                placeholder="Ex: Acheter iPhone 15 Pro au meilleur prix"
+                value={formData.meta_title || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, meta_title: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+
+            {/* Ligne 5: Short Description */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description courte"
+                placeholder="Ex: iPhone 15 Pro 256GB"
+                value={formData.short_description || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, short_description: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+
+            {/* Ligne 6: Description détaillée */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Description détaillée"
+                placeholder="Spécifications techniques, processeur, écran..."
+                value={formData.description || ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
+                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+              />
+            </Grid>
+
+            {/* SECTION: TARIFICATION */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.success.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Typography sx={{ color: 'success.main', fontSize: 20, fontWeight: 700 }}>XOF</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                    Tarification
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Configuration des prix en Francs CFA
+                  </Typography>
+                </Box>
               </Box>
-              {images.length > 0 && (
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 1, mt: 2, pb: 1 }}>
-                  {images.map((image, index) => (
-                    <Box
-                      key={index}
+              <Divider sx={{ mb: 3 }} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card
+                variant="outlined"
+                sx={{
+                  p: 3,
+                  borderRadius: 2.5,
+                  bgcolor: alpha(theme.palette.success.main, 0.02),
+                  borderColor: alpha(theme.palette.success.main, 0.2),
+                  boxShadow: `0 2px 8px ${alpha(theme.palette.success.main, 0.08)}`
+                }}
+              >
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Prix Public"
+                      value={formData.price || 0}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: Number(e.target.value) })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">XOF</Typography></InputAdornment>
+                      }}
+                      required
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Prix Barré (Compare Price)"
+                      placeholder="Ancien prix"
+                      value={formData.original_price || ''}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, original_price: Number(e.target.value) })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Prix Grossiste (Cost Price)"
+                      value={formData.wholesale_price || ''}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesale_price: Number(e.target.value) })}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </Card>
+            </Grid>
+
+            {/* SECTION: MÉDIAS */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.info.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <ImageIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                    Médias
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Images du produit
+                  </Typography>
+                </Box>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
+                Image de couverture *
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  height: 200,
+                  borderRadius: 2.5,
+                  borderStyle: 'dashed',
+                  borderWidth: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: alpha(theme.palette.action.hover, 0.3),
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: alpha(theme.palette.primary.main, 0.05)
+                  }
+                }}
+              >
+                {coverPreview ? (
+                  <Box sx={{ width: '100%', height: '100%', position: 'relative', p: 1 }}>
+                    <img src={coverPreview} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                    <IconButton
+                      size="small"
                       sx={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 1,
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        bgcolor: 'background.paper',
+                        boxShadow: theme.shadows[2],
+                        '&:hover': { bgcolor: 'error.main', color: 'white' }
+                      }}
+                      onClick={() => { setCoverImage(null); setCoverPreview(null); }}
+                    >
+                      <X fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Button
+                    component="label"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      flexDirection: 'column',
+                      gap: 1.5,
+                      color: 'text.secondary',
+                      '&:hover': { color: 'primary.main' }
+                    }}
+                  >
+                    <Upload sx={{ fontSize: 40, opacity: 0.6 }} />
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="body2" fontWeight={600}>Cliquer pour uploader</Typography>
+                      <Typography variant="caption" color="text.disabled">PNG, JPG jusqu'à 5MB</Typography>
+                    </Box>
+                    <input type="file" hidden accept="image/*" onChange={(e: any) => handleFileSelect(e, 'cover')} />
+                  </Button>
+                )}
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, color: 'text.secondary' }}>
+                Galerie (Optionnel)
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  height: 200,
+                  borderRadius: 2.5,
+                  borderStyle: 'dashed',
+                  borderWidth: 2,
+                  p: 2,
+                  overflowY: 'auto',
+                  bgcolor: alpha(theme.palette.action.hover, 0.3),
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: alpha(theme.palette.primary.main, 0.05)
+                  }
+                }}
+              >
+                <Box display="flex" flexWrap="wrap" gap={1.5}>
+                  <Button
+                    component="label"
+                    variant="outlined"
+                    sx={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: 2,
+                      borderStyle: 'dashed',
+                      borderWidth: 2,
+                      p: 0,
+                      minWidth: 0,
+                      bgcolor: 'background.paper',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        bgcolor: alpha(theme.palette.primary.main, 0.05)
+                      }
+                    }}
+                  >
+                    <Plus sx={{ fontSize: 24, opacity: 0.6 }} />
+                    <input type="file" hidden multiple accept="image/*" onChange={(e: any) => handleFileSelect(e, 'gallery')} />
+                  </Button>
+                  {[...(selectedProduct?.images || []), ...galleryPreviews.map((p, i) => ({ id: `new-${i}`, image_url: p, isNew: true }))].map((img: any, idx) => (
+                    <Box
+                      key={img.id}
+                      sx={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: 2,
                         overflow: 'hidden',
-                        border: '2px solid',
-                        borderColor: 'divider',
-                        cursor: 'pointer',
+                        position: 'relative',
+                        border: `2px solid ${theme.palette.divider}`,
                         '&:hover': {
-                          borderColor: 'primary.main',
-                        },
+                          borderColor: 'primary.main'
+                        }
                       }}
                     >
-                      <ImageWithFallback
-                        src={image}
-                        alt={`Image ${index + 1}`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
+                      <img src={img.image_url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <IconButton
                         size="small"
-                        color="error"
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                          e.stopPropagation();
-                          handleRemoveImage(index);
-                        }}
                         sx={{
                           position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          bgcolor: 'error.main',
-                          color: 'error.contrastText',
-                          '&:hover': {
-                            bgcolor: 'error.dark',
-                          },
+                          top: 2,
+                          right: 2,
+                          p: 0.3,
+                          bgcolor: 'rgba(0,0,0,0.7)',
+                          color: 'white',
+                          '&:hover': { bgcolor: 'error.main' }
                         }}
+                        onClick={() => img.isNew ? removeGalleryImage(idx - (selectedProduct?.images?.length || 0)) : confirm('Supprimer ?') && productService.deleteProductImage(selectedProduct!.id, img.id).then(fetchProducts)}
                       >
-                        <X fontSize="small" />
+                        <X sx={{ fontSize: 14 }} />
                       </IconButton>
                     </Box>
                   ))}
                 </Box>
-              )}
-            </Box>
-          </Box>
+              </Paper>
+            </Grid>
+          </Grid>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+
+        <DialogActions sx={{ p: 4, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Button
-            onClick={() => {
-              setIsAddDialogOpen(false);
-              setIsEditDialogOpen(false);
-              setSelectedProduct(null);
-            }}
-            variant="outlined"
-            color="inherit"
-            sx={{ mr: 1 }}
+            onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
+            sx={{ borderRadius: 2, px: 3, fontWeight: 600 }}
           >
-            Annuler
+            Fermer
           </Button>
           <Button
-            onClick={isAddDialogOpen ? handleAddProduct : handleEditProduct}
             variant="contained"
-            color="primary"
-            startIcon={isAddDialogOpen ? <Plus /> : <Edit />}
+            onClick={isAddDialogOpen ? handleCreateProduct : handleUpdateProduct}
+            disabled={isSubmitting}
+            sx={{
+              borderRadius: 2,
+              px: 6,
+              py: 1.2,
+              fontWeight: 700,
+              boxShadow: theme.shadows[4],
+              textTransform: 'none',
+              fontSize: '1rem'
+            }}
           >
-            {isAddDialogOpen ? 'Ajouter le produit' : 'Enregistrer'}
+            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (isAddDialogOpen ? 'Publier le produit' : 'Enregistrer')}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog Voir */}
-      <Dialog
-        open={isViewDialogOpen}
-        onClose={() => setIsViewDialogOpen(false)}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle>Détails du produit</DialogTitle>
-        {selectedProduct && (
-          <DialogContent>
-            <Box sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 3,
-              width: '100%'
-            }}>
-              <Box>
-                <Box sx={{
-                  position: 'relative',
-                  width: '100%',
-                  height: 400,
-                  bgcolor: 'action.hover',
-                  borderRadius: 1,
-                  overflow: 'hidden'
-                }}>
+      <Dialog open={isViewDialogOpen} onClose={() => setIsViewDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" fontWeight={700} component="span">
+            {selectedProduct?.name}
+          </Typography>
+          <Chip label={selectedProduct?.status?.toUpperCase()} color={selectedProduct?.status === ProductStatus.ACTIVE ? "success" : "default"} size="small" />
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedProduct && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={5}>
+                <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
                   <img
-                    src={selectedProduct.image}
+                    src={selectedProduct.cover_image_url || ''}
                     alt={selectedProduct.name}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
+                    style={{ width: '100%', height: 350, objectFit: 'contain', backgroundColor: alpha(theme.palette.background.default, 0.5) }}
                   />
-                </Box>
+                </Paper>
                 {selectedProduct.images && selectedProduct.images.length > 1 && (
-                  <Box sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                    gap: 1,
-                    mt: 2,
-                    pb: 1
-                  }}>
-                    {selectedProduct.images.map((img, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: 1,
-                          overflow: 'hidden',
-                          border: '2px solid',
-                          borderColor: 'divider',
-                          cursor: 'pointer',
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                          },
-                        }}
-                      >
-                        <img
-                          src={img}
-                          alt={`${selectedProduct.name} ${index + 1}`}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      </Box>
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {selectedProduct.images.slice(0, 4).map((img, i) => (
+                      <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>
+                        <img src={img.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </Paper>
                     ))}
                   </Box>
                 )}
-              </Box>
-              <Box>
-                <Typography variant="h5" component="h2" gutterBottom>
-                  {selectedProduct.name}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Typography variant="h6" color="primary">
-                    {selectedProduct.price.toLocaleString()} XOF
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Prix détail
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      color="primary"
-                      gutterBottom
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                    >
-                      {selectedProduct.price.toLocaleString('fr-FR')} FCFA
-                      {selectedProduct.originalPrice && (
-                        <Typography
-                          variant="body2"
-                          color="textSecondary"
-                          sx={{ textDecoration: 'line-through' }}
-                        >
-                          {selectedProduct.originalPrice.toLocaleString('fr-FR')} FCFA
-                        </Typography>
-                      )}
-                    </Typography>
+              </Grid>
+              <Grid item xs={12} md={7}>
+                <Stack spacing={2.5}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Description courte</Typography>
+                    <Typography variant="body1">{selectedProduct.short_description || 'Aucune description courte'}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                      Prix grossiste
-                    </Typography>
-                    <Typography variant="body1" gutterBottom>
-                      {selectedProduct.wholesalePrice.toLocaleString('fr-FR')} FCFA
-                    </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Prix Public</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight={800}>{selectedProduct.price.toLocaleString()} XOF</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Catégorie</Typography>
+                      <Typography variant="body1" fontWeight={600}>{selectedProduct.category_name || 'Sans catégorie'}</Typography>
+                    </Grid>
+                  </Grid>
+
+                  <Divider />
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>SKU</Typography>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 1, borderRadius: 0.5 }}>{selectedProduct.sku}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>URL (Slug)</Typography>
+                      <Typography variant="body2">{selectedProduct.slug}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Stock / Pièces</Typography>
+                      <Typography variant="body2">{selectedProduct.inventory_quantity} en stock ({selectedProduct.pieces} pcs)</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>SEO Title</Typography>
+                      <Typography variant="body2" noWrap>{selectedProduct.meta_title || '-'}</Typography>
+                    </Grid>
+                  </Grid>
+
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Description détaillée</Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}>{selectedProduct.description}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                      Stock
-                    </Typography>
-                    <Typography variant="body1" gutterBottom>
-                      {selectedProduct.stock} unités
-                    </Typography>
-                  </Box>
-                  {selectedProduct?.pieces && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Pièces
-                      </Typography>
-                      <Typography variant="body1" gutterBottom>
-                        {selectedProduct.pieces} pièces
-                      </Typography>
-                    </Box>
-                  )}
-                  {selectedProduct?.description && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Description
-                      </Typography>
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                        {selectedProduct.description}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          </DialogContent>
-        )}
-        <DialogActions>
-          <Button onClick={() => setIsViewDialogOpen(false)} color="primary">
-            Fermer
-          </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Button onClick={() => setIsViewDialogOpen(false)} variant="outlined">Fermer</Button>
+          <Button onClick={() => { setIsViewDialogOpen(false); openEditDialog(selectedProduct!); }} variant="contained">Modifier</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Confirmation de suppression */}
-      <Dialog
-        open={!!productToDelete}
-        onClose={() => setProductToDelete(null)}
-      >
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirmer la suppression</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Êtes-vous sûr de vouloir supprimer le produit "{productToDelete?.name}" ?
-            Cette action est irréversible.
+            Voulez-vous vraiment supprimer le produit "{productToDelete?.name}" ? Cette action est irréversible.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setProductToDelete(null)} color="primary">
-            Annuler
-          </Button>
-          <Button
-            onClick={() => {
-              if (productToDelete) {
-                handleDeleteProduct();
-                setProductToDelete(null);
-              }
-            }}
-            color="error"
-            variant="contained"
-          >
+          <Button onClick={() => setDeleteDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleDeleteProduct} color="error" variant="contained">
             Supprimer
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Box >
   );
-};
-
-export default ProductManagement;
+}

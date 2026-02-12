@@ -273,7 +273,7 @@ export function Navigation() {
       {
         label: 'Tableau de bord',
         icon: <Dashboard fontSize="small" />,
-        path: '/superadmin/dashboard'  // ✅ Dashboard SuperAdmin
+        path: '/dashboards'  // ✅ Dashboard SuperAdmin
       },
       {
         label: 'Déconnexion',
@@ -287,7 +287,7 @@ export function Navigation() {
       {
         label: 'Tableau de bord',
         icon: <Dashboard fontSize="small" />,
-        path: '/admin/security/summary'  // ✅ Admin security
+        path: '/dashboard'  // ✅ Admin security
       },
       {
         label: 'Déconnexion',

@@ -38,15 +38,9 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await authAPI.forgotPassword(email);
-      const data = response.data;
-
-      if (response.status === 200) {
-        setSuccess(true);
-      } else {
-        setError(data.message || 'Une erreur est survenue lors de l\'envoi de l\'email.');
-      }
+      setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Impossible de se connecter au serveur. Veuillez réessayer plus tard.');
+      setError(err.response?.data?.message || err.message || 'Une erreur est survenue lors de l\'envoi de l\'email.');
       console.error(err);
     } finally {
       setLoading(false);
