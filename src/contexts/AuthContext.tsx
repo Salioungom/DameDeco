@@ -93,10 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 
                 if (!res.ok) {
                     let errorData;
+                    let text;
                     try {
-                        errorData = await res.json();
-                    } catch {
-                        errorData = await res.text();
+                        text = await res.text();
+                        console.log('AuthContext - Raw error response:', text);
+                        errorData = text ? JSON.parse(text) : { raw: text };
+                    } catch (parseError) {
+                        console.warn('AuthContext - Failed to parse error response as JSON:', parseError);
+                        errorData = { raw: text || 'Unknown error' };
                     }
                     
                     console.error('AuthContext - API Error:', {

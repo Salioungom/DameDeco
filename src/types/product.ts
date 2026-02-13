@@ -24,6 +24,7 @@ export interface Product {
     short_description?: string;
     price: number;
     original_price?: number;
+    compare_price?: number;
     wholesale_price?: number;
     sku: string;
     inventory_quantity: number;

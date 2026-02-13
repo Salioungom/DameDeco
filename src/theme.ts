@@ -10,9 +10,21 @@ declare module '@mui/material/styles' {
       dark: string;
       contrastText: string;
     };
+    golden: {
+      light: string;
+      main: string;
+      dark: string;
+      contrastText: string;
+    };
   }
   interface PaletteOptions {
     custom?: {
+      light?: string;
+      main: string;
+      dark?: string;
+      contrastText?: string;
+    };
+    golden?: {
       light?: string;
       main: string;
       dark?: string;
@@ -140,6 +152,12 @@ const theme = createTheme({
       main: '#2563eb', // Same as primary
       light: '#3b82f6',
       dark: '#1d4ed8',
+      contrastText: '#ffffff',
+    },
+    golden: {
+      main: '#C6A75E', // Premium golden
+      light: '#D4B76E',
+      dark: '#B8965E',
       contrastText: '#ffffff',
     },
   },
