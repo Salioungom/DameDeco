@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 import { styled as muiStyled, alpha, type Theme as MuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -66,7 +67,7 @@ const ProductImageWrapper = muiStyled(Box, {
   shouldForwardProp: (prop: string) => prop !== 'isloading',
 })(({ theme, isloading = false }: any) => ({
   position: 'relative',
-  paddingTop: '100%',
+  paddingTop: '100%', // ratio 1/1
   overflow: 'hidden',
   backgroundColor: theme.palette.mode === 'dark'
     ? theme.palette.grey[800]
@@ -84,10 +85,9 @@ const ProductImage = muiStyled(Box)(({ theme }: any) => ({
   left: 0,
   width: '100%',
   height: '100%',
-  transition: 'transform 0.3s',
-  '&:hover': {
-    transform: 'scale(1.05)',
-  },
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 }));
 
 const FavoriteButton = muiStyled(IconButton)(({ theme }: any) => ({
@@ -212,32 +212,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <ProductImageWrapper>
         <ProductImage>
           {product.cover_image_url ? (
-            <img
+            <ImageWithFallback
               src={product.cover_image_url}
               alt={product.name}
+              width={400}
+              height={400}
+              objectFit="contain"
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
-                transition: 'transform 0.3s ease-in-out',
-              }}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.src = '';
-                target.parentElement!.innerHTML = `
-                  <div style="
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: ${theme.palette.background.default};
-                  ">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 4H20V20H4V4ZM2 4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V20C22 21.1 21.1 22 20 22H4C2.9 22 2 21.1 2 20V4ZM10 8H8V10H10V8ZM16 8H12V10H16V8ZM8 12H16V14H8V12Z" fill="#9E9E9E"/>
-                    </svg>
-                  </div>`;
+                objectFit: 'contain',
               }}
             />
           ) : (

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Image, { ImageProps } from 'next/image';
 import { Box } from '@mui/material';
 
+type ObjectFitMode = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+
 interface ImageWithFallbackProps extends Omit<ImageProps, 'onError' | 'src' | 'width' | 'height'> {
   src: string;
   fallbackSrc?: string;
@@ -11,6 +13,7 @@ interface ImageWithFallbackProps extends Omit<ImageProps, 'onError' | 'src' | 'w
   sx?: any;
   width?: number | string;
   height?: number | string;
+  objectFit?: ObjectFitMode;
 }
 
 // Simple SVG placeholder component
@@ -46,6 +49,7 @@ export function ImageWithFallback({
   sx,
   width = 100,
   height = 100,
+  objectFit = 'cover',
   ...props
 }: ImageWithFallbackProps) {
   const [hasError, setHasError] = useState(false);
@@ -101,7 +105,7 @@ export function ImageWithFallback({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit,
           opacity: isLoading ? 0.7 : 1,
           transition: 'opacity 0.3s ease',
           ...(props.style as React.CSSProperties),
