@@ -150,9 +150,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleWhatsAppOrder = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    const price = userType === 'wholesale' && product.wholesale_price
-      ? product.wholesale_price
-      : product.price;
+    const price = userType === 'wholesale' && (product.wholesale_price || product.cost_price)
+    ? Number(product.wholesale_price || product.cost_price)
+    : Number(product.price);
     orderViaWhatsApp(
       product.name,
       price,
@@ -164,8 +164,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   }, [product, userType]);
 
   // Calculer le taux de réduction
-  const discountPercentage = product.original_price && product.original_price > product.price
-    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+  const originalPrice = product.original_price || product.compare_price;
+  const discountPercentage = originalPrice && Number(originalPrice) > Number(product.price)
+    ? Math.round((Number(originalPrice) - Number(product.price)) / Number(originalPrice) * 100)
     : 0;
 
   const handleCardClick = useCallback((e: React.MouseEvent) => {
@@ -294,6 +295,37 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </ProductImageWrapper>
 
       <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        {/* Catégorie et Slug */}
+        <Box sx={{ mb: 1 }}>
+          {product.category_name && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'primary.main',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                fontSize: '0.7rem',
+              }}
+            >
+              {product.category_name}
+            </Typography>
+          )}
+          {product.slug && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                ml: product.category_name ? 1 : 0,
+                fontSize: '0.65rem',
+                fontStyle: 'italic',
+              }}
+            >
+              {product.slug}
+            </Typography>
+          )}
+        </Box>
+
         {/* Nom du produit */}
         <Typography
           gutterBottom
@@ -311,9 +343,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {product.name}
         </Typography>
 
-        {/* Prix */}
+        {/* Prix avec réduction */}
         <Box sx={{ mt: 'auto' }}>
-          {product.original_price && product.original_price > product.price && (
+          {(product.original_price || product.compare_price) && Number(product.original_price || product.compare_price) > Number(product.price) && (
             <Typography
               variant="body2"
               color="text.secondary"
@@ -322,7 +354,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               {new Intl.NumberFormat('fr-FR', {
                 style: 'currency',
                 currency: 'XOF',
-              }).format(product.original_price)}
+              }).format(Number(product.original_price || product.compare_price))}
             </Typography>
           )}
           <Typography
@@ -335,11 +367,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
               style: 'currency',
               currency: 'XOF',
             }).format(
-              userType === 'wholesale' && product.wholesale_price
-                ? product.wholesale_price
-                : product.price
+              userType === 'wholesale' && (product.wholesale_price || product.cost_price)
+                ? Number(product.wholesale_price || product.cost_price)
+                : Number(product.price)
             )}
-            {userType === 'wholesale' && product.wholesale_price && (
+            {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
               <Typography
                 component="span"
                 variant="caption"
@@ -351,9 +383,34 @@ const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </Typography>
 
+          {/* Pourcentage de réduction et économies */}
+          {(product.original_price || product.compare_price) && Number(product.original_price || product.compare_price) > Number(product.price) && userType !== 'wholesale' && (
+            <Box sx={{ mt: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                <Chip
+                  label={`-${Math.round((Number(product.original_price || product.compare_price) - Number(product.price)) / Number(product.original_price || product.compare_price) * 100)}%`}
+                  size="small"
+                  sx={{
+                    bgcolor: 'error.main',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    height: 20,
+                  }}
+                />
+                <Typography variant="caption" color="success.main" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                  Économisez {new Intl.NumberFormat('fr-FR', {
+                    style: 'currency',
+                    currency: 'XOF',
+                  }).format(Number(product.original_price || product.compare_price) - Number(product.price))}
+                </Typography>
+              </Stack>
+            </Box>
+          )}
+
           {userType === 'wholesale' && (
             <Typography variant="caption" color="text.secondary" display="block">
-              {product.wholesale_price ? `Prix spécial pour commandes en gros` : 'Contactez-nous pour les prix de gros'}
+              {product.wholesale_price || product.cost_price ? `Prix spécial pour commandes en gros` : 'Contactez-nous pour les prix de gros'}
             </Typography>
           )}
         </Box>

@@ -24,8 +24,9 @@ export interface Product {
     short_description?: string;
     price: number;
     original_price?: number;
-    compare_price?: number;
+    compare_price?: number; // Backend field
     wholesale_price?: number;
+    cost_price?: number; // Backend field
     sku: string;
     inventory_quantity: number;
     min_order_quantity: number;
@@ -33,6 +34,7 @@ export interface Product {
     dimensions?: string;
     status: ProductStatus;
     is_featured: boolean;
+    popular?: boolean; // Backend field
     is_new: boolean;
     category_id: number;
     category_name?: string;
@@ -41,6 +43,8 @@ export interface Product {
     pieces?: number;
     meta_title?: string;
     meta_description?: string;
+    average_rating?: string; // Backend field
+    review_count?: number; // Backend field
     created_at: string;
     updated_at: string;
 }

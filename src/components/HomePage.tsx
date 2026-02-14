@@ -53,6 +53,7 @@ export function HomePage({
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     const loadData = async () => {
@@ -63,7 +64,21 @@ export function HomePage({
           productService.getProducts({ limit: 8 })
         ]);
         setCategories(fetchedCategories);
-        setPopularProducts(productResponse.items);
+        
+        // Créer un map des catégories pour faciliter l'association
+        const categoryMap = new Map<number, string>();
+        fetchedCategories.forEach((cat: Category) => {
+          categoryMap.set(Number(cat.id), cat.name);
+        });
+        setCategoriesMap(categoryMap);
+        
+        // Ajouter le nom de la catégorie à chaque produit
+        const productsWithCategory = productResponse.items.map((product: Product) => ({
+          ...product,
+          category_name: categoryMap.get(product.category_id) || undefined
+        }));
+        
+        setPopularProducts(productsWithCategory);
       } catch (error) {
         console.error('Error loading home data:', error);
       } finally {

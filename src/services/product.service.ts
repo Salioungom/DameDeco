@@ -79,7 +79,11 @@ export const productService = {
                 `${API_BASE_URL}/api/v1/products/`,
                 {
                     ...getAuthHeader(),
-                    params,
+                    params: {
+                        ...params,
+                        // Ajouter un paramètre pour inclure les détails de la catégorie
+                        include: 'category'
+                    }
                 }
             );
             return response.data;
@@ -97,7 +101,11 @@ export const productService = {
             const response = await axios.get<ProductPaginatedResponse>(
                 `${API_BASE_URL}/api/v1/products/public`, // Endpoint public hypothétique ou filtré
                 {
-                    params: { ...params, status: ProductStatus.ACTIVE }
+                    params: { 
+                        ...params, 
+                        status: ProductStatus.ACTIVE,
+                        include: 'category' // Inclure les détails de la catégorie
+                    }
                 }
             );
             return response.data;

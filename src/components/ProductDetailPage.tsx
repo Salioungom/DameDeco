@@ -83,6 +83,7 @@ export function ProductDetailPage({
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(true);
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
+  const [galleryStartIndex, setGalleryStartIndex] = useState(0);
 
   const price = userType === 'wholesale' && product.wholesale_price ? product.wholesale_price : product.price;
   const originalPrice = product.compare_price || product.original_price;
@@ -174,6 +175,17 @@ export function ProductDetailPage({
     setSelectedImage(index);
   };
 
+  const handlePrevGallery = () => {
+    setGalleryStartIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextGallery = () => {
+    setGalleryStartIndex(prev => Math.min(allImages.length - 4, prev + 1));
+  };
+
+  // Calculer les images visibles dans la galerie (max 4)
+  const visibleGalleryImages = allImages.slice(galleryStartIndex, galleryStartIndex + 4);
+
   return (
     <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'background.default' }}>
       <Container maxWidth="xl">
@@ -232,7 +244,8 @@ export function ProductDetailPage({
                     style={{ 
                       width: '100%', 
                       height: '100%', 
-                      objectFit: 'cover', // Changé de 'contain' à 'cover' pour un affichage carré
+                      objectFit: 'contain', // Affiche l'image complète sans zoom ni découpe
+                      objectPosition: 'center',
                       transition: 'all 0.4s ease',
                     }}
                     onError={(e) => {
@@ -378,82 +391,142 @@ export function ProductDetailPage({
                       Galerie photos ({allImages.length})
                     </Box>
                   </Typography>
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))',
-                      gap: 0.5,
-                      width: '100%',
-                      px: 0.5,
-                    }}
-                  >
-                    {allImages.map((image, index) => (
-                      <Box
-                        key={index}
-                        component="button"
-                        onClick={() => handleThumbnailClick(index)}
+                  
+                  {/* Gallery Container with Navigation */}
+                  <Box sx={{ position: 'relative', width: '100%' }}>
+                    {/* Left Arrow */}
+                    {galleryStartIndex > 0 && (
+                      <IconButton
+                        onClick={handlePrevGallery}
                         sx={{
-                          width: '100%',
-                          height: 85,
-                          aspectRatio: '1',
-                          position: 'relative',
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          border: '2px solid',
-                          borderColor: selectedImage === index ? 'primary.main' : 'transparent',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          bgcolor: 'background.paper',
-                          p: 0,
-                          boxShadow: selectedImage === index 
-                            ? '0 6px 20px rgba(25, 118, 210, 0.35)' 
-                            : '0 2px 8px rgba(0,0,0,0.08)',
-                          transform: selectedImage === index ? 'scale(1.02)' : 'scale(1)',
-                          '&:hover': {
-                            borderColor: selectedImage === index ? 'primary.main' : 'primary.light',
-                            transform: selectedImage === index ? 'scale(1.02)' : 'scale(1.01)',
-                            boxShadow: selectedImage === index 
-                              ? '0 8px 24px rgba(25, 118, 210, 0.4)' 
-                              : '0 4px 12px rgba(0,0,0,0.12)',
+                          position: 'absolute',
+                          left: -12,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.95)',
+                          color: 'primary.main',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          '&:hover': { 
+                            bgcolor: 'primary.main', 
+                            color: 'white',
                           },
-                          '&:active': {
-                            transform: selectedImage === index ? 'scale(1.01)' : 'scale(0.99)',
-                          },
+                          transition: 'all 0.3s ease',
+                          zIndex: 2,
+                          width: 32,
+                          height: 32,
                         }}
+                        size="small"
                       >
-                        <img
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover', // Cohérent avec l'image principale
-                            transition: 'transform 0.3s ease',
-                            filter: selectedImage === index ? 'brightness(1.1)' : 'brightness(0.9)',
-                          }}
-                          onError={(e) => {
-                            // Silently handle thumbnail errors
-                            const target = e.target as HTMLImageElement;
-                            if (!target.src.includes('placeholder-image.jpg')) {
-                              target.src = '/placeholder-image.jpg';
-                            }
-                          }}
-                        />
-                        {selectedImage === index && (
+                        <ChevronLeft sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    )}
+
+                    {/* Gallery Images Grid */}
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: 1,
+                        width: '100%',
+                        mx: 'auto',
+                      }}
+                    >
+                      {visibleGalleryImages.map((image, index) => {
+                        const actualIndex = galleryStartIndex + index;
+                        return (
                           <Box
+                            key={actualIndex}
+                            component="button"
+                            onClick={() => handleThumbnailClick(actualIndex)}
                             sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              bgcolor: 'rgba(25, 118, 210, 0.15)',
-                              pointerEvents: 'none',
+                              width: '100%',
+                              aspectRatio: '1',
+                              position: 'relative',
+                              borderRadius: 2,
+                              overflow: 'hidden',
+                              border: selectedImage === actualIndex ? '2px solid' : 'none',
+                              borderColor: selectedImage === actualIndex ? 'primary.main' : 'transparent',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              bgcolor: 'background.paper',
+                              p: 0,
+                              m: 0,
+                              boxShadow: 'none',
+                              transform: 'scale(1)',
+                              '&:hover': {
+                                borderColor: 'primary.main',
+                                boxShadow: 'none',
+                                transform: 'scale(1)',
+                                bgcolor: 'rgba(25, 118, 210, 0.04)',
+                              },
+                              '&:focus-visible': {
+                                outline: '2px solid',
+                                outlineColor: 'primary.main',
+                                outlineOffset: 2,
+                              },
                             }}
-                          />
-                        )}
-                      </Box>
-                    ))}
+                          >
+                            <img
+                              src={image}
+                              alt={`${product.name} ${actualIndex + 1}`}
+                              style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                objectFit: 'contain', // Affiche l'image complète sans zoom ni découpe
+                                objectPosition: 'center',
+                                transition: 'transform 0.3s ease',
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (!target.src.includes('placeholder-image.jpg')) {
+                                  target.src = '/placeholder-image.jpg';
+                                }
+                              }}
+                            />
+                            {selectedImage === actualIndex && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  bgcolor: 'rgba(25, 118, 210, 0.15)',
+                                  pointerEvents: 'none',
+                                }}
+                              />
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Right Arrow */}
+                    {galleryStartIndex + 4 < allImages.length && (
+                      <IconButton
+                        onClick={handleNextGallery}
+                        sx={{
+                          position: 'absolute',
+                          right: -12,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.95)',
+                          color: 'primary.main',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          '&:hover': { 
+                            bgcolor: 'primary.main', 
+                            color: 'white',
+                          },
+                          transition: 'all 0.3s ease',
+                          zIndex: 2,
+                          width: 32,
+                          height: 32,
+                        }}
+                        size="small"
+                      >
+                        <ChevronRight sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    )}
                   </Box>
                 </Box>
               )}

@@ -1,8 +1,17 @@
+/**
+ * @file /contexts/AuthContext.tsx
+ * @description AuthContext robuste avec gestion d'états et erreurs structurées
+ * @version 2.0.0
+ * @author DameDéco Team
+ */
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { api, apiUtils } from '@/lib/api';
 
+// Types pour l'authentification
 interface User {
     id: string;
     email?: string;
@@ -18,6 +27,7 @@ interface AuthState {
     isAuthenticated: boolean;
     requires2FA: boolean;
     roles: ('admin' | 'superadmin' | 'client')[];
+    status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated' | 'pending_2fa';
 }
 
 interface AuthContextType extends AuthState {
@@ -38,8 +48,10 @@ interface RegisterData {
     confirmPassword: string;
 }
 
+// Création du contexte
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Provider principal
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<AuthState>({
         user: null,
@@ -47,322 +59,352 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: false,
         requires2FA: false,
         roles: [],
+        status: 'idle',
     });
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const fetchUser = async () => {
+    // Gestion sécurisée du localStorage
+    const getStoredToken = (): string | null => {
+        if (typeof window === 'undefined') {
+            console.warn('🔒 AuthContext: Tentative d\'accès localStorage côté server');
+            return null;
+        }
+
         try {
-            const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-            console.log('AuthContext - Token from localStorage:', token ? 'Token exists' : 'No token found');
+            return localStorage.getItem('accessToken') || localStorage.getItem('token');
+        } catch (error) {
+            console.warn('⚠️ AuthContext: Erreur accès localStorage:', error);
+            return null;
+        }
+    };
+
+    const clearStoredTokens = (): void => {
+        if (typeof window === 'undefined') return;
+
+        try {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            console.log('🗑️ AuthContext: Tokens cleared from localStorage');
+        } catch (error) {
+            console.warn('⚠️ AuthContext: Erreur suppression tokens:', error);
+        }
+    };
+
+    const setStoredToken = (token: string): void => {
+        if (typeof window === 'undefined') {
+            console.warn('🔒 AuthContext: Tentative d\'écriture localStorage côté server');
+            return;
+        }
+
+        try {
+            localStorage.setItem('accessToken', token);
+            console.log('✅ AuthContext: Token stored successfully');
+        } catch (error) {
+            console.warn('⚠️ AuthContext: Erreur stockage token:', error);
+        }
+    };
+
+    // Mise à jour de l'état d'authentification
+    const updateAuthState = (updates: Partial<AuthState>): void => {
+        setState(prev => ({ ...prev, ...updates }));
+    };
+
+    // Gestion des erreurs API
+    const handleAuthError = (error: any, context: string): string => {
+        const errorMessage = apiUtils.getErrorMessage(error);
+        console.error(`❌ AuthContext - ${context}:`, {
+            error: errorMessage,
+            status: error?.status,
+            code: error?.code,
+            timestamp: new Date().toISOString()
+        });
+        return errorMessage;
+    };
+
+    // Récupération des informations utilisateur
+    const fetchUser = async (): Promise<void> => {
+        // Protection contre l'exécution côté server
+        if (typeof window === 'undefined') {
+            console.log('🔒 AuthContext: fetchUser bloqué côté server');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            updateAuthState({ status: 'loading' });
+            
+            const token = getStoredToken();
+            console.log('🔍 AuthContext - Token check:', token ? '✅ Token exists' : '❌ No token found');
             
             if (!token) {
-                console.log('AuthContext - No token found, setting unauthenticated state');
-                setState({
+                console.log('🔓 AuthContext - No token, setting unauthenticated state');
+                updateAuthState({
                     user: null,
                     accessToken: null,
                     isAuthenticated: false,
                     requires2FA: false,
                     roles: [],
+                    status: 'unauthenticated',
                 });
                 setLoading(false);
                 return;
             }
 
-            console.log('AuthContext - Attempting to fetch user data...');
+            console.log('📡 AuthContext - Fetching user data...');
             
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`;
-            console.log('AuthContext - API URL:', apiUrl);
+            const response = await api.get('/api/v1/auth/me', {
+                timeout: 8000, // 8 secondes timeout
+            });
+
+            console.log('✅ AuthContext - User data received:', response.data);
             
-            try {
-                // Add a timeout to the fetch request (5 seconds)
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-                const res = await fetch(apiUrl, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                    },
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId); // Clear the timeout if the request completes
-
-                console.log('AuthContext - Response status:', res.status);
-                
-                if (!res.ok) {
-                    let errorData;
-                    let text;
-                    try {
-                        text = await res.text();
-                        console.log('AuthContext - Raw error response:', text);
-                        errorData = text ? JSON.parse(text) : { raw: text };
-                    } catch (parseError) {
-                        console.warn('AuthContext - Failed to parse error response as JSON:', parseError);
-                        errorData = { raw: text || 'Unknown error' };
-                    }
-                    
-                    console.error('AuthContext - API Error:', {
-                        status: res.status,
-                        statusText: res.statusText,
-                        error: errorData
-                    });
-                    
-                    if (res.status === 401) {
-                        console.log('AuthContext - Unauthorized, clearing token');
-                        localStorage.removeItem('accessToken');
-                        localStorage.removeItem('token');
-                    }
-                    
-                    throw new Error(`API request failed with status ${res.status}: ${res.statusText}`);
-                }
-
-                const data = await res.json();
-                console.log('AuthContext - User data received:', data);
-                
-                const user = data.user || data;
-                if (!user) {
-                    throw new Error('No user data in response');
-                }
-
-                console.log('AuthContext - Setting authenticated user:', user);
-                setState({
-                    user,
-                    accessToken: token,
-                    isAuthenticated: true,
-                    requires2FA: data.requires2FA || false,
-                    roles: user.role ? [user.role] : [],
-                });
-
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    if (error.name === 'AbortError') {
-                        console.error('AuthContext - Request timed out. The server might be down or too slow to respond.');
-                        throw new Error('Connection timeout. Please check if the backend server is running and accessible.');
-                    } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                        console.error('AuthContext - Network error. Please check your internet connection and ensure the backend server is running.');
-                        throw new Error('Cannot connect to the server. Please check your network connection and try again.');
-                    }
-                    console.error('AuthContext - Error in fetchUser:', error);
-                } else {
-                    console.error('AuthContext - Unknown error in fetchUser:', error);
-                }
-                // Clear invalid token on error
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('token');
-                throw error;
+            const user = response.data.user || response.data;
+            if (!user) {
+                throw new Error('No user data in API response');
             }
-        } catch (error) {
-            console.error('AuthContext - Error fetching user:', error);
-            setState({
+
+            updateAuthState({
+                user,
+                accessToken: token,
+                isAuthenticated: true,
+                requires2FA: response.data.requires2FA || false,
+                roles: user.role ? [user.role] : [],
+                status: 'authenticated',
+            });
+
+            console.log('✅ AuthContext - User authenticated successfully:', user.full_name);
+
+        } catch (error: any) {
+            const errorMessage = handleAuthError(error, 'fetchUser');
+            
+            // Gestion spécifique des erreurs 401
+            if (error?.status === 401) {
+                console.log('🔓 AuthContext - Unauthorized, clearing invalid token');
+                clearStoredTokens();
+            }
+
+            updateAuthState({
                 user: null,
                 accessToken: null,
                 isAuthenticated: false,
                 requires2FA: false,
                 roles: [],
+                status: 'unauthenticated',
             });
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchUser();
-    }, []);
+    // Connexion
+    const login = async (identifier: string, password: string): Promise<{ success: boolean; requires2FA?: boolean; error?: string; user?: User }> => {
+        if (typeof window === 'undefined') {
+            return { success: false, error: 'Login not available server-side' };
+        }
 
-    const login = async (identifier: string, password: string) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    identifiant: identifier,  // L'API attend 'identifiant' avec un 't'
-                    password: password
-                }),
+            updateAuthState({ status: 'loading' });
+            
+            console.log('🔐 AuthContext - Attempting login...');
+            
+            const response = await api.post('/api/v1/auth/login', {
+                identifiant: identifier, // Backend attend 'identifiant'
+                password: password,
             });
 
-            const data = await res.json();
-            console.log('Login response:', data);
+            console.log('✅ AuthContext - Login response received:', response.data);
 
-            if (!res.ok) {
-                // Afficher les détails de l'erreur pour le débogage
-                console.error('Login error details:', data);
-                throw new Error(data.detail?.[0]?.msg || data.message || 'Échec de la connexion');
-            }
-
-            // Vérifier si la 2FA est requise
-            if (data.requires_2fa) {
-                setState(prev => ({
-                    ...prev,
+            // Vérification 2FA
+            if (response.data.requires_2fa) {
+                updateAuthState({
                     requires2FA: true,
-                    user: data.user || null
-                }));
-                return { success: true, requires2FA: true, user: data.user };
+                    user: response.data.user || null,
+                    status: 'pending_2fa',
+                });
+                return { success: true, requires2FA: true, user: response.data.user };
             }
 
-            // Stocker le token
-            const tokenToStore = data.access_token || data.token;
-            if (tokenToStore) {
-                localStorage.setItem('accessToken', tokenToStore);
-                console.log('Access token stored:', tokenToStore.substring(0, 20) + '...');
+            // Stockage du token
+            const token = response.data.access_token || response.data.token;
+            if (token) {
+                setStoredToken(token);
             } else {
-                console.log('No token found in response data');
+                console.warn('⚠️ AuthContext - No token in login response');
             }
 
-            // Mettre à jour l'état
-            setState({
-                user: data.user,
-                accessToken: tokenToStore,
+            // Mise à jour état
+            updateAuthState({
+                user: response.data.user,
+                accessToken: token,
                 isAuthenticated: true,
                 requires2FA: false,
-                roles: data.user?.role ? [data.user.role] : []
+                roles: response.data.user?.role ? [response.data.user.role] : [],
+                status: 'authenticated',
             });
 
-            return { success: true, user: data.user };
+            console.log('✅ AuthContext - Login successful:', response.data.user?.full_name);
+            return { success: true, user: response.data.user };
 
-        } catch (error) {
-            console.error('Login error:', error);
-            return { 
-                success: false, 
-                error: error instanceof Error ? error.message : 'Erreur de connexion' 
-            };
+        } catch (error: any) {
+            const errorMessage = handleAuthError(error, 'login');
+            updateAuthState({ status: 'unauthenticated' });
+            return { success: false, error: errorMessage };
         }
     };
 
-    const register = async (data: RegisterData) => {
+    // Inscription
+    const register = async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+        if (typeof window === 'undefined') {
+            return { success: false, error: 'Registration not available server-side' };
+        }
+
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
+            console.log('📝 AuthContext - Attempting registration...');
+            
+            const response = await api.post('/api/v1/auth/register', data);
+            console.log('✅ AuthContext - Registration successful');
+            
+            return { success: true };
 
-            const responseData = await res.json();
-
-            if (res.ok) {
-                return { success: true };
-            } else {
-                return { success: false, error: responseData.message || 'Registration failed' };
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, error: 'Network error' };
+        } catch (error: any) {
+            const errorMessage = handleAuthError(error, 'register');
+            return { success: false, error: errorMessage };
         }
     };
 
-    const logout = async () => {
+    // Déconnexion
+    const logout = async (): Promise<void> => {
+        if (typeof window === 'undefined') {
+            console.warn('🔒 AuthContext: Logout bloqué côté server');
+            return;
+        }
+
         try {
+            console.log('🚪 AuthContext - Attempting logout...');
+            
             if (state.accessToken) {
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/logout`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${state.accessToken}`,
-                    },
-                });
+                await api.post('/api/v1/auth/logout', {}, { timeout: 5000 });
             }
-        } catch (error) {
-            console.error('Logout error:', error);
+        } catch (error: any) {
+            // Ne pas bloquer la déconnexion en cas d'erreur réseau
+            console.warn('⚠️ AuthContext - Logout API error:', apiUtils.getErrorMessage(error));
         } finally {
-            localStorage.removeItem('accessToken');
-            setState({
+            clearStoredTokens();
+            updateAuthState({
                 user: null,
                 accessToken: null,
                 isAuthenticated: false,
                 requires2FA: false,
                 roles: [],
+                status: 'unauthenticated',
             });
+            
+            console.log('🚪 AuthContext - Logout completed, redirecting to login');
             router.push('/login');
         }
     };
 
-    const refreshAccessToken = async () => {
+    // Rafraîchissement du token
+    const refreshAccessToken = async (): Promise<boolean> => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            console.log('🔄 AuthContext - Refreshing access token...');
+            
+            const response = await api.post('/api/v1/auth/refresh');
+            const { accessToken } = response.data;
+            
+            setStoredToken(accessToken);
+            updateAuthState({ accessToken });
+            
+            console.log('✅ AuthContext - Token refreshed successfully');
+            return true;
 
-            const data = await res.json();
-
-            if (res.ok) {
-                const { accessToken } = data;
-                localStorage.setItem('accessToken', accessToken);
-                setState(prev => ({ ...prev, accessToken }));
-                return true;
-            } else {
-                await logout();
-                return false;
-            }
-        } catch (error) {
-            console.error('Token refresh error:', error);
+        } catch (error: any) {
+            console.error('❌ AuthContext - Token refresh failed:', error);
             await logout();
             return false;
         }
     };
 
-    const verifyOTP = async (otp: string, method: 'totp' | 'email') => {
+    // Vérification OTP
+    const verifyOTP = async (otp: string, method: 'totp' | 'email'): Promise<boolean> => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-otp`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ otp, method }),
+            console.log('🔢 AuthContext - Verifying OTP...');
+            
+            const response = await api.post('/api/v1/auth/verify-otp', { otp, method });
+            const { user, accessToken } = response.data;
+            
+            setStoredToken(accessToken);
+            updateAuthState({
+                user,
+                accessToken,
+                isAuthenticated: true,
+                requires2FA: false,
+                roles: user.role ? [user.role] : [],
+                status: 'authenticated',
             });
+            
+            console.log('✅ AuthContext - OTP verification successful');
+            return true;
 
-            const data = await res.json();
-
-            if (res.ok) {
-                const { user, accessToken } = data;
-                localStorage.setItem('accessToken', accessToken);
-                setState({
-                    user,
-                    accessToken,
-                    isAuthenticated: true,
-                    requires2FA: false,
-                    roles: user.role ? [user.role] : [],
-                });
-                return true;
-            } else {
-                return false;
-            }
-        } catch (error) {
-            console.error('OTP verification error:', error);
+        } catch (error: any) {
+            handleAuthError(error, 'verifyOTP');
             return false;
         }
     };
 
-    const refetchUser = async () => {
-        setLoading(true);
+    // Recharger les données utilisateur
+    const refetchUser = async (): Promise<void> => {
         await fetchUser();
     };
 
+    // Initialisation au montage du composant
+    useEffect(() => {
+        console.log('🚀 AuthContext - Initializing...');
+        fetchUser();
+    }, []);
+
+    // Vérification de la santé de l'API au montage (optionnel)
+    useEffect(() => {
+        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+            apiUtils.checkApiHealth().then(result => {
+                if (!result.available) {
+                    console.warn('⚠️ AuthContext - API Health Check Failed:', result.error);
+                } else {
+                    console.log('✅ AuthContext - API Health Check Passed');
+                }
+            });
+        }
+    }, []);
+
+    const contextValue: AuthContextType = {
+        ...state,
+        loading,
+        login,
+        register,
+        logout,
+        refreshAccessToken,
+        verifyOTP,
+        refetchUser,
+    };
+
     return (
-        <AuthContext.Provider
-            value={{
-                ...state,
-                loading,
-                login,
-                register,
-                logout,
-                refreshAccessToken,
-                verifyOTP,
-                refetchUser,
-            }}
-        >
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     );
 }
 
+// Hook d'utilisation
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {
@@ -370,3 +412,6 @@ export function useAuth() {
     }
     return context;
 }
+
+// Export des types
+export type { User, AuthState, AuthContextType, RegisterData };
