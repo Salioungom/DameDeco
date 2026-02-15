@@ -34,10 +34,10 @@ const getAuthHeader = () => {
 
 const handleApiError = (error: unknown): never => {
   const axiosError = error as any;
-  
+
   if (axiosError.response) {
     const { status, data } = axiosError.response;
-    
+
     switch (status) {
       case 401:
         // Déconnexion en cas d'expiration de session
@@ -56,7 +56,7 @@ const handleApiError = (error: unknown): never => {
         throw new Error(errorMessage);
     }
   }
-  
+
   throw new Error('Erreur de connexion au serveur');
 };
 
@@ -178,12 +178,12 @@ export const categoryService = {
     }
   },
 
-  // Téléverser une image de catégorie
+  // Téléverser ou remplacer une image de catégorie
   async uploadCategoryImage(id: number, file: File): Promise<Category> {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       const response = await axios.post<Category>(
         `${API_BASE_URL}/api/v1/categories/${id}/image`,
         formData,
@@ -194,7 +194,30 @@ export const categoryService = {
           },
         }
       );
-      
+
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  // Mettre à jour une image de catégorie (NEW)
+  async updateCategoryImage(id: number, file: File): Promise<Category> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.put<Category>(
+        `${API_BASE_URL}/api/v1/categories/${id}/image`,
+        formData,
+        {
+          headers: {
+            ...getAuthHeader().headers,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       return handleApiError(error);

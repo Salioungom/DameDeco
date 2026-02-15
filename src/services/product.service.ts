@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
     Product,
+    ProductImage,
     ProductFilters,
     ProductPaginatedResponse,
     CreateProductData,
@@ -30,20 +31,20 @@ const handleApiError = (error: unknown): never => {
             case 400:
                 // Erreur spécifique pour la suppression avec contraintes
                 const constraintError = data?.detail || data?.message;
-                
+
                 // Gérer les codes d'erreur spécifiques
-                if (constraintError === 'ProductErrorCode.DELETION_FAILED' || 
+                if (constraintError === 'ProductErrorCode.DELETION_FAILED' ||
                     constraintError?.includes('DELETION_FAILED')) {
                     throw new Error('Impossible de supprimer ce produit : il est référencé par d\'autres éléments (commandes, paniers, etc.)');
                 }
-                
-                if (constraintError === 'ProductErrorCode.UPDATE_FAILED' || 
+
+                if (constraintError === 'ProductErrorCode.UPDATE_FAILED' ||
                     constraintError?.includes('UPDATE_FAILED')) {
                     throw new Error('Impossible de mettre à jour ce produit : vérifiez les données et réessayez');
                 }
-                
-                if (constraintError?.includes('constraint') || 
-                    constraintError?.includes('foreign key') || 
+
+                if (constraintError?.includes('constraint') ||
+                    constraintError?.includes('foreign key') ||
                     constraintError?.includes('cannot delete') ||
                     constraintError?.includes('associated')) {
                     throw new Error('Impossible de supprimer ce produit : il est référencé par d\'autres éléments (commandes, paniers, etc.)');
@@ -81,8 +82,8 @@ export const productService = {
                     ...getAuthHeader(),
                     params: {
                         ...params,
-                        // Ajouter un paramètre pour inclure les détails de la catégorie
-                        include: 'category'
+                        // Ajouter un paramètre pour inclure les détails de la catégorie et les images
+                        include: 'category,images'
                     }
                 }
             );
@@ -101,10 +102,10 @@ export const productService = {
             const response = await axios.get<ProductPaginatedResponse>(
                 `${API_BASE_URL}/api/v1/products/public`, // Endpoint public hypothétique ou filtré
                 {
-                    params: { 
-                        ...params, 
+                    params: {
+                        ...params,
                         status: ProductStatus.ACTIVE,
-                        include: 'category' // Inclure les détails de la catégorie
+                        include: 'category,images' // Inclure les détails de la catégorie et les images
                     }
                 }
             );
@@ -121,7 +122,10 @@ export const productService = {
         try {
             const response = await axios.get<Product>(
                 `${API_BASE_URL}/api/v1/products/${id}`,
-                getAuthHeader()
+                {
+                    ...getAuthHeader(),
+                    params: { include: 'category,images' }
+                }
             );
             return response.data;
         } catch (error) {
@@ -246,14 +250,37 @@ export const productService = {
         }
     },
 
-    // Téléverser une image de couverture
+    // Téléverser ou remplacer une image de couverture
     async uploadCoverImage(id: string, file: File): Promise<Product> {
         try {
             const formData = new FormData();
             formData.append('file', file);
 
             const response = await axios.post<Product>(
-                `${API_BASE_URL}/api/v1/products/${id}/upload-cover-image`,
+                `${API_BASE_URL}/api/v1/products/${id}/image`,
+                formData,
+                {
+                    headers: {
+                        ...getAuthHeader().headers,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    // Mettre à jour une image de couverture (NEW)
+    async updateProductCoverImage(id: string, file: File): Promise<Product> {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await axios.put<Product>(
+                `${API_BASE_URL}/api/v1/products/${id}/image`,
                 formData,
                 {
                     headers: {
@@ -299,6 +326,33 @@ export const productService = {
                 `${API_BASE_URL}/api/v1/products/${productId}/images/${imageId}`,
                 getAuthHeader()
             );
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    // Récupérer les images de la galerie pour un produit
+    async getProductImages(productId: string): Promise<ProductImage[]> {
+        try {
+            const response = await axios.get<{ items: ProductImage[] }>(
+                `${API_BASE_URL}/api/v1/products/${productId}/images`,
+                getAuthHeader()
+            );
+            return response.data.items || [];
+        } catch (error) {
+            console.error('Failed to fetch product images:', error);
+            return []; // Return empty array on error
+        }
+    },
+
+    // Supprimer l'image de couverture d'un produit
+    async deleteProductCoverImage(id: string): Promise<Product> {
+        try {
+            const response = await axios.delete<Product>(
+                `${API_BASE_URL}/api/v1/products/${id}/image`,
+                getAuthHeader()
+            );
+            return response.data;
         } catch (error) {
             return handleApiError(error);
         }

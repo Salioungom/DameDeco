@@ -248,12 +248,17 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
     }
   };
 
-  const handleUploadImage = async (categoryId: number, file: File) => {
+  const handleUploadImage = async (category: Category, file: File) => {
     try {
-      await categoryService.uploadCategoryImage(categoryId, file);
+      if (category.cover_image_url) {
+        await categoryService.updateCategoryImage(category.id, file);
+      } else {
+        await categoryService.uploadCategoryImage(category.id, file);
+      }
+
       setSnackbar({
         open: true,
-        message: 'Image téléchargée avec succès',
+        message: 'Image mise à jour avec succès',
         severity: 'success',
       });
       fetchCategories();
@@ -316,10 +321,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
     setDeleteDialogOpen(true);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, categoryId: number) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, category: Category) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleUploadImage(categoryId, file);
+      handleUploadImage(category, file);
     }
   };
 
@@ -900,7 +905,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                               type="file"
                               accept="image/*"
                               hidden
-                              onChange={(e) => handleImageUpload(e, category.id)}
+                              onChange={(e) => handleImageUpload(e, category)}
                             />
                             <UploadIcon fontSize="small" />
                           </IconButton>

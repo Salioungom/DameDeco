@@ -73,7 +73,7 @@ export function ProductManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Validation state
   const [validationErrors, setValidationErrors] = useState<{
     sku?: string;
@@ -198,15 +198,15 @@ export function ProductManagement() {
   const checkUniqueness = async (sku: string, name: string, excludeId?: string) => {
     try {
       const response = await productService.getProducts({ search: sku });
-      const skuExists = response.items.some(p => 
+      const skuExists = response.items.some(p =>
         p.sku.toLowerCase() === sku.toLowerCase() && (!excludeId || p.id !== excludeId)
       );
-      
+
       const nameResponse = await productService.getProducts({ search: name });
-      const nameExists = nameResponse.items.some(p => 
+      const nameExists = nameResponse.items.some(p =>
         p.name.toLowerCase() === name.toLowerCase() && (!excludeId || p.id !== excludeId)
       );
-      
+
       return { skuExists, nameExists };
     } catch (error) {
       return { skuExists: false, nameExists: false };
@@ -226,32 +226,66 @@ export function ProductManagement() {
     setIsAddDialogOpen(true);
   };
 
-  const openEditDialog = (product: Product) => {
-    setSelectedProduct(product);
-    setFormData({
-      name: product.name,
-      sku: product.sku,
-      slug: product.slug,
-      description: product.description,
-      short_description: product.short_description,
-      price: product.price,
-      original_price: product.original_price,
-      wholesale_price: product.wholesale_price,
-      inventory_quantity: product.inventory_quantity,
-      pieces: product.pieces || 1,
-      category_id: product.category_id,
-      status: product.status,
-      meta_title: product.meta_title,
-    });
-    setCoverImage(null);
-    setGalleryImages([]);
-    setCoverPreview(product.cover_image_url || null);
-    setIsEditDialogOpen(true);
+  const openEditDialog = async (product: Product) => {
+    try {
+      setLoading(true);
+      // Récupérer les détails complets pour avoir les images de la galerie
+      const fullProduct = await productService.getProductById(product.id);
+
+      // S'assurer que les images sont chargées (soit via include, soit via fetch séparé)
+      if (!fullProduct.images || fullProduct.images.length === 0) {
+        const images = await productService.getProductImages(product.id);
+        fullProduct.images = images;
+      }
+
+      setSelectedProduct(fullProduct);
+      setFormData({
+        name: fullProduct.name,
+        sku: fullProduct.sku,
+        slug: fullProduct.slug,
+        description: fullProduct.description,
+        short_description: fullProduct.short_description,
+        price: fullProduct.price,
+        original_price: fullProduct.original_price,
+        wholesale_price: fullProduct.wholesale_price,
+        inventory_quantity: fullProduct.inventory_quantity,
+        pieces: fullProduct.pieces || 1,
+        category_id: fullProduct.category_id,
+        status: fullProduct.status,
+        meta_title: fullProduct.meta_title,
+      });
+      setCoverImage(null);
+      setGalleryImages([]);
+      setGalleryPreviews([]);
+      setCoverPreview(fullProduct.cover_image_url || null);
+      setIsEditDialogOpen(true);
+    } catch (err: any) {
+      console.error('Erreur lors de la récupération du produit:', err);
+      enqueueSnackbar('Erreur lors de la récupération des détails du produit', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const openViewDialog = (product: Product) => {
-    setSelectedProduct(product);
-    setIsViewDialogOpen(true);
+  const openViewDialog = async (product: Product) => {
+    try {
+      setLoading(true);
+      const fullProduct = await productService.getProductById(product.id);
+
+      // S'assurer que les images sont chargées
+      if (!fullProduct.images || fullProduct.images.length === 0) {
+        const images = await productService.getProductImages(product.id);
+        fullProduct.images = images;
+      }
+
+      setSelectedProduct(fullProduct);
+      setIsViewDialogOpen(true);
+    } catch (err: any) {
+      console.error('Erreur lors de la récupération du produit:', err);
+      enqueueSnackbar('Erreur lors de la récupération des détails du produit', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
@@ -270,11 +304,23 @@ export function ProductManagement() {
   };
 
   const removeGalleryImage = (index: number) => {
-    setGalleryImages(prev => prev.filter((_, i) => i !== index));
-    setGalleryPreviews(prev => {
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
+    setGalleryImages(galleryImages.filter((_, i) => i !== index));
+    setGalleryPreviews(galleryPreviews.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteCoverImage = async () => {
+    if (!selectedProduct) return;
+    if (confirm('Voulez-vous supprimer l\'image de couverture de ce produit ?')) {
+      try {
+        await productService.deleteProductCoverImage(selectedProduct.id);
+        setCoverPreview(null);
+        setCoverImage(null);
+        setSelectedProduct({ ...selectedProduct, cover_image_url: '' });
+        enqueueSnackbar('Image de couverture supprimée', { variant: 'success' });
+      } catch (err: any) {
+        enqueueSnackbar('Erreur lors de la suppression de l\'image de couverture', { variant: 'error' });
+      }
+    }
   };
 
   const handleCreateProduct = async () => {
@@ -288,15 +334,15 @@ export function ProductManagement() {
 
       // Générer un SKU unique si non fourni
       const sku = formData.sku || generateUniqueSKU(formData.name);
-      
+
       // Vérifier l'unicité
       const { skuExists, nameExists } = await checkUniqueness(sku, formData.name);
-      
+
       if (skuExists) {
         enqueueSnackbar('Un produit avec ce SKU existe déjà', { variant: 'error' });
         return;
       }
-      
+
       if (nameExists) {
         enqueueSnackbar('Un produit avec ce nom existe déjà', { variant: 'error' });
         return;
@@ -337,7 +383,7 @@ export function ProductManagement() {
       fetchProducts();
     } catch (err: any) {
       console.error('Erreur création produit:', err);
-      
+
       // Gérer les erreurs spécifiques
       if (err.status === 409) {
         enqueueSnackbar('Conflit de données : SKU ou nom déjà utilisé', { variant: 'error' });
@@ -366,12 +412,12 @@ export function ProductManagement() {
           formData.name || selectedProduct.name,
           selectedProduct.id
         );
-        
+
         if (skuExists) {
           enqueueSnackbar('Un produit avec ce SKU existe déjà', { variant: 'error' });
           return;
         }
-        
+
         if (nameExists) {
           enqueueSnackbar('Un produit avec ce nom existe déjà', { variant: 'error' });
           return;
@@ -408,7 +454,7 @@ export function ProductManagement() {
       fetchProducts();
     } catch (err: any) {
       console.error('Erreur mise à jour produit:', err);
-      
+
       // Gérer les erreurs 409 (Conflict) et 400 (Bad Request)
       if (err.status === 409) {
         enqueueSnackbar('Conflit de données : SKU ou nom déjà utilisé', { variant: 'error' });
@@ -432,7 +478,7 @@ export function ProductManagement() {
       fetchProducts();
     } catch (err: any) {
       console.error('Erreur suppression produit:', err);
-      
+
       // Gérer les erreurs spécifiques de suppression
       if (err.message?.includes('référencé par d\'autres éléments')) {
         enqueueSnackbar('Impossible de supprimer ce produit : il est utilisé dans des commandes ou paniers', { variant: 'error' });
@@ -984,20 +1030,51 @@ export function ProductManagement() {
                 {coverPreview ? (
                   <Box sx={{ width: '100%', height: '100%', position: 'relative', p: 1 }}>
                     <img src={coverPreview} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
-                    <IconButton
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        bgcolor: 'background.paper',
-                        boxShadow: theme.shadows[2],
-                        '&:hover': { bgcolor: 'error.main', color: 'white' }
-                      }}
-                      onClick={() => { setCoverImage(null); setCoverPreview(null); }}
-                    >
-                      <X fontSize="small" />
-                    </IconButton>
+                    <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        component="label"
+                        sx={{
+                          bgcolor: 'background.paper',
+                          color: 'primary.main',
+                          boxShadow: theme.shadows[2],
+                          '&:hover': { bgcolor: 'primary.light', color: 'white' }
+                        }}
+                      >
+                        <Upload fontSize="small" />
+                        <input type="file" hidden accept="image/*" onChange={async (e: any) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            if (selectedProduct?.cover_image_url) {
+                              try {
+                                await productService.updateProductCoverImage(selectedProduct.id, file);
+                                const updatedProduct = await productService.getProductById(selectedProduct.id);
+                                setSelectedProduct(updatedProduct);
+                                setCoverPreview(updatedProduct.cover_image_url || null);
+                                setCoverImage(null);
+                                enqueueSnackbar('Image de couverture mise à jour', { variant: 'success' });
+                              } catch (err: any) {
+                                enqueueSnackbar('Erreur lors de la mise à jour de l\'image', { variant: 'error' });
+                              }
+                            } else {
+                              handleFileSelect(e, 'cover');
+                            }
+                          }
+                        }} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          bgcolor: 'background.paper',
+                          color: 'error.main',
+                          boxShadow: theme.shadows[2],
+                          '&:hover': { bgcolor: 'error.main', color: 'white' }
+                        }}
+                        onClick={() => selectedProduct?.cover_image_url ? handleDeleteCoverImage() : (setCoverImage(null), setCoverPreview(null))}
+                      >
+                        <Trash2 fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </Box>
                 ) : (
                   <Button
@@ -1079,7 +1156,13 @@ export function ProductManagement() {
                         }
                       }}
                     >
-                      <img src={img.image_url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <ImageWithFallback
+                        src={img.image_url}
+                        alt="Gallery"
+                        width={70}
+                        height={70}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                       <IconButton
                         size="small"
                         sx={{
@@ -1091,10 +1174,89 @@ export function ProductManagement() {
                           color: 'white',
                           '&:hover': { bgcolor: 'error.main' }
                         }}
-                        onClick={() => img.isNew ? removeGalleryImage(idx - (selectedProduct?.images?.length || 0)) : confirm('Supprimer ?') && productService.deleteProductImage(selectedProduct!.id, img.id).then(fetchProducts)}
+                        onClick={async () => {
+                          if (img.isNew) {
+                            removeGalleryImage(idx - (selectedProduct?.images?.length || 0));
+                          } else {
+                            if (confirm('Supprimer cette image de la galerie ?')) {
+                              try {
+                                await productService.deleteProductImage(selectedProduct!.id, img.id);
+                                // Mettre à jour localement selectedProduct.images
+                                if (selectedProduct) {
+                                  const updatedImages = selectedProduct.images?.filter(i => i.id !== img.id) || [];
+                                  setSelectedProduct({ ...selectedProduct, images: updatedImages });
+                                }
+                                enqueueSnackbar('Image supprimée de la galerie', { variant: 'success' });
+                              } catch (err: any) {
+                                enqueueSnackbar('Erreur lors de la suppression de l\'image', { variant: 'error' });
+                              }
+                            }
+                          }
+                        }}
                       >
-                        <X sx={{ fontSize: 14 }} />
+                        <Trash2 sx={{ fontSize: 14 }} />
                       </IconButton>
+                      {!img.isNew && (
+                        <IconButton
+                          size="small"
+                          component="label"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 2,
+                            right: 2,
+                            p: 0.3,
+                            bgcolor: 'rgba(25, 118, 210, 0.7)',
+                            color: 'white',
+                            '&:hover': { bgcolor: 'primary.main' }
+                          }}
+                        >
+                          <Upload sx={{ fontSize: 14 }} />
+                          <input type="file" hidden accept="image/*" onChange={async (e: any) => {
+                            if (e.target.files && e.target.files[0] && selectedProduct) {
+                              const file = e.target.files[0];
+                              const previewUrl = URL.createObjectURL(file);
+                              const oldId = img.id;
+
+                              // 1. Mettre à jour localement immédiatement pour garder la position
+                              const updatedImages: any[] = [...(selectedProduct.images || [])];
+                              const targetIdx = updatedImages.findIndex(i => i.id === oldId);
+
+                              if (targetIdx !== -1) {
+                                // Garder l'objet à la même place mais changer l'URL et marquer comme "en cours"
+                                updatedImages[targetIdx] = { ...updatedImages[targetIdx], image_url: previewUrl, isReplacing: true };
+                                setSelectedProduct({ ...selectedProduct, images: updatedImages });
+                              }
+
+                              try {
+                                // 2. Opérations serveur
+                                // Supprimer l'ancienne image
+                                await productService.deleteProductImage(selectedProduct.id, oldId);
+                                // Upload la nouvelle avec le même index de tri
+                                await productService.uploadGalleryImage(selectedProduct.id, file, targetIdx);
+
+                                // 3. Rafraîchir les données pour tout synchroniser (IDs, URLs finales)
+                                const updatedProduct = await productService.getProductById(selectedProduct.id);
+                                setSelectedProduct(updatedProduct);
+                                enqueueSnackbar('Image mise à jour', { variant: 'success' });
+                              } catch (err: any) {
+                                console.error('Erreur remplacement image:', err);
+                                enqueueSnackbar('Erreur lors du remplacement de l\'image', { variant: 'error' });
+                                // En cas d'erreur, on pourrait rafraîchir pour restaurer l'état précédent
+                                const restoredProduct = await productService.getProductById(selectedProduct.id);
+                                setSelectedProduct(restoredProduct);
+                              }
+                            }
+                          }} />
+                        </IconButton>
+                      )}
+                      {img.isReplacing && (
+                        <Box sx={{
+                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                          bgcolor: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <CircularProgress size={20} />
+                        </Box>
+                      )}
                     </Box>
                   ))}
                 </Box>
@@ -1147,11 +1309,11 @@ export function ProductManagement() {
                     style={{ width: '100%', height: 350, objectFit: 'contain', backgroundColor: alpha(theme.palette.background.default, 0.5) }}
                   />
                 </Paper>
-                {selectedProduct.images && selectedProduct.images.length > 1 && (
+                {selectedProduct.images && selectedProduct.images.length > 0 && (
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {selectedProduct.images.slice(0, 4).map((img, i) => (
+                    {selectedProduct.images.map((img, i) => (
                       <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>
-                        <img src={img.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <ImageWithFallback src={img.image_url} alt={`Gallery ${i}`} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Paper>
                     ))}
                   </Box>
