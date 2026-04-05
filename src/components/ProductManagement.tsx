@@ -135,11 +135,20 @@ export function ProductManagement() {
         skip: (page - 1) * limit,
         limit,
       });
-      setProducts(response.items);
-      setTotal(response.total);
+      
+      // Gérer le nouveau format de retour { data, error }
+      if (response.error) {
+        console.error('Error fetching products:', response.error);
+        setProducts([]);
+        setTotal(0);
+      } else {
+        setProducts(response.data?.items || []);
+        setTotal(response.data?.total || 0);
+      }
     } catch (err: any) {
       setError(err.message);
-      enqueueSnackbar(err.message, { variant: 'error' });
+      setProducts([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -148,9 +157,17 @@ export function ProductManagement() {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await categoryService.getCategories({ limit: 100 });
-      setCategories(response.items);
+      
+      // Gérer le nouveau format de retour { data, error }
+      if (response.error) {
+        console.error('Error fetching categories:', response.error);
+        setCategories([]);
+      } else {
+        setCategories(response.data?.items || []);
+      }
     } catch (err) {
       console.error('Failed to fetch categories', err);
+      setCategories([]);
     }
   }, []);
 
@@ -198,12 +215,16 @@ export function ProductManagement() {
   const checkUniqueness = async (sku: string, name: string, excludeId?: string) => {
     try {
       const response = await productService.getProducts({ search: sku });
-      const skuExists = response.items.some(p =>
+      
+      // Gérer le nouveau format de retour { data, error }
+      const skuItems = response.error ? [] : response.data?.items || [];
+      const skuExists = skuItems.some(p =>
         p.sku.toLowerCase() === sku.toLowerCase() && (!excludeId || p.id !== excludeId)
       );
 
       const nameResponse = await productService.getProducts({ search: name });
-      const nameExists = nameResponse.items.some(p =>
+      const nameItems = nameResponse.error ? [] : nameResponse.data?.items || [];
+      const nameExists = nameItems.some(p =>
         p.name.toLowerCase() === name.toLowerCase() && (!excludeId || p.id !== excludeId)
       );
 
@@ -235,7 +256,7 @@ export function ProductManagement() {
       // S'assurer que les images sont chargées (soit via include, soit via fetch séparé)
       if (!fullProduct.images || fullProduct.images.length === 0) {
         const images = await productService.getProductImages(product.id);
-        fullProduct.images = images;
+        fullProduct.images = images || [];
       }
 
       setSelectedProduct(fullProduct);
@@ -246,18 +267,13 @@ export function ProductManagement() {
         description: fullProduct.description,
         short_description: fullProduct.short_description,
         price: fullProduct.price,
-        original_price: fullProduct.original_price,
-        wholesale_price: fullProduct.wholesale_price,
-        inventory_quantity: fullProduct.inventory_quantity,
-        pieces: fullProduct.pieces || 1,
+        original_price: fullProduct.compare_price || undefined,
         category_id: fullProduct.category_id,
         status: fullProduct.status,
-        meta_title: fullProduct.meta_title,
+        is_featured: fullProduct.popular || false,
+        is_new: true,
+        min_order_quantity: 1,
       });
-      setCoverImage(null);
-      setGalleryImages([]);
-      setGalleryPreviews([]);
-      setCoverPreview(fullProduct.cover_image_url || null);
       setIsEditDialogOpen(true);
     } catch (err: any) {
       console.error('Erreur lors de la récupération du produit:', err);
@@ -275,7 +291,7 @@ export function ProductManagement() {
       // S'assurer que les images sont chargées
       if (!fullProduct.images || fullProduct.images.length === 0) {
         const images = await productService.getProductImages(product.id);
-        fullProduct.images = images;
+        fullProduct.images = images || [];
       }
 
       setSelectedProduct(fullProduct);
@@ -493,7 +509,7 @@ export function ProductManagement() {
   };
 
   const getCategoryName = (id: number) => {
-    const cat = categories.find(c => c.id === id);
+    const cat = Array.isArray(categories) ? categories.find(c => c.id === id) : null;
     return cat ? cat.name : 'Inconnue';
   };
 
@@ -553,7 +569,7 @@ export function ProductManagement() {
                 onChange={(e: any) => handleFilterChange('category_id', e.target.value)}
               >
                 <MenuItem value="">Toutes</MenuItem>
-                {categories.map(cat => (
+                {Array.isArray(categories) && categories.map(cat => (
                   <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                 ))}
               </MuiSelect>
@@ -594,7 +610,7 @@ export function ProductManagement() {
         </Box>
       ) : error ? (
         <Alert severity="error">{error}</Alert>
-      ) : products.length === 0 ? (
+      ) : !Array.isArray(products) || products.length === 0 ? (
         <Box textAlign="center" py={8}>
           <Package sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">Aucun produit trouvé</Typography>
@@ -765,7 +781,7 @@ export function ProductManagement() {
                   onChange={(e: any) => setFormData({ ...formData, category_id: Number(e.target.value) })}
                   sx={{ bgcolor: 'background.paper' }}
                 >
-                  {categories.map(cat => (
+                  {Array.isArray(categories) && categories.map(cat => (
                     <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                   ))}
                 </MuiSelect>
@@ -1141,7 +1157,7 @@ export function ProductManagement() {
                     <Plus sx={{ fontSize: 24, opacity: 0.6 }} />
                     <input type="file" hidden multiple accept="image/*" onChange={(e: any) => handleFileSelect(e, 'gallery')} />
                   </Button>
-                  {[...(selectedProduct?.images || []), ...galleryPreviews.map((p, i) => ({ id: `new-${i}`, image_url: p, isNew: true }))].map((img: any, idx) => (
+                  {[...(selectedProduct?.images && Array.isArray(selectedProduct.images) ? selectedProduct.images : []), ...galleryPreviews.map((p, i) => ({ id: `new-${i}`, image_url: p, isNew: true }))].map((img: any, idx) => (
                     <Box
                       key={img.id}
                       sx={{
@@ -1176,7 +1192,7 @@ export function ProductManagement() {
                         }}
                         onClick={async () => {
                           if (img.isNew) {
-                            removeGalleryImage(idx - (selectedProduct?.images?.length || 0));
+                            removeGalleryImage(idx - (selectedProduct?.images && Array.isArray(selectedProduct.images) ? selectedProduct.images.length : 0));
                           } else {
                             if (confirm('Supprimer cette image de la galerie ?')) {
                               try {
@@ -1309,7 +1325,7 @@ export function ProductManagement() {
                     style={{ width: '100%', height: 350, objectFit: 'contain', backgroundColor: alpha(theme.palette.background.default, 0.5) }}
                   />
                 </Paper>
-                {selectedProduct.images && selectedProduct.images.length > 0 && (
+                {selectedProduct?.images && Array.isArray(selectedProduct.images) && selectedProduct.images.length > 0 && (
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {selectedProduct.images.map((img, i) => (
                       <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>

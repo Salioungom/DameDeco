@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { safeApiCall, ApiErrorHandler } from '@/lib/error-handler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -23,6 +24,10 @@ interface PaginatedResponse<T> {
 }
 
 const getAuthHeader = () => {
+  if (typeof window === 'undefined') {
+    return { headers: { 'Content-Type': 'application/json' } };
+  }
+  
   const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
   return {
     headers: {
@@ -32,34 +37,6 @@ const getAuthHeader = () => {
   };
 };
 
-const handleApiError = (error: unknown): never => {
-  const axiosError = error as any;
-
-  if (axiosError.response) {
-    const { status, data } = axiosError.response;
-
-    switch (status) {
-      case 401:
-        // Déconnexion en cas d'expiration de session
-        localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
-        throw new Error('Session expirée. Veuillez vous reconnecter.');
-      case 403:
-        throw new Error('Accès refusé. Vous n\'avez pas les droits nécessaires.');
-      case 404:
-        throw new Error('Catégorie non trouvée.');
-      case 409:
-        throw new Error('Une catégorie avec ce nom ou ce slug existe déjà.');
-      default:
-        const errorMessage = data?.message || 'Une erreur est survenue';
-        throw new Error(errorMessage);
-    }
-  }
-
-  throw new Error('Erreur de connexion au serveur');
-};
-
 export const categoryService = {
   // Récupérer toutes les catégories avec pagination et filtres
   async getCategories(params?: {
@@ -67,8 +44,8 @@ export const categoryService = {
     limit?: number;
     search?: string;
     is_active?: boolean;
-  }): Promise<PaginatedResponse<Category>> {
-    try {
+  }): Promise<{ data: PaginatedResponse<Category> | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.get<PaginatedResponse<Category>>(
         `${API_BASE_URL}/api/v1/categories/`,
         {
@@ -77,48 +54,40 @@ export const categoryService = {
         }
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Récupérer les catégories actives
-  async getActiveCategories(): Promise<Category[]> {
-    try {
+  async getActiveCategories(): Promise<{ data: Category[] | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.get<Category[]>(
         `${API_BASE_URL}/api/v1/categories/active`,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Récupérer une catégorie par ID
-  async getCategoryById(id: number): Promise<Category> {
-    try {
+  async getCategoryById(id: number): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.get<Category>(
         `${API_BASE_URL}/api/v1/categories/${id}`,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Récupérer une catégorie par slug
-  async getCategoryBySlug(slug: string): Promise<Category> {
-    try {
+  async getCategoryBySlug(slug: string): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.get<Category>(
         `${API_BASE_URL}/api/v1/categories/slug/${slug}`,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Créer une nouvelle catégorie
@@ -128,59 +97,52 @@ export const categoryService = {
     description?: string;
     is_active?: boolean;
     sort_order?: number;
-  }): Promise<Category> {
-    try {
+  }): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.post<Category>(
         `${API_BASE_URL}/api/v1/categories/`,
         data,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Mettre à jour une catégorie
-  async updateCategory(id: number, data: Partial<Category>): Promise<Category> {
-    try {
+  async updateCategory(id: number, data: Partial<Category>): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.put<Category>(
         `${API_BASE_URL}/api/v1/categories/${id}`,
         data,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Supprimer une catégorie
-  async deleteCategory(id: number): Promise<void> {
-    try {
+  async deleteCategory(id: number): Promise<{ data: null; error: any }> {
+    return safeApiCall(async () => {
       await axios.delete(`${API_BASE_URL}/api/v1/categories/${id}`, getAuthHeader());
-    } catch (error) {
-      return handleApiError(error);
-    }
+      return null;
+    });
   },
 
   // Basculer le statut actif/inactif d'une catégorie
-  async toggleCategoryStatus(id: number): Promise<Category> {
-    try {
+  async toggleCategoryStatus(id: number): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.patch<Category>(
         `${API_BASE_URL}/api/v1/categories/${id}/toggle`,
         {},
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Téléverser ou remplacer une image de catégorie
-  async uploadCategoryImage(id: number, file: File): Promise<Category> {
-    try {
+  async uploadCategoryImage(id: number, file: File): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const formData = new FormData();
       formData.append('file', file);
 
@@ -196,14 +158,12 @@ export const categoryService = {
       );
 
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Mettre à jour une image de catégorie (NEW)
-  async updateCategoryImage(id: number, file: File): Promise<Category> {
-    try {
+  async updateCategoryImage(id: number, file: File): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const formData = new FormData();
       formData.append('file', file);
 
@@ -219,21 +179,17 @@ export const categoryService = {
       );
 
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 
   // Supprimer l'image d'une catégorie
-  async deleteCategoryImage(id: number): Promise<Category> {
-    try {
+  async deleteCategoryImage(id: number): Promise<{ data: Category | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.delete<Category>(
         `${API_BASE_URL}/api/v1/categories/${id}/image`,
         getAuthHeader()
       );
       return response.data;
-    } catch (error) {
-      return handleApiError(error);
-    }
+    });
   },
 };

@@ -41,7 +41,7 @@ export default function CartPage() {
         paymentMethod: 'wave'
     });
 
-    const total = cart.reduce((sum, item) => {
+    const total = (cart || []).reduce((sum, item) => {
         const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
         return sum + (price || 0) * item.quantity;
     }, 0);
@@ -93,7 +93,7 @@ export default function CartPage() {
         );
     }
 
-    if (cart.length === 0) {
+    if (!Array.isArray(cart) || cart.length === 0) {
         return (
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -133,7 +133,7 @@ export default function CartPage() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {cart.map((item, index) => {
+                                {Array.isArray(cart) && cart.map((item, index) => {
                                     const price = item.priceType === 'wholesale'
                                         ? item.product.wholesale_price
                                         : item.product.price;
@@ -308,7 +308,7 @@ export default function CartPage() {
                                 Récapitulatif
                             </Typography>
 
-                            {cart.map((item, index) => {
+                            {Array.isArray(cart) && cart.map((item, index) => {
                                 const price = item.priceType === 'wholesale'
                                     ? item.product.wholesale_price
                                     : item.product.price;

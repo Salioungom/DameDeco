@@ -25,6 +25,8 @@ import { Product, Category } from '../lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
+import { ApiStateWrapper, LoadingSpinner, ErrorDisplay } from './ui/ApiStateWrapper';
+import { ApiError } from '@/lib/error-handler';
 
 // Image bannière depuis le dossier public
 const bannerImage = '/banner.png';
@@ -53,39 +55,62 @@ export function HomePage({
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<ApiError | null>(null);
   const [categoriesMap, setCategoriesMap] = useState<Map<number, string>>(new Map());
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [fetchedCategories, productResponse] = await Promise.all([
-          homeService.getActiveCategories(),
-          productService.getProducts({ limit: 8 })
-        ]);
-        setCategories(fetchedCategories);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [categoriesResult, productsResult] = await Promise.all([
+        homeService.getActiveCategories(),
+        productService.getProducts({ limit: 8 })
+      ]);
+      
+      // Handle categories result
+      if (categoriesResult.error) {
+        setError(categoriesResult.error);
+        setCategories([]);
+      } else {
+        setCategories(categoriesResult.data || []);
         
         // Créer un map des catégories pour faciliter l'association
         const categoryMap = new Map<number, string>();
-        fetchedCategories.forEach((cat: Category) => {
+        categoriesResult.data?.forEach((cat: Category) => {
           categoryMap.set(Number(cat.id), cat.name);
         });
         setCategoriesMap(categoryMap);
-        
-        // Ajouter le nom de la catégorie à chaque produit
-        const productsWithCategory = productResponse.items.map((product: Product) => ({
+      }
+      
+      // Handle products result
+      if (productsResult.error) {
+        if (!error) setError(productsResult.error); // Don't overwrite categories error
+        setPopularProducts([]);
+      } else {
+        const productsWithCategory = productsResult.data?.items.map((product: Product) => ({
           ...product,
-          category_name: categoryMap.get(product.category_id) || undefined
-        }));
+          category_name: categoriesMap.get(product.category_id) || undefined
+        })) || [];
         
         setPopularProducts(productsWithCategory);
-      } catch (error) {
-        console.error('Error loading home data:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+      
+    } catch (err) {
+      console.error('Error loading home data:', err);
+      setError({
+        message: 'Erreur lors du chargement des données',
+        isNetworkError: false,
+        isTimeout: false,
+        isServerError: false,
+        isClientError: false,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadData();
   }, []);
 

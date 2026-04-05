@@ -108,6 +108,10 @@ export default function CreateAdminPage() {
         throw new Error('Non authentifié');
       }
 
+      // Utiliser notre système de gestion d'erreurs avec une URL par défaut
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      console.log('URL de l\'API utilisée pour création:', apiUrl);
+
       // Préparer les données pour l'API
       const userData = {
         username: formData.username.trim(),
@@ -119,7 +123,7 @@ export default function CreateAdminPage() {
         is_active: true
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/`, {
+      const res = await fetch(`${apiUrl}/api/v1/users/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -128,18 +132,30 @@ export default function CreateAdminPage() {
         body: JSON.stringify(userData),
       });
 
-      const responseData = await res.json();
-      
+      console.log('Réponse API création status:', res.status);
+
       if (!res.ok) {
-        // Gérer les erreurs de validation FastAPI
-        if (responseData.detail && Array.isArray(responseData.detail)) {
-          const errorMessages = responseData.detail.map((err: any) => 
-            `${err.loc?.join('.')} : ${err.msg}`
-          ).join(', ');
-          throw new Error(errorMessages);
+        // Gérer les erreurs HTTP
+        if (res.status === 401) {
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
         }
-        throw new Error(responseData.detail || responseData.message || 'Erreur lors de la création');
+        if (res.status === 404) {
+          throw new Error(`Endpoint non trouvé sur ${apiUrl}. Le backend est-il démarré ?`);
+        }
+        if (res.status === 400) {
+          const errorData = await res.json();
+          if (errorData.detail && Array.isArray(errorData.detail)) {
+            const errorMessages = errorData.detail.map((err: any) => 
+              `${err.loc?.join('.')} : ${err.msg}`
+            ).join(', ');
+            throw new Error(errorMessages);
+          }
+          throw new Error(errorData.detail || errorData.message || 'Données invalides');
+        }
+        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
       }
+
+      const responseData = await res.json();
 
       setSuccess(`${formData.role === 'admin' ? 'Admin' : 'Client'} créé avec succès !`);
       

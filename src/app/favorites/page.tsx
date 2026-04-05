@@ -35,7 +35,7 @@ export default function FavoritesPage() {
 
     useEffect(() => {
         const loadFavorites = async () => {
-            if (favorites.length === 0) {
+            if (!Array.isArray(favorites) || favorites.length === 0) {
                 setFavoriteProducts([]);
                 setLoading(false);
                 return;
@@ -59,6 +59,7 @@ export default function FavoritesPage() {
             } catch (err) {
                 console.error("Error loading favorites", err);
                 setError("Impossible de charger certains favoris.");
+                setFavoriteProducts([]);
             } finally {
                 setLoading(false);
             }
@@ -70,7 +71,7 @@ export default function FavoritesPage() {
     const handleRemoveFavorite = (productId: string) => {
         toggleFavorite(productId);
         // Optimistically remove from view
-        setFavoriteProducts(prev => prev.filter(p => p.id !== productId));
+        setFavoriteProducts(prev => Array.isArray(prev) ? prev.filter(p => p.id !== productId) : []);
     };
 
     const handleAddToCart = (product: Product) => {
@@ -85,7 +86,7 @@ export default function FavoritesPage() {
         );
     }
 
-    if (favoriteProducts.length === 0) {
+    if (!Array.isArray(favoriteProducts) || favoriteProducts.length === 0) {
         return (
             <Container maxWidth="lg" sx={{ mt: 12, mb: 8 }}>
                 <Paper
@@ -124,13 +125,13 @@ export default function FavoritesPage() {
                     Mes Favoris
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    {favoriteProducts.length} produit{favoriteProducts.length > 1 ? 's' : ''} dans vos favoris
+                    {(favoriteProducts || []).length} produit{(favoriteProducts || []).length > 1 ? 's' : ''} dans vos favoris
                 </Typography>
                 {error && <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert>}
             </Box>
 
             <Grid container spacing={3}>
-                {favoriteProducts.map((product) => (
+                {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (
                     <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                         <Card
                             sx={{

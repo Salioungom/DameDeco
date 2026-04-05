@@ -8,10 +8,15 @@ import {
     UpdateProductData,
     ProductStatus
 } from '../types/product';
+import { safeApiCall } from '@/lib/error-handler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const getAuthHeader = () => {
+    if (typeof window === 'undefined') {
+        return { headers: { 'Content-Type': 'application/json' } };
+    }
+    
     const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
     return {
         headers: {
@@ -73,9 +78,9 @@ const handleApiError = (error: unknown): never => {
 };
 
 export const productService = {
-    // Récupérer tous les produits avec pagination et filtres
-    async getProducts(params?: ProductFilters): Promise<ProductPaginatedResponse> {
-        try {
+    // Récupérer les produits avec pagination et filtres
+    async getProducts(params?: ProductFilters): Promise<{ data: ProductPaginatedResponse | null; error: any }> {
+        return safeApiCall(async () => {
             const response = await axios.get<ProductPaginatedResponse>(
                 `${API_BASE_URL}/api/v1/products/`,
                 {
@@ -88,33 +93,36 @@ export const productService = {
                 }
             );
             return response.data;
-        } catch (error) {
-            return handleApiError(error);
-        }
+        });
     },
 
     // Récupérer les produits actifs (pour le storefront public)
-    async getActiveProducts(params?: ProductFilters): Promise<ProductPaginatedResponse> {
-        try {
-            // On force le filtre status=PUBLISHED si l'API ne le fait pas par défaut sur cet endpoint,
-            // ou on utilise l'endpoint générique avec filtre.
-            // Supposons une route dédiée ou un filtre:
-            const response = await axios.get<ProductPaginatedResponse>(
-                `${API_BASE_URL}/api/v1/products/public`, // Endpoint public hypothétique ou filtré
-                {
-                    params: {
-                        ...params,
-                        status: ProductStatus.ACTIVE,
-                        include: 'category,images' // Inclure les détails de la catégorie et les images
+    async getActiveProducts(params?: ProductFilters): Promise<{ data: ProductPaginatedResponse | null; error: any }> {
+        return safeApiCall(async () => {
+            try {
+                // On force le filtre status=PUBLISHED si l'API ne le fait pas par défaut sur cet endpoint,
+                // ou on utilise l'endpoint générique avec filtre.
+                // Supposons une route dédiée ou un filtre:
+                const response = await axios.get<ProductPaginatedResponse>(
+                    `${API_BASE_URL}/api/v1/products/public`, // Endpoint public hypothétique ou filtré
+                    {
+                        params: {
+                            ...params,
+                            status: ProductStatus.ACTIVE,
+                            include: 'category,images' // Inclure les détails de la catégorie et les images
+                        }
                     }
+                );
+                return response.data;
+            } catch (error) {
+                // Fallback on standard get if public endpoint doesn't exist yet
+                const result = await this.getProducts({ ...params, status: ProductStatus.ACTIVE });
+                if (result.error) {
+                    throw result.error;
                 }
-            );
-            return response.data;
-        } catch (error) {
-            // Fallback on standard get if public endpoint doesn't exist yet, but logically we should separate
-            // For now, mirroring category service pattern
-            return this.getProducts({ ...params, status: ProductStatus.ACTIVE });
-        }
+                return result.data;
+            }
+        });
     },
 
     // Récupérer un produit par ID

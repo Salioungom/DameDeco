@@ -99,10 +99,18 @@ export function ProductDetailPage({
           limit: 5
         });
         if (mounted) {
-          setSimilarProducts(response.items.filter(p => p.id !== product.id).slice(0, 4));
+          // Gérer le nouveau format de retour { data, error }
+          if (response.error) {
+            console.error('Error fetching similar products:', response.error);
+            setSimilarProducts([]);
+          } else {
+            const items = response.data?.items || [];
+            setSimilarProducts(items.filter(p => p.id !== product.id).slice(0, 4));
+          }
         }
       } catch (error) {
         console.error("Failed to fetch similar products", error);
+        if (mounted) setSimilarProducts([]);
       } finally {
         if (mounted) setLoadingSimilar(false);
       }
@@ -142,7 +150,7 @@ export function ProductDetailPage({
   }, [product.id]);
 
   // Combiner les images de galerie avec l'image de couverture
-  const galleryImageUrls = galleryImages.map(img => img.image_url).filter(url => url);
+  const galleryImageUrls = (galleryImages || []).map(img => img.image_url).filter(url => url);
   
   // Utiliser les images qui fonctionnent (produit ID 3) pour le produit ID 1
   const workingImages = [
@@ -151,7 +159,7 @@ export function ProductDetailPage({
   ];
   
   const allImages = product.id === "1" ? workingImages : 
-    (product.cover_image_url ? [product.cover_image_url, ...galleryImageUrls] : galleryImageUrls);
+    (product.cover_image_url ? [product.cover_image_url, ...galleryImageUrls] : galleryImageUrls || []);
   
   const displayImage = allImages[selectedImage] || '/placeholder-image.jpg';
 
@@ -164,11 +172,17 @@ export function ProductDetailPage({
   };
 
   const handlePrevImage = () => {
-    setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
+    setSelectedImage((prev) => {
+      const length = allImages.length || 1;
+      return prev === 0 ? length - 1 : prev - 1;
+    });
   };
 
   const handleNextImage = () => {
-    setSelectedImage((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
+    setSelectedImage((prev) => {
+      const length = allImages.length || 1;
+      return prev === length - 1 ? 0 : prev + 1;
+    });
   };
 
   const handleThumbnailClick = (index: number) => {
@@ -180,7 +194,8 @@ export function ProductDetailPage({
   };
 
   const handleNextGallery = () => {
-    setGalleryStartIndex(prev => Math.min(allImages.length - 4, prev + 1));
+    const length = allImages.length || 0;
+    setGalleryStartIndex(prev => Math.min(length - 4, prev + 1));
   };
 
   // Calculer les images visibles dans la galerie (max 4)
@@ -273,11 +288,11 @@ export function ProductDetailPage({
                     fontWeight: 'medium',
                   }}
                 >
-                  {selectedImage + 1}/{allImages.length}
+                  {selectedImage + 1}/{allImages.length || 1}
                 </Box>
 
                 {/* Navigation Arrows */}
-                {allImages.length > 1 && (
+                {(allImages.length || 0) > 1 && (
                   <>
                     <IconButton
                       onClick={(e: React.MouseEvent) => { e.stopPropagation(); handlePrevImage(); }}
@@ -331,9 +346,9 @@ export function ProductDetailPage({
                 )}
 
                 {/* Counter Overlay */}
-                {allImages.length > 1 && (
+                {(allImages.length || 0) > 1 && (
                   <Chip
-                    label={`${selectedImage + 1} / ${allImages.length}`}
+                    label={`${selectedImage + 1} / ${allImages.length || 1}`}
                     size="small"
                     sx={{
                       position: 'absolute',
@@ -357,7 +372,7 @@ export function ProductDetailPage({
               </Box>
 
               {/* Gallery Section */}
-              {allImages.length > 1 && (
+              {(allImages.length || 0) > 1 && (
                 <Box sx={{ width: '100%' }}>
                   <Typography
                     variant="subtitle2"
@@ -388,7 +403,7 @@ export function ProductDetailPage({
                           bgcolor: 'golden.main',
                         }}
                       />
-                      Galerie photos ({allImages.length})
+                      Galerie photos ({allImages.length || 0})
                     </Box>
                   </Typography>
                   
@@ -502,7 +517,7 @@ export function ProductDetailPage({
                     </Box>
 
                     {/* Right Arrow */}
-                    {galleryStartIndex + 4 < allImages.length && (
+                    {galleryStartIndex + 4 < (allImages.length || 0) && (
                       <IconButton
                         onClick={handleNextGallery}
                         sx={{
@@ -872,7 +887,7 @@ export function ProductDetailPage({
         {/* Similar Products */}
         {loadingSimilar ? (
           <Box display="flex" justifyContent="center" my={8}><CircularProgress /></Box>
-        ) : similarProducts.length > 0 && (
+        ) : Array.isArray(similarProducts) && similarProducts.length > 0 && (
           <Box mt={8}>
             <Divider sx={{ mb: 4 }} />
             <Box mb={4}>
@@ -886,7 +901,7 @@ export function ProductDetailPage({
                 gap: 3,
               }}
             >
-              {similarProducts.map((similarProduct) => (
+              {Array.isArray(similarProducts) && similarProducts.map((similarProduct) => (
                 <div key={similarProduct.id}>
                   <ProductCard
                     product={similarProduct}

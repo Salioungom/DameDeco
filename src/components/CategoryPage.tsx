@@ -66,13 +66,21 @@ export function CategoryPage({
                         category_id: Number(category.id),
                         limit: 100
                     });
-                    setProducts(response.items);
+                    
+                    // Gérer le nouveau format de retour { data, error }
+                    if (response.error) {
+                        console.error('Error fetching products:', response.error);
+                        setProducts([]);
+                    } else {
+                        setProducts(response.data?.items || []);
+                    }
                 }
 
                 setError(null);
             } catch (err) {
                 setError('Erreur lors du chargement de la catégorie');
                 console.error(err);
+                setProducts([]);
             } finally {
                 setLoading(false);
             }
@@ -123,7 +131,7 @@ export function CategoryPage({
     }
 
     // Trier les produits
-    const filteredProducts = [...products].sort((a, b) => {
+    const filteredProducts = [...(products || [])].sort((a, b) => {
         if (sortBy === 'price-asc') {
             const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
             const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
@@ -210,7 +218,7 @@ export function CategoryPage({
                         }
                     }}
                 >
-                    {filteredProducts.length > 0 ? (
+                    {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
                         filteredProducts.map((product) => (
                             <Grid
                                 item

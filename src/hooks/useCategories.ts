@@ -1,22 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { categoryService, type Category } from '@/services/category.service';
+import { ApiError, ApiErrorHandler } from '@/lib/error-handler';
 
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
 
   const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await categoryService.getActiveCategories();
-      setCategories(data);
       setError(null);
-      return data;
+      
+      const result = await categoryService.getActiveCategories();
+      
+      if (result.error) {
+        setError(result.error);
+        setCategories([]);
+      } else {
+        setCategories(result.data || []);
+      }
+      
+      return result.data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des catégories';
-      setError(errorMessage);
-      throw err;
+      const apiError = ApiErrorHandler.classifyError(err);
+      setError(apiError);
+      setCategories([]);
+      throw apiError;
     } finally {
       setLoading(false);
     }
@@ -28,23 +38,33 @@ export function useCategories() {
 
   const getCategoryById = useCallback(async (id: number) => {
     try {
-      const category = await categoryService.getCategoryById(id);
-      return category;
+      const result = await categoryService.getCategoryById(id);
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      return result.data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Catégorie non trouvée';
-      setError(errorMessage);
-      throw err;
+      const apiError = ApiErrorHandler.classifyError(err);
+      setError(apiError);
+      throw apiError;
     }
   }, []);
 
   const getCategoryBySlug = useCallback(async (slug: string) => {
     try {
-      const category = await categoryService.getCategoryBySlug(slug);
-      return category;
+      const result = await categoryService.getCategoryBySlug(slug);
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      return result.data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Catégorie non trouvée';
-      setError(errorMessage);
-      throw err;
+      const apiError = ApiErrorHandler.classifyError(err);
+      setError(apiError);
+      throw apiError;
     }
   }, []);
 

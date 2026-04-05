@@ -70,7 +70,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
-  const subtotal = items.reduce((sum, item) => {
+  const subtotal = (items || []).reduce((sum, item) => {
     const price =
       item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
     return sum + (price || 0) * item.quantity;
@@ -297,7 +297,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
               <CardContent>
                 <Stack spacing={3}>
                   <Stack spacing={2}>
-                    {items.map((item) => {
+                    {Array.isArray(items) && items.map((item) => {
                       const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
                       return (
                         <Box key={item.product.id} display="flex" gap={2}>

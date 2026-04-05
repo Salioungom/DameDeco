@@ -25,11 +25,20 @@ export default function Page() {
                 setLoading(true);
                 // Try to get by ID first, or Slug if ID format implies it. 
                 // Currently assuming ID.
-                const data = await productService.getProductById(id);
-                setProduct(data);
+                const response = await productService.getProductById(id);
+                
+                // Gérer le nouveau format de retour { data, error }
+                if (response.error) {
+                    console.error("Error fetching product:", response.error);
+                    setError(response.error.message || 'Produit non trouvé');
+                    setProduct(null);
+                } else {
+                    setProduct(response.data || null);
+                }
             } catch (err: any) {
                 console.error("Error fetching product", err);
                 setError(err.message || 'Produit non trouvé');
+                setProduct(null);
             } finally {
                 setLoading(false);
             }

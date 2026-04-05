@@ -52,6 +52,7 @@ import {
   ContactMail,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
+import { ClientOnly } from './ClientOnly';
 
 
 const StyledAppBar = styled(AppBar)(({ theme }: { theme: any }) => ({
@@ -220,7 +221,7 @@ export function Navigation() {
   const profileAnchorRef = useRef<HTMLButtonElement>(null);
 
   const { isAdmin, toggleAdmin, cart, toggleCart } = useStore();
-  const cartCount = cart.reduce((acc: number, item) => acc + item.quantity, 0);
+  const cartCount = (cart || []).reduce((acc: number, item) => acc + item.quantity, 0);
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -368,15 +369,17 @@ export function Navigation() {
       <Box sx={{ p: 3 }}>
         <form onSubmit={handleSearch}>
           <SearchContainer sx={{ p: 1.5 }}>
-            <InputBase
-              fullWidth
-              placeholder="Rechercher des produits..."
-              value={searchQuery}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-              startAdornment={
-                <SearchIcon sx={{ color: 'text.secondary', mr: 1.5 }} />
-              }
-            />
+            <ClientOnly>
+              <InputBase
+                fullWidth
+                placeholder="Rechercher des produits..."
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                startAdornment={
+                  <SearchIcon sx={{ color: 'text.secondary', mr: 1.5 }} />
+                }
+              />
+            </ClientOnly>
           </SearchContainer>
         </form>
       </Box>
@@ -631,17 +634,19 @@ export function Navigation() {
                     fontSize: 20,
                   }}
                 />
-                <InputBase
-                  placeholder="Rechercher..."
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                  sx={{
-                    width: '100%',
-                    pl: 5,
-                    pr: 2,
-                    fontSize: '0.875rem',
-                  }}
-                />
+                <ClientOnly>
+                  <InputBase
+                    placeholder="Rechercher..."
+                    value={searchQuery}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    sx={{
+                      width: '100%',
+                      pl: 5,
+                      pr: 2,
+                      fontSize: '0.875rem',
+                    }}
+                  />
+                </ClientOnly>
               </SearchContainer>
             </form>
           </Box>

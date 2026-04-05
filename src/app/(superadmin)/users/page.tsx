@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { safeApiCall } from '@/lib/error-handler';
 import {
   Container,
   Typography,
@@ -100,27 +101,46 @@ export default function SuperadminUsersPage() {
 
       console.log('Token AuthContext trouvé pour users:', accessToken);
       
-      // Utiliser skip et limit selon la documentation FastAPI
-      // Test avec l'URL la plus simple possible
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+      // Utiliser notre système de gestion d'erreurs
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      console.log('URL de l\'API utilisée:', apiUrl);
+      
+      const result = await safeApiCall(async () => {
+        const response = await fetch(`${apiUrl}/api/v1/users/`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('Réponse API users status:', response.status);
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.log('Token invalide (401), redirection vers login');
+            router.push('/login');
+            throw new Error('Session expirée. Veuillez vous reconnecter.');
+          }
+          if (response.status === 404) {
+            if (apiUrl === 'http://localhost:8000') {
+              throw new Error('Endpoint utilisateurs non trouvé. Le backend est-il démarré sur http://localhost:8000 ?');
+            } else {
+              throw new Error(`Endpoint utilisateurs non trouvé sur ${apiUrl}. Vérifiez que l'API backend est correctement configurée.`);
+            }
+          }
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        return response.json();
       });
 
-      console.log('Réponse API users status:', res.status);
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          console.log('Token invalide (401), redirection vers login');
-          router.push('/login');
-          return;
-        }
-        throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+      if (result.error) {
+        console.error('Erreur lors du chargement des utilisateurs:', result.error);
+        setError(result.error.message);
+        return;
       }
 
-      const data = await res.json();
+      const data = result.data;
       console.log('Réponse API users:', data);
       
       // Gérer différents formats de réponse possibles
@@ -624,6 +644,15 @@ export default function SuperadminUsersPage() {
             <Alert 
               severity="error" 
               sx={{ m: 3, borderRadius: 2 }} 
+              action={
+                <Button 
+                  size="small" 
+                  onClick={loadUsers}
+                  disabled={loading}
+                >
+                  Réessayer
+                </Button>
+              }
               onClose={() => setError(null)}
             >
               {error}

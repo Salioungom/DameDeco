@@ -138,15 +138,24 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
 
       const response = await categoryService.getCategories(params);
 
-      setState(prev => ({
-        ...prev,
-        categories: response.items,
-        pagination: {
-          ...prev.pagination,
-          total: response.total,
-        },
-        loading: false,
-      }));
+      // Gérer le nouveau format de retour { data, error }
+      if (response.error) {
+        setState(prev => ({
+          ...prev,
+          error: response.error.message || 'Erreur lors du chargement des catégories',
+          loading: false,
+        }));
+      } else {
+        setState(prev => ({
+          ...prev,
+          categories: response.data?.items || [],
+          pagination: {
+            ...prev.pagination,
+            total: response.data?.total || 0,
+          },
+          loading: false,
+        }));
+      }
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -162,7 +171,26 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
 
   const handleCreateCategory = async () => {
     try {
-      const newCategory = await categoryService.createCategory(formData);
+      const response = await categoryService.createCategory(formData);
+      
+      if (response.error) {
+        setSnackbar({
+          open: true,
+          message: response.error.message || 'Erreur lors de la création de la catégorie',
+          severity: 'error',
+        });
+        return;
+      }
+
+      const newCategory = response.data;
+      if (!newCategory) {
+        setSnackbar({
+          open: true,
+          message: 'Erreur: aucune donnée retournée lors de la création',
+          severity: 'error',
+        });
+        return;
+      }
 
       if (selectedImage) {
         await categoryService.uploadCategoryImage(newCategory.id, selectedImage);
@@ -232,7 +260,27 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
 
   const handleToggleStatus = async (category: Category) => {
     try {
-      const updatedCategory = await categoryService.toggleCategoryStatus(category.id);
+      const response = await categoryService.toggleCategoryStatus(category.id);
+      
+      if (response.error) {
+        setSnackbar({
+          open: true,
+          message: response.error.message || 'Erreur lors du changement de statut',
+          severity: 'error',
+        });
+        return;
+      }
+
+      const updatedCategory = response.data;
+      if (!updatedCategory) {
+        setSnackbar({
+          open: true,
+          message: 'Erreur: aucune donnée retournée lors de la mise à jour',
+          severity: 'error',
+        });
+        return;
+      }
+
       setSnackbar({
         open: true,
         message: `Catégorie ${updatedCategory.is_active ? 'activée' : 'désactivée'} avec succès`,

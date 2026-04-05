@@ -199,15 +199,28 @@ export function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoadingStats(true);
         const [countRes, popularRes] = await Promise.all([
           productService.getProducts({ limit: 1 }), // Just to get total count locally if needed or rely on metadata
           productService.getProducts({ limit: 5, sort_by: 'is_featured', sort_order: 'desc' }) // Popular products
         ]);
-        setProductsCount(countRes.total);
-        setPopularProducts(popularRes.items);
+        
+        // Gérer le nouveau format de retour { data, error }
+        if (countRes.error) {
+          console.error('Error fetching products count:', countRes.error);
+          setProductsCount(0);
+        } else {
+          setProductsCount(countRes.data?.total || 0);
+        }
+        
+        if (popularRes.error) {
+          console.error('Error fetching popular products:', popularRes.error);
+          setPopularProducts([]);
+        } else {
+          setPopularProducts(popularRes.data?.items || []);
+        }
       } catch (error) {
         console.error("Error fetching admin stats", error);
+        setPopularProducts([]); // Assurer que popularProducts est toujours un tableau
       } finally {
         setLoadingStats(false);
       }
@@ -387,7 +400,7 @@ export function AdminDashboard() {
                     <Stack spacing={2}>
                       {loadingStats ? (
                         <Box display="flex" justifyContent="center"><CircularProgress /></Box>
-                      ) : popularProducts.length > 0 ? (
+                      ) : popularProducts && popularProducts.length > 0 ? (
                         popularProducts.map((product) => (
                           <Box key={product.id} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2, display: 'flex', justifyContent: 'space-between' }}>
                             <Box>

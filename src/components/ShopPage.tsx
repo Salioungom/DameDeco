@@ -67,8 +67,21 @@ export function ShopPage({
           homeService.getActiveCategories(),
           productService.getProducts({ limit: 1000 }) // Fetch all for client-side filtering
         ]);
-        setCategories(cats);
-        setProducts(prods.items);
+        
+        // Gérer le nouveau format de retour { data, error }
+        if (cats.error) {
+          console.error('Error fetching categories:', cats.error);
+          setCategories([]);
+        } else {
+          setCategories(cats.data || []);
+        }
+        
+        if (prods.error) {
+          console.error('Error fetching products:', prods.error);
+          setProducts([]);
+        } else {
+          setProducts(prods.data?.items || []);
+        }
       } catch (error) {
         console.error("Error fetching shop data", error);
       } finally {
@@ -94,7 +107,7 @@ export function ShopPage({
     );
   };
 
-  const filteredProducts = products
+  const filteredProducts = (products || [])
     .filter((product) => {
       // Filter by Category
       // Note: product.category_id is a number, selectedCategories are likely strings (ids)
@@ -139,7 +152,7 @@ export function ShopPage({
           Catégories
         </Typography>
         <Stack spacing={1}>
-          {categories.map((category) => (
+          {Array.isArray(categories) && categories.map((category) => (
             <FormControlLabel
               key={category.id}
               control={
@@ -276,7 +289,7 @@ export function ShopPage({
                   }
                 }}
               >
-                {filteredProducts.length > 0 ? (
+                {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
                   filteredProducts.map((product) => (
                     <Grid
                       item

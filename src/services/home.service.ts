@@ -1,9 +1,14 @@
 import axios from 'axios';
 import { Category } from '@/lib/types';
+import { safeApiCall } from '@/lib/error-handler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const getAuthHeader = () => {
+  if (typeof window === 'undefined') {
+    return { headers: { 'Content-Type': 'application/json' } };
+  }
+  
   const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
   return {
     headers: {
@@ -15,8 +20,8 @@ const getAuthHeader = () => {
 
 export const homeService = {
   // Récupérer les catégories actives pour la page d'accueil
-  async getActiveCategories(): Promise<Category[]> {
-    try {
+  async getActiveCategories(): Promise<{ data: Category[] | null; error: any }> {
+    return safeApiCall(async () => {
       const response = await axios.get(
         `${API_BASE_URL}/api/v1/categories/active`,
         getAuthHeader()
@@ -31,10 +36,6 @@ export const homeService = {
         icon: '🏠', // Icône par défaut
         image: apiCategory.cover_image_url || '/placeholder-image.jpg'
       }));
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      // En cas d'erreur, retourner un tableau vide
-      return [];
-    }
+    });
   },
 };

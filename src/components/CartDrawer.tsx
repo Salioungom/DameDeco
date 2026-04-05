@@ -27,7 +27,7 @@ export function CartDrawer() {
   const router = useRouter();
   const theme = useTheme();
 
-  const total = cart.reduce((sum, item) => {
+  const total = (cart || []).reduce((sum, item) => {
     const price =
       item.priceType === 'wholesale'
         ? item.product.wholesale_price
@@ -54,7 +54,7 @@ export function CartDrawer() {
           <Box>
             <Typography variant="h6">Panier</Typography>
             <Typography variant="body2" color="text.secondary">
-              {cart.length} article{cart.length > 1 ? 's' : ''}
+              {(cart || []).length} article{(cart || []).length > 1 ? 's' : ''}
             </Typography>
           </Box>
           <IconButton onClick={() => toggleCart(false)}>
@@ -63,7 +63,7 @@ export function CartDrawer() {
         </Box>
         <Divider />
 
-        {cart.length === 0 ? (
+        {!Array.isArray(cart) || cart.length === 0 ? (
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: 4 }}>
             <ShoppingBag sx={{ fontSize: 64, color: 'text.secondary' }} />
             <Typography color="text.secondary">Votre panier est vide</Typography>
@@ -75,7 +75,7 @@ export function CartDrawer() {
           <>
             <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
               <Stack spacing={2}>
-                {cart.map((item) => {
+                {Array.isArray(cart) && cart.map((item) => {
                   const price =
                     item.priceType === 'wholesale'
                       ? item.product.wholesale_price
