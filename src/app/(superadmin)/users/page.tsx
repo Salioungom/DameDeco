@@ -32,6 +32,8 @@ import {
   Card,
   CardContent,
   Avatar,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -256,19 +258,35 @@ export default function SuperadminUsersPage() {
         throw new Error('Non authentifié');
       }
 
+      // Mapper les champs du formulaire vers le format attendu par l'API
+      const updateData = {
+        full_name: editForm.name,
+        email: editForm.email,
+        role: editForm.role,
+        is_active: editForm.is_active,
+      };
+
+      console.log('Données envoyées pour mise à jour:', updateData);
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToEdit.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(updateData),
       });
+
+      console.log('Réponse status:', res.status);
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('Erreur API:', errorData);
         throw new Error(errorData.detail || `Erreur ${res.status}`);
       }
+
+      const responseData = await res.json();
+      console.log('Mise à jour réussie:', responseData);
 
       setSuccess('Utilisateur mis à jour avec succès');
       setEditDialogOpen(false);
@@ -276,6 +294,7 @@ export default function SuperadminUsersPage() {
       
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
+      console.error('Erreur complète lors de la mise à jour:', err);
       setError(err.message || 'Erreur lors de la mise à jour');
     }
   };
@@ -895,6 +914,18 @@ export default function SuperadminUsersPage() {
                 <option value="admin">Admin</option>
                 <option value="client">Client</option>
               </TextField>
+              <Box sx={{ mt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editForm.is_active}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, is_active: e.target.checked})}
+                      color="primary"
+                    />
+                  }
+                  label="Compte actif"
+                />
+              </Box>
             </Box>
           </DialogContent>
           <DialogActions>

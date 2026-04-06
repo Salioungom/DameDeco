@@ -30,9 +30,12 @@ import {
 } from '@mui/icons-material';
 import { Product } from '../types/product';
 import { productService } from '../services/product.service';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ProductImage } from './ProductImage';
 import { orderViaWhatsApp } from '../lib/whatsapp';
 import ProductCard from './ProductCard';
+
+// Configuration sécurisée depuis les variables d'environnement
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -130,7 +133,7 @@ export function ProductDetailPage({
     let mounted = true;
     const fetchGalleryImages = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/products/${product.id}/images`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/products/${product.id}/images`);
         if (response.ok) {
           const galleryData = await response.json();
           if (mounted) {
@@ -152,16 +155,23 @@ export function ProductDetailPage({
   // Combiner les images de galerie avec l'image de couverture
   const galleryImageUrls = (galleryImages || []).map(img => img.image_url).filter(url => url);
   
-  // Utiliser les images qui fonctionnent (produit ID 3) pour le produit ID 1
-  const workingImages = [
-    "http://localhost:8000/media/products/covers/0925bd82312c4596a66cade85d75147a.png",
-    "http://localhost:8000/media/products/gallery/d44eb383f9bd4a5bbdec7f57a8535b7f.png"
+  // Fonction pour convertir les URLs relatives en URLs complètes
+  const getFullImageUrl = (url: string) => {
+    if (!url) return '';
+    // Si l'URL est déjà complète (commence par http), la retourner telle quelle
+    if (url.startsWith('http')) return url;
+    // Sinon, ajouter le domaine du backend depuis les variables d'environnement
+    return `${API_BASE_URL}/${url.startsWith('/') ? url.slice(1) : url}`;
+  };
+  
+  // Créer la liste complète des images (couverture + galerie)
+  const allImages = [
+    ...(product.cover_image_url ? [getFullImageUrl(product.cover_image_url)] : []),
+    ...galleryImageUrls.map(getFullImageUrl)
   ];
   
-  const allImages = product.id === "1" ? workingImages : 
-    (product.cover_image_url ? [product.cover_image_url, ...galleryImageUrls] : galleryImageUrls || []);
-  
-  const displayImage = allImages[selectedImage] || '/placeholder-image.jpg';
+  // Si aucune image, utiliser un placeholder
+  const displayImage = allImages[selectedImage] || `${API_BASE_URL}/placeholder-product.jpg`;
 
   const handleWhatsAppOrder = () => {
     orderViaWhatsApp(product.name, price, quantity, displayImage, product.id);
@@ -253,22 +263,15 @@ export function ProductDetailPage({
                     justifyContent: 'center',
                   }}
                 >
-                  <img
+                  <ProductImage
                     src={displayImage}
                     alt={product.name}
                     style={{ 
                       width: '100%', 
                       height: '100%', 
-                      objectFit: 'contain', // Affiche l'image complète sans zoom ni découpe
+                      objectFit: 'contain',
                       objectPosition: 'center',
                       transition: 'all 0.4s ease',
-                    }}
-                    onError={(e) => {
-                      // Silently handle image errors without console spam
-                      const target = e.target as HTMLImageElement;
-                      if (!target.src.includes('placeholder-image.jpg')) {
-                        target.src = '/placeholder-image.jpg';
-                      }
                     }}
                   />
                 </Box>
@@ -481,21 +484,15 @@ export function ProductDetailPage({
                               },
                             }}
                           >
-                            <img
+                            <ProductImage
                               src={image}
                               alt={`${product.name} ${actualIndex + 1}`}
                               style={{ 
                                 width: '100%', 
                                 height: '100%', 
-                                objectFit: 'contain', // Affiche l'image complète sans zoom ni découpe
+                                objectFit: 'contain',
                                 objectPosition: 'center',
                                 transition: 'transform 0.3s ease',
-                              }}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (!target.src.includes('placeholder-image.jpg')) {
-                                  target.src = '/placeholder-image.jpg';
-                                }
                               }}
                             />
                             {selectedImage === actualIndex && (

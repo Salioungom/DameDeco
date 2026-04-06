@@ -123,23 +123,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return errorMessage;
     };
 
-    // Récupération des informations utilisateur
-    const fetchUser = async (): Promise<void> => {
+    // Récupération des informations utilisateur avec retry
+    const fetchUser = async (retryCount = 0): Promise<void> => {
         // Protection contre l'exécution côté server
         if (typeof window === 'undefined') {
-            console.log('🔒 AuthContext: fetchUser bloqué côté server');
+            console.log(' AuthContext - fetchUser called server-side, skipping');
+            return;
+        }
+
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        
+        if (!token) {
+            console.log(' AuthContext - No token found, user not authenticated');
+            updateAuthState({
+                user: null,
+                accessToken: null,
+                isAuthenticated: false,
+                requires2FA: false,
+                roles: [],
+                status: 'unauthenticated',
+            });
             setLoading(false);
             return;
         }
 
+        // Vérifier si le token est un JWT et s'il est expiré
         try {
-            updateAuthState({ status: 'loading' });
-            
-            const token = getStoredToken();
-            console.log('🔍 AuthContext - Token check:', token ? '✅ Token exists' : '❌ No token found');
-            
-            if (!token) {
-                console.log('🔓 AuthContext - No token, setting unauthenticated state');
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (Date.now() > payload.exp * 1000) {
+                console.log(' AuthContext - Token expired, clearing and redirecting');
+                clearStoredTokens();
                 updateAuthState({
                     user: null,
                     accessToken: null,
@@ -151,14 +164,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
                 return;
             }
+        } catch (e) {
+            console.log(' AuthContext - Token is not JWT, proceeding anyway');
+        }
 
-            console.log('📡 AuthContext - Fetching user data...');
-            
+        console.log(' AuthContext - Fetching user data...');
+        
+        try {
             const response = await api.get('/api/v1/auth/me', {
                 timeout: 8000, // 8 secondes timeout
             });
 
-            console.log('✅ AuthContext - User data received:', response.data);
+            console.log(' AuthContext - User data received:', response.data);
             
             const user = response.data.user || response.data;
             if (!user) {
@@ -174,17 +191,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'authenticated',
             });
 
-            console.log('✅ AuthContext - User authenticated successfully:', user.full_name);
+            console.log(' AuthContext - User authenticated successfully:', user.full_name);
 
         } catch (error: any) {
             const errorMessage = handleAuthError(error, 'fetchUser');
             
-            // Gestion spécifique des erreurs 401
+            // Retry logic pour les erreurs réseau
+            if ((error.code === 'ECONNABORTED' || error.code === 'NETWORK_ERROR') && retryCount < 2) {
+                console.log(` AuthContext - Retrying fetchUser (${retryCount + 1}/2)`);
+                setTimeout(() => fetchUser(retryCount + 1), 1000 * (retryCount + 1));
+                return;
+            }
+            
+            // Gestion spécifique des erreurs 401 et 403
             if (error?.status === 401) {
-                console.log('🔓 AuthContext - Unauthorized, clearing invalid token');
+                console.log(' AuthContext - Unauthorized, clearing invalid token');
                 clearStoredTokens();
+                updateAuthState({
+                    user: null,
+                    accessToken: null,
+                    isAuthenticated: false,
+                    requires2FA: false,
+                    roles: [],
+                    status: 'unauthenticated',
+                });
+                return; // Sortir early pour éviter le double nettoyage
+            }
+            
+            if (error?.status === 403) {
+                console.log('🚫 AuthContext - Forbidden, insufficient permissions');
+                // Ne pas déconnecter pour 403, juste logger
+                return;
             }
 
+            // Pour les autres erreurs, nettoyer l'état
             updateAuthState({
                 user: null,
                 accessToken: null,

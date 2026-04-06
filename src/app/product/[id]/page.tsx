@@ -25,15 +25,15 @@ export default function Page() {
                 setLoading(true);
                 // Try to get by ID first, or Slug if ID format implies it. 
                 // Currently assuming ID.
-                const response = await productService.getProductById(id);
+                const product = await productService.getProductById(id);
                 
-                // Gérer le nouveau format de retour { data, error }
-                if (response.error) {
-                    console.error("Error fetching product:", response.error);
-                    setError(response.error.message || 'Produit non trouvé');
-                    setProduct(null);
+                // getProductById retourne directement le produit ou une erreur via handleApiError
+                if (product) {
+                    setProduct(product);
+                    setError(null);
                 } else {
-                    setProduct(response.data || null);
+                    setProduct(null);
+                    setError('Produit non trouvé');
                 }
             } catch (err: any) {
                 console.error("Error fetching product", err);

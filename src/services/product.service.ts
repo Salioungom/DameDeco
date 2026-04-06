@@ -198,29 +198,31 @@ export const productService = {
             const backendData: any = {
                 name: data.name,
                 slug: data.slug,
-                description: data.description,
-                short_description: data.short_description,
+                description: data.description || '',
+                short_description: data.short_description || '',
                 sku: data.sku,
-                price: data.price,
-                compare_price: data.original_price, // Mapping: original_price -> compare_price
-                cost_price: data.wholesale_price,  // Mapping: wholesale_price -> cost_price
+                price: Number(data.price) || 0,
+                compare_price: Number(data.original_price) || 0, // Mapping: original_price -> compare_price
+                cost_price: Number(data.wholesale_price) || 0,  // Mapping: wholesale_price -> cost_price
                 track_inventory: true,             // Champ requis par le backend
-                inventory_quantity: data.inventory_quantity,
-                weight: data.weight,
-                status: data.status,
-                category_id: data.category_id,
-                meta_title: data.meta_title,
-                meta_description: data.meta_description,
-                pieces: data.pieces,
-                popular: data.is_featured, // Mapping: is_featured -> popular
+                inventory_quantity: Number(data.inventory_quantity) || 0,
+                weight: Number(data.weight) || 0,
+                status: data.status || 'active',
+                category_id: Number(data.category_id) || 0,
+                meta_title: data.meta_title || '',
+                meta_description: data.meta_description || '',
+                pieces: Number(data.pieces) || 0,
+                popular: Boolean(data.is_featured), // Mapping: is_featured -> popular
+                average_rating: 0, // Valeurs par défaut requises
+                review_count: 0,   // Valeurs par défaut requises
             };
 
-            // Supprimer les champs undefined/null
-            Object.keys(backendData).forEach(key => {
-                if (backendData[key] === undefined || backendData[key] === null) {
-                    delete backendData[key];
-                }
-            });
+            // S'assurer que les champs requis sont présents et valides
+            if (!backendData.name || !backendData.sku || !backendData.category_id) {
+                throw new Error('Champs requis manquants: name, sku, category_id');
+            }
+
+            console.log('🔄 Données envoyées pour mise à jour produit:', backendData);
 
             const response = await axios.put<Product>( // Utiliser PUT comme attendu par le backend
                 `${API_BASE_URL}/api/v1/products/${id}`,

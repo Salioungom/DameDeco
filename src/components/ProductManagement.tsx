@@ -49,19 +49,36 @@ import { enqueueSnackbar } from 'notistack';
 import { productService } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ProductImage } from './ProductImage';
 
 // Styles personnalisés
-// Note: Theme is imported from @mui/material/styles. If it still shows namespace error, any might be necessary but Theme is the standard type.
-const StyledCard = styled(Card)(({ theme }: { theme: any }) => ({
+const StyledCard = styled(Card)(({ theme }: any) => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
+  transition: 'all 0.3s ease-in-out',
+  cursor: 'pointer',
   '&:hover': {
-    boxShadow: theme.shadows[8],
     transform: 'translateY(-4px)',
-    transition: 'all 0.3s ease-in-out',
+    boxShadow: theme.shadows[8],
+    '& .product-image-overlay': {
+      opacity: 1,
+    }
   },
+}));
+
+const ProductImageOverlay = styled(Box)(({ theme }: any) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)',
+  opacity: 0,
+  transition: 'opacity 0.3s ease-in-out',
+  display: 'flex',
+  alignItems: 'flex-end',
+  padding: theme.spacing(2),
 }));
 
 export function ProductManagement() {
@@ -274,6 +291,13 @@ export function ProductManagement() {
         is_new: true,
         min_order_quantity: 1,
       });
+      
+      // Initialiser l'image de couverture existante
+      setCoverPreview(fullProduct.cover_image_url || null);
+      setCoverImage(null);
+      setGalleryImages([]);
+      setGalleryPreviews([]);
+      
       setIsEditDialogOpen(true);
     } catch (err: any) {
       console.error('Erreur lors de la récupération du produit:', err);
@@ -622,8 +646,8 @@ export function ProductManagement() {
               <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
                 <StyledCard>
                   <Box sx={{ position: 'relative', pt: '100%', bgcolor: 'action.hover' }}>
-                    <ImageWithFallback
-                      src={product.cover_image_url || ''}
+                    <ProductImage
+                      src={product.cover_image_url || undefined}
                       alt={product.name}
                       style={{
                         position: 'absolute',
@@ -634,6 +658,11 @@ export function ProductManagement() {
                         objectFit: 'cover',
                       }}
                     />
+                    <ProductImageOverlay className="product-image-overlay">
+                      <Typography variant="h6" color="white" fontWeight="bold">
+                        {product.price.toLocaleString()} XOF
+                      </Typography>
+                    </ProductImageOverlay>
                     <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                       {product.status !== ProductStatus.ACTIVE && (
                         <Chip label={product.status} color="default" size="small" />
@@ -664,9 +693,16 @@ export function ProductManagement() {
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="caption" display="block" color="text.secondary" mt={1}>
-                      Stock: {product.inventory_quantity} | Grossiste: {product.wholesale_price?.toLocaleString() || '-'}
-                    </Typography>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                      <Typography variant="caption" color="text.secondary">
+                        Stock: {product.inventory_quantity}
+                      </Typography>
+                      {product.wholesale_price && (
+                        <Typography variant="caption" color="success.main">
+                          Grossiste: {product.wholesale_price.toLocaleString()} XOF
+                        </Typography>
+                      )}
+                    </Box>
                   </CardContent>
                   <CardActions sx={{ p: 2, pt: 0 }}>
                     <IconButton size="small" onClick={() => openViewDialog(product)}>
@@ -1172,7 +1208,7 @@ export function ProductManagement() {
                         }
                       }}
                     >
-                      <ImageWithFallback
+                      <ProductImage
                         src={img.image_url}
                         alt="Gallery"
                         width={70}
@@ -1320,7 +1356,7 @@ export function ProductManagement() {
               <Grid item xs={12} md={5}>
                 <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
                   <img
-                    src={selectedProduct.cover_image_url || ''}
+                    src={selectedProduct.cover_image_url || undefined}
                     alt={selectedProduct.name}
                     style={{ width: '100%', height: 350, objectFit: 'contain', backgroundColor: alpha(theme.palette.background.default, 0.5) }}
                   />
@@ -1329,7 +1365,7 @@ export function ProductManagement() {
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {selectedProduct.images.map((img, i) => (
                       <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>
-                        <ImageWithFallback src={img.image_url} alt={`Gallery ${i}`} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <ProductImage src={img.image_url} alt={`Gallery ${i}`} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Paper>
                     ))}
                   </Box>

@@ -5,7 +5,7 @@ import { LoginCredentials, RegisterData, AuthResponse, User } from './types';
 export const authAPI = {
   // Inscription
   register: async (userData: RegisterData): Promise<AuthResponse> => {
-    const response = await apiClient.post('/auth/register', userData);
+    const response = await apiClient.post('/api/v1/auth/register', userData);
     return response.data;
   },
 
