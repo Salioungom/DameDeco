@@ -81,17 +81,46 @@ export const productService = {
     // Récupérer les produits avec pagination et filtres
     async getProducts(params?: ProductFilters): Promise<{ data: ProductPaginatedResponse | null; error: any }> {
         return safeApiCall(async () => {
+            // Construire les paramètres de manière sécurisée
+            const requestParams: any = {};
+            
+            if (params?.limit) {
+                requestParams.limit = Math.min(params.limit, 100); // Limiter à 100 pour éviter l'erreur 422
+            }
+            
+            if (params?.search) {
+                requestParams.search = params.search;
+            }
+            
+            if (params?.category_id) {
+                requestParams.category_id = params.category_id;
+            }
+            
+            if (params?.status) {
+                requestParams.status = params.status;
+            }
+            
+            // Test: essayer avec include simple d'abord
+            requestParams.include = 'category'; // Seulement la catégorie, pas les images pour le moment
+            
+            console.log('📡 Envoi de la requête produits:', {
+                url: `${API_BASE_URL}/api/v1/products/`,
+                params: requestParams
+            });
+
             const response = await axios.get<ProductPaginatedResponse>(
                 `${API_BASE_URL}/api/v1/products/`,
                 {
                     ...getAuthHeader(),
-                    params: {
-                        ...params,
-                        // Ajouter un paramètre pour inclure les détails de la catégorie et les images
-                        include: 'category,images'
-                    }
+                    params: requestParams,
                 }
             );
+            
+            console.log('📥 Réponse reçue:', {
+                status: response.status,
+                data: response.data
+            });
+            
             return response.data;
         });
     },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   Box,
@@ -8,6 +8,7 @@ import {
   Grid,
   Typography,
   Button,
+  Chip,
   Checkbox,
   FormControlLabel,
   Slider,
@@ -20,9 +21,9 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
-import { FilterList as Filter, Close as X } from '@mui/icons-material';
+import { FilterList as Filter, Close as X, LocalShipping, Category as CategoryType } from '@mui/icons-material';
 import ProductCard from './ProductCard';
 import { productService } from '../services/product.service';
 import { homeService } from '../services/home.service';
@@ -57,7 +58,16 @@ export function ShopPage({
   const [sortBy, setSortBy] = useState<string>('popular');
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Éviter les problèmes d'hydratation en initialisant les états
+  const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     setIsMounted(true);
     // Fetch Data
     const fetchData = async () => {
@@ -65,19 +75,19 @@ export function ShopPage({
         setLoading(true);
         const [cats, prods] = await Promise.all([
           homeService.getActiveCategories(),
-          productService.getProducts({ limit: 1000 }) // Fetch all for client-side filtering
+          productService.getProducts({ limit: 100 }) // Réduire la limite pour éviter les erreurs
         ]);
         
-        // Gérer le nouveau format de retour { data, error }
+        // Gérer le format de retour { data, error }
         if (cats.error) {
-          console.error('Error fetching categories:', cats.error);
+          console.error('Error fetching categories:', cats.error.message || cats.error);
           setCategories([]);
         } else {
           setCategories(cats.data || []);
         }
         
         if (prods.error) {
-          console.error('Error fetching products:', prods.error);
+          console.error('Error fetching products:', prods.error.message || prods.error);
           setProducts([]);
         } else {
           setProducts(prods.data?.items || []);
@@ -88,10 +98,11 @@ export function ShopPage({
         setLoading(false);
       }
     };
+    
     fetchData();
 
     return () => setIsMounted(false);
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
     if (initialCategory) {
@@ -100,31 +111,43 @@ export function ShopPage({
   }, [initialCategory]);
 
   const toggleCategory = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
+    setSelectedCategories((prev) => {
+      const newCategories = prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
+        : [...prev, categoryId];
+      return newCategories;
+    });
   };
 
-  const filteredProducts = (products || [])
-    .filter((product) => {
+  // Simplifier le filtrage pour éviter les re-rendus fréquents
+  const filteredProducts = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    
+    return products.filter((product) => {
       // Filter by Category
-      // Note: product.category_id is a number, selectedCategories are likely strings (ids)
       if (selectedCategories.length > 0) {
-        // Convert category_id to string for comparison
         if (!selectedCategories.includes(product.category_id.toString())) {
           return false;
         }
       }
-
-      const price = userType === 'wholesale' && product.wholesale_price ? product.wholesale_price : product.price;
-      if (price < priceRange[0] || price > priceRange[1]) {
+      
+      // Filter by Price
+      const productPrice = userType === 'wholesale' && product.wholesale_price 
+        ? product.wholesale_price 
+        : product.price;
+      
+      if (productPrice < priceRange[0] || productPrice > priceRange[1]) {
         return false;
       }
+      
       return true;
-    })
-    .sort((a, b) => {
+    });
+  }, [products, selectedCategories, priceRange, userType]);
+
+  const sortedProducts = useMemo(() => {
+    if (!filteredProducts) return [];
+
+    return filteredProducts.sort((a: Product, b: Product) => {
       if (sortBy === 'price-asc') {
         const priceA = userType === 'wholesale' && a.wholesale_price ? a.wholesale_price : a.price;
         const priceB = userType === 'wholesale' && b.wholesale_price ? b.wholesale_price : b.price;
@@ -144,69 +167,99 @@ export function ShopPage({
       }
       return 0;
     });
+  }, [filteredProducts, sortBy, userType]);
 
-  const FilterContent = () => (
-    <Box sx={{ p: 2 }}>
-      <Box mb={4}>
-        <Typography variant="h6" gutterBottom>
-          Catégories
-        </Typography>
-        <Stack spacing={1}>
-          {Array.isArray(categories) && categories.map((category) => (
-            <FormControlLabel
-              key={category.id}
-              control={
-                <Checkbox
-                  checked={selectedCategories.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
-                />
-              }
-              label={category.name}
-            />
-          ))}
-        </Stack>
-      </Box>
+  const FilterContent = () => {
+    return (
+        <Box sx={{ p: 2 }}>
+            <Box mb={4}>
+                <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 600, 
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}>
+                    <CategoryType sx={{ fontSize: 20, color: 'primary.main' }} />
+                    Catégories
+                </Typography>
+                <Stack spacing={1}>
+                    {Array.isArray(categories) && categories.slice(0, 5).map((category) => (
+                        <FormControlLabel
+                            key={category.id}
+                            control={
+                                <Checkbox
+                                    checked={selectedCategories.includes(category.id)}
+                                    onChange={() => toggleCategory(category.id)}
+                                    size="small"
+                                />
+                            }
+                            label={category.name}
+                            sx={{ fontSize: '0.875rem' }}
+                        />
+                    ))}
+                </Stack>
+            </Box>
+            
+            <Box mb={4}>
+                <Typography variant="h6" gutterBottom sx={{ 
+                    fontWeight: 600, 
+                    color: 'primary.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                }}>
+                    <LocalShipping sx={{ fontSize: 20, color: 'primary.main' }} />
+                    Prix (FCFA)
+                </Typography>
+                <Box px={1}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                        Prix: {priceRange[0].toLocaleString('fr-FR')} - {priceRange[1].toLocaleString('fr-FR')}
+                    </Typography>
+                    <Slider
+                        min={0}
+                        max={150000}
+                        step={10000} // Step plus grand = moins d'événements
+                        value={priceRange}
+                        onChange={(_: Event, value: number | number[]) => setPriceRange(value as number[])}
+                        valueLabelDisplay="auto"
+                        sx={{ width: '100%' }}
+                    />
+                </Box>
+            </Box>
 
-      <Box mb={4}>
-        <Typography variant="h6" gutterBottom>
-          Prix (FCFA)
-        </Typography>
-        <Box px={1}>
-          {isMounted && (
-            <Slider
-              min={0}
-              max={150000}
-              step={5000}
-              value={priceRange}
-              onChange={(_: React.SyntheticEvent, value: number | number[]) => setPriceRange(value as number[])}
-              valueLabelDisplay="auto"
-              sx={{ mb: 2 }}
-            />
-          )}
-          <Box display="flex" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">
-              {priceRange[0].toLocaleString('fr-FR')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {priceRange[1].toLocaleString('fr-FR')}
+            <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<X />}
+                onClick={() => {
+                    setSelectedCategories([]);
+                    setPriceRange([0, 150000]);
+                }}
+            >
+                Annuler le filtre
+            </Button>
+        </Box>
+    );
+};
+
+  // Si le composant n'est pas encore monté, afficher un état de chargement
+  if (!mounted) {
+    return (
+      <Box sx={{ width: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+          <Box display="flex" alignItems="center" mb={3}>
+            <Typography variant="h4" component="h1" fontWeight={700} sx={{ flexGrow: 1 }}>
+              Boutique
             </Typography>
           </Box>
-        </Box>
+          <Box display="flex" justifyContent="center" py={8}>
+            <CircularProgress />
+          </Box>
+        </Container>
       </Box>
-
-      <Button
-        variant="outlined"
-        fullWidth
-        startIcon={<X />}
-        onClick={() => {
-          setSelectedCategories([]);
-          setPriceRange([0, 150000]);
-        }}
-      >
-        Annuler le filtre
-      </Button>
-    </Box>
-  );
+    );
+  }
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
@@ -289,52 +342,66 @@ export function ShopPage({
                   }
                 }}
               >
-                {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <Grid
-                      item
-                      key={product.id}
-                      xs={12}
-                      sm={6}
-                      md={6}
-                      lg={4}
-                      xl={3}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Box sx={{ width: '100%', maxWidth: 400 }}>
-                        <ProductCard
-                          product={product}
-                          onAddToCart={onAddToCart}
-                          onViewDetails={onViewProduct}
-                          userType={userType}
-                          isFavorite={favorites.includes(product.id)}
-                          onToggleFavorite={onToggleFavorite}
-                        />
-                      </Box>
-                    </Grid>
-                  ))
-                ) : (
-                  <Grid item xs={12}>
-                    <Box sx={{ textAlign: 'center', py: 6 }}>
-                      <Typography variant="h6" color="text.secondary">
-                        Aucun produit trouvé avec ces critères
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        onClick={() => {
-                          setSelectedCategories([]);
-                          setPriceRange([0, 150000]);
-                        }}
-                        sx={{ mt: 2 }}
-                      >
-                        Réinitialiser les filtres
-                      </Button>
-                    </Box>
-                  </Grid>
-                )}
+                {Array.isArray(sortedProducts) && sortedProducts.length > 0 ? (
+  sortedProducts.map((product) => (
+    <Grid
+      item
+      key={product.id}
+      xs={12}
+      sm={6}
+      md={6}
+      lg={4}
+      xl={3}
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 400 }}>
+        {mounted ? (
+          <ProductCard
+            product={product}
+            onAddToCart={onAddToCart}
+            onViewDetails={onViewProduct}
+            userType={userType}
+            isFavorite={favorites.includes(product.id)}
+            onToggleFavorite={onToggleFavorite}
+          />
+        ) : (
+          <Box sx={{ 
+            width: '100%', 
+            height: 300, 
+            bgcolor: 'grey.100',
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
+      </Box>
+    </Grid>
+  ))
+) : (
+  <Grid item xs={12}>
+    <Box sx={{ textAlign: 'center', py: 6 }}>
+      <Typography variant="h6" color="text.secondary">
+        Aucun produit trouvé avec ces critères
+      </Typography>
+      <Button
+        variant="outlined"
+        onClick={() => {
+          setSelectedCategories([]);
+          setPriceRange([0, 150000]);
+        }}
+        sx={{ mt: 2 }}
+      >
+        Réinitialiser les filtres
+      </Button>
+    </Box>
+  </Grid>
+)}
               </Grid>
             )}
           </Box>
