@@ -281,27 +281,53 @@ export const getCategoryById = async (id: string): Promise<Category> => {
     return response.data;
 };
 
-// Orders API
-export const getOrders = async (params?: {
-    status?: string;
-    page?: number;
-    limit?: number;
-}): Promise<{ orders: Order[]; total: number; page: number; totalPages: number }> => {
-    const response = await api.get<{ orders: Order[]; total: number; page: number; totalPages: number }>('/orders', { params });
+// Orders API - Nouvelle version selon documentation API v1
+export const getOrders = async (page = 0, limit = 20, status?: string): Promise<Order[]> => {
+    const params = new URLSearchParams({
+        skip: (page * limit).toString(),
+        limit: limit.toString()
+    });
+    
+    if (status) {
+        params.append('status', status);
+    }
+    
+    const response = await api.get<Order[]>(`/api/v1/orders/?${params}`);
     return response.data;
 };
 
-export const getOrderById = async (id: string): Promise<Order> => {
-    const response = await api.get<Order>(`/orders/${id}`);
+export const getOrderById = async (id: string | number): Promise<Order> => {
+    const response = await api.get<Order>(`/api/v1/orders/${id}`);
     return response.data;
 };
 
 export const createOrder = async (orderData: {
-    items: { productId: string; quantity: number; priceType: 'retail' | 'wholesale' }[];
-    shippingAddress: any;
-    paymentMethod: string;
+    items: {
+        product_id: string | number;
+        quantity: number;
+        unit_price: number;
+    }[];
+    shipping_address: {
+        street: string;
+        city: string;
+        country: string;
+        phone: string;
+    };
+    currency?: string;
+    payment_method: string;
+    order_type?: string;
 }): Promise<Order> => {
-    const response = await api.post<Order>('/orders', orderData);
+    const response = await api.post<Order>('/api/v1/orders/', orderData);
+    return response.data;
+};
+
+export const cancelOrder = async (id: string | number): Promise<Order> => {
+    const response = await api.post<Order>(`/api/v1/orders/${id}/cancel`);
+    return response.data;
+};
+
+export const getOrderPayments = async (id: string | number): Promise<any[]> => {
+    const response = await api.get<any[]>(`/api/v1/orders/${id}/payments`);
     return response.data;
 };
 

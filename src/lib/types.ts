@@ -22,14 +22,34 @@ import { Product as ApiProduct } from '@/types/product';
 export type Product = ApiProduct;
 
 export interface Order {
-    id: string;
-    customer: string;
-    date: string;
-    total: number;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-    payment: string;
-    items: number;
-    source?: 'website' | 'whatsapp';
+    id: number;
+    order_number: string;
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+    payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+    total_amount: string;
+    currency: string;
+    shipping_address: {
+        street: string;
+        city: string;
+        country: string;
+        phone: string;
+    };
+    items: OrderItem[];
+    created_at: string;
+    items_count?: number;
+}
+
+export interface OrderItem {
+    id: number;
+    product_id: number;
+    quantity: number;
+    unit_price: string;
+    total_price: string;
+    product: {
+        id: number;
+        name: string;
+        sku: string;
+    };
 }
 
 export interface Customer {

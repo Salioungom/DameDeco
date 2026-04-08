@@ -1,5 +1,6 @@
 'use client';
 
+import { RequireRole } from '@/components/RequireRole';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
@@ -22,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 
-export default function AccountPage() {
+function AccountPageContent() {
     const router = useRouter();
 
     const accountSections = [
@@ -114,5 +115,13 @@ export default function AccountPage() {
                 </Button>
             </Paper>
         </Container>
+    );
+}
+
+export default function AccountPage() {
+    return (
+        <RequireRole allowedRoles={['client']}>
+            <AccountPageContent />
+        </RequireRole>
     );
 }

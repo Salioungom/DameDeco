@@ -19,11 +19,14 @@ import {
     Grid,
     Divider,
     Alert,
+    CircularProgress,
+    Snackbar,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useState, ChangeEvent } from 'react';
+import OrderService, { PAYMENT_METHODS } from '@/services/order.service';
 
 export default function CartPage() {
     const { cart, removeFromCart, updateQuantity, clearCart } = useStore();
@@ -38,8 +41,14 @@ export default function CartPage() {
         phone: '',
         address: '',
         city: '',
-        paymentMethod: 'wave'
+        country: 'Sénégal',
+        paymentMethod: PAYMENT_METHODS.PAYDUNYA
     });
+
+    // États pour la gestion des commandes
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const total = (cart || []).reduce((sum, item) => {
         const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
@@ -50,26 +59,61 @@ export default function CartPage() {
         setShowCheckout(true);
     };
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
         // Validation simple
-        if (!shippingInfo.name || !shippingInfo.phone || !shippingInfo.address) {
-            alert('Veuillez remplir tous les champs obligatoires');
+        if (!shippingInfo.name || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city) {
+            setError('Veuillez remplir tous les champs obligatoires');
             return;
         }
 
-        // Simuler commande
-        console.log('Commande passée:', {
-            items: cart,
-            shipping: shippingInfo,
-            total: total
-        });
+        setIsSubmitting(true);
+        setError(null);
+        setSuccess(null);
 
-        clearCart();
-        setOrderPlaced(true);
+        try {
+            // Préparer les données de commande
+            const orderData = {
+                items: cart.map(item => ({
+                    product_id: item.product.id,
+                    quantity: item.quantity,
+                    unit_price: item.priceType === 'wholesale' 
+                        ? item.product.wholesale_price || 0 
+                        : item.product.price || 0
+                })),
+                shipping_address: {
+                    street: shippingInfo.address,
+                    city: shippingInfo.city,
+                    country: shippingInfo.country,
+                    phone: shippingInfo.phone
+                },
+                currency: 'XOF',
+                payment_method: shippingInfo.paymentMethod,
+                order_type: 'standard'
+            };
 
-        setTimeout(() => {
-            router.push('/');
-        }, 3000);
+            // Créer la commande via l'API
+            const order = await OrderService.createOrderFromCart(
+                cart,
+                orderData.shipping_address,
+                orderData.payment_method,
+                orderData.currency
+            );
+
+            setSuccess(`Commande ${order.order_number} créée avec succès!`);
+            
+            // Vider le panier et rediriger
+            clearCart();
+            setOrderPlaced(true);
+
+            setTimeout(() => {
+                router.push('/account/orders');
+            }, 3000);
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erreur lors de la création de la commande');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (orderPlaced) {
@@ -266,6 +310,17 @@ export default function CartPage() {
                                         value={shippingInfo.city}
                                         onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
                                         margin="normal"
+                                        required
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        label="Pays"
+                                        value={shippingInfo.country}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setShippingInfo({ ...shippingInfo, country: e.target.value })}
+                                        margin="normal"
+                                        required
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -289,13 +344,18 @@ export default function CartPage() {
                             </Typography>
 
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                {['wave', 'orange-money', 'cash'].map((method) => (
+                                {[
+                                    { value: PAYMENT_METHODS.PAYDUNYA, label: 'PayDunya' },
+                                    { value: PAYMENT_METHODS.WAVE, label: 'Wave' },
+                                    { value: PAYMENT_METHODS.ORANGE_MONEY, label: 'Orange Money' },
+                                    { value: PAYMENT_METHODS.CASH, label: 'Espèces' }
+                                ].map((method) => (
                                     <Button
-                                        key={method}
-                                        variant={shippingInfo.paymentMethod === method ? 'contained' : 'outlined'}
-                                        onClick={() => setShippingInfo({ ...shippingInfo, paymentMethod: method })}
+                                        key={method.value}
+                                        variant={shippingInfo.paymentMethod === method.value ? 'contained' : 'outlined'}
+                                        onClick={() => setShippingInfo({ ...shippingInfo, paymentMethod: method.value as any })}
                                     >
-                                        {method === 'wave' ? 'Wave' : method === 'orange-money' ? 'Orange Money' : 'Espèces'}
+                                        {method.label}
                                     </Button>
                                 ))}
                             </Box>
@@ -346,14 +406,38 @@ export default function CartPage() {
                                     variant="contained"
                                     size="large"
                                     onClick={handlePlaceOrder}
+                                    disabled={isSubmitting}
+                                    startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
                                 >
-                                    Confirmer la commande
+                                    {isSubmitting ? 'Création en cours...' : 'Confirmer la commande'}
                                 </Button>
                             </Box>
                         </Paper>
                     </Grid>
                 </Grid>
             )}
+        {/* Messages d'erreur et de succès */}
+        <Snackbar
+            open={!!error}
+            autoHideDuration={6000}
+            onClose={() => setError(null)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+            <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
+                {error}
+            </Alert>
+        </Snackbar>
+
+        <Snackbar
+            open={!!success}
+            autoHideDuration={6000}
+            onClose={() => setSuccess(null)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+            <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
+                {success}
+            </Alert>
+        </Snackbar>
         </Container>
     );
 }

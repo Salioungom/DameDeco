@@ -29,11 +29,14 @@ import {
 } from '@mui/icons-material';
 import { CartItem } from '@/lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ClientOnly } from './ClientOnly';
 
 interface CheckoutPageProps {
   items: CartItem[];
   onBack: () => void;
   onPlaceOrder: () => void;
+  isProcessing?: boolean;
+  error?: string | null;
 }
 
 type TabPanelProps = {
@@ -64,7 +67,7 @@ const CustomTabPanel: React.FC<TabPanelProps> = (props) => {
   );
 };
 
-export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps) {
+export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false, error = null }: CheckoutPageProps) {
   const [paymentMethod, setPaymentMethod] = useState<string>('wave');
   const [deliveryMethod, setDeliveryMethod] = useState<string>('delivery');
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -80,10 +83,10 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = () => {
+    if (isProcessing) return;
+    
     setOrderPlaced(true);
-    setTimeout(() => {
-      onPlaceOrder();
-    }, 3000);
+    onPlaceOrder();
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -171,7 +174,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                     >
                       <FormControlLabel
                         value="delivery"
-                        control={<Radio />}
+                        control={<ClientOnly><Radio /></ClientOnly>}
                         label={
                           <Box>
                             <Typography variant="subtitle1">Livraison à domicile</Typography>
@@ -196,7 +199,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                     >
                       <FormControlLabel
                         value="pickup"
-                        control={<Radio />}
+                        control={<ClientOnly><Radio /></ClientOnly>}
                         label={
                           <Box>
                             <Typography variant="subtitle1">Retrait en boutique</Typography>
@@ -219,19 +222,29 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                   <CardContent>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                       <Box>
-                        <TextField fullWidth label="Prénom" placeholder="Votre prénom" />
+                        <ClientOnly>
+                          <TextField fullWidth label="Prénom" placeholder="Votre prénom" />
+                        </ClientOnly>
                       </Box>
                       <Box>
-                        <TextField fullWidth label="Nom" placeholder="Votre nom" />
+                        <ClientOnly>
+                          <TextField fullWidth label="Nom" placeholder="Votre nom" />
+                        </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1' } }}>
-                        <TextField fullWidth label="Téléphone" placeholder="+221 XX XXX XX XX" />
+                        <ClientOnly>
+                          <TextField fullWidth label="Téléphone" placeholder="+221 XX XXX XX XX" />
+                        </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: '1 / -1' }}>
-                        <TextField fullWidth label="Adresse complète" placeholder="Rue, quartier, ville" />
+                        <ClientOnly>
+                          <TextField fullWidth label="Adresse complète" placeholder="Rue, quartier, ville" />
+                        </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: '1 / -1' }}>
-                        <TextField fullWidth label="Instructions spéciales (optionnel)" placeholder="Ex: Appeler en arrivant" />
+                        <ClientOnly>
+                          <TextField fullWidth label="Instructions spéciales (optionnel)" placeholder="Ex: Appeler en arrivant" />
+                        </ClientOnly>
                       </Box>
                     </Box>
                   </CardContent>
@@ -264,14 +277,16 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value as string)}
                     >
                       <Paper variant="outlined" sx={{ mb: 2, p: 1 }}>
-                        <FormControlLabel value="wave" control={<Radio />} label="Wave" sx={{ width: '100%', m: 0 }} />
+                        <FormControlLabel value="wave" control={<ClientOnly><Radio /></ClientOnly>} label="Wave" sx={{ width: '100%', m: 0 }} />
                       </Paper>
                       <Paper variant="outlined" sx={{ mb: 2, p: 1 }}>
-                        <FormControlLabel value="orange" control={<Radio />} label="Orange Money" sx={{ width: '100%', m: 0 }} />
+                        <FormControlLabel value="orange" control={<ClientOnly><Radio /></ClientOnly>} label="Orange Money" sx={{ width: '100%', m: 0 }} />
                       </Paper>
                     </RadioGroup>
 
-                    <TextField fullWidth label="Numéro de téléphone" placeholder="+221 XX XXX XX XX" sx={{ mt: 2 }} />
+                    <ClientOnly>
+                      <TextField fullWidth label="Numéro de téléphone" placeholder="+221 XX XXX XX XX" sx={{ mt: 2 }} />
+                    </ClientOnly>
                   </CustomTabPanel>
 
                   <CustomTabPanel value={tabValue} index={1}>
@@ -363,9 +378,26 @@ export function CheckoutPage({ items, onBack, onPlaceOrder }: CheckoutPageProps)
                     </Typography>
                   </Box>
 
-                  <Button variant="contained" size="large" fullWidth onClick={handlePlaceOrder}>
-                    Confirmer la commande
-                  </Button>
+                  <Box>
+                    {error && (
+                      <Box sx={{ mb: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                        <Typography variant="body2" color="error.dark">
+                          {error}
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    <Button 
+                      variant="contained" 
+                      size="large" 
+                      fullWidth 
+                      onClick={handlePlaceOrder}
+                      disabled={isProcessing}
+                      startIcon={isProcessing ? <div style={{width: 16, height: 16, border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> : null}
+                    >
+                      {isProcessing ? 'Traitement en cours...' : 'Confirmer la commande'}
+                    </Button>
+                  </Box>
 
                   <Typography variant="caption" align="center" color="text.secondary" display="block">
                     En passant commande, vous acceptez nos conditions de vente

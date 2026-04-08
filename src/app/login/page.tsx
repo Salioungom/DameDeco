@@ -72,8 +72,8 @@ export default function LoginPage() {
                         console.log('Login - Redirection vers /dashboard');
                         router.push('/dashboard');
                     } else {
-                        console.log('Login - Redirection vers /');
-                        router.push('/');
+                        console.log('Login - Redirection vers /account');
+                        router.push('/account');
                     }
                     router.refresh();
                 }, 200); // 200ms de délai pour la synchronisation
