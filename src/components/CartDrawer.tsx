@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Drawer,
   Box,
@@ -19,21 +20,31 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
+import { useCartWithProducts } from '@/hooks/useCartWithProducts';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function CartDrawer() {
-  const { cart, isCartOpen, toggleCart, updateQuantity, removeFromCart } = useStore();
+  const { isCartOpen, toggleCart, updateQuantity, removeFromCart, cartLoading, cartError, loadCart } = useStore();
+  const { cart: cartWithProducts } = useCartWithProducts();
   const router = useRouter();
   const theme = useTheme();
 
-  const total = (cart || []).reduce((sum, item) => {
-    const price =
-      item.priceType === 'wholesale'
-        ? item.product.wholesale_price
-        : item.product.price;
-    return sum + (price || 0) * item.quantity;
+  // Charger le panier au montage du composant
+  React.useEffect(() => {
+    if (isCartOpen && cartWithProducts.length === 0) {
+      loadCart();
+    }
+  }, [isCartOpen, cartWithProducts.length, loadCart]);
+
+  const total = (cartWithProducts || []).reduce((sum: number, item) => {
+    const price = item.product 
+      ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
+      : (item.unit_price || 0);
+    console.log('Calcul total - item:', item, 'price utilisé:', price, 'quantity:', item.quantity);
+    return sum + price * item.quantity;
   }, 0);
+  console.log('Total calculé:', total);
 
   const handleCheckout = () => {
     toggleCart(false);
@@ -54,7 +65,7 @@ export function CartDrawer() {
           <Box>
             <Typography variant="h6">Panier</Typography>
             <Typography variant="body2" color="text.secondary">
-              {(cart || []).length} article{(cart || []).length > 1 ? 's' : ''}
+              {(cartWithProducts || []).length} article{(cartWithProducts || []).length > 1 ? 's' : ''}
             </Typography>
           </Box>
           <IconButton onClick={() => toggleCart(false)}>
@@ -63,25 +74,41 @@ export function CartDrawer() {
         </Box>
         <Divider />
 
-        {!Array.isArray(cart) || cart.length === 0 ? (
+        {cartError && (
+          <Box sx={{ p: 2, bgcolor: 'error.light', color: 'error.contrastText' }}>
+            <Typography variant="body2">{cartError}</Typography>
+          </Box>
+        )}
+
+        {!Array.isArray(cartWithProducts) || cartWithProducts.length === 0 ? (
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, p: 4 }}>
             <ShoppingBag sx={{ fontSize: 64, color: 'text.secondary' }} />
-            <Typography color="text.secondary">Votre panier est vide</Typography>
-            <Button variant="contained" onClick={() => toggleCart(false)}>
-              Continuer mes achats
-            </Button>
+            <Typography color="text.secondary">
+              {cartLoading ? 'Chargement...' : 'Votre panier est vide'}
+            </Typography>
+            {!cartLoading && (
+              <Button 
+                variant="contained" 
+                onClick={() => {
+                  toggleCart(false);
+                  window.location.href = '/shop';
+                }}
+              >
+                Continuer mes achats
+              </Button>
+            )}
           </Box>
         ) : (
           <>
             <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
               <Stack spacing={2}>
-                {Array.isArray(cart) && cart.map((item) => {
-                  const price =
-                    item.priceType === 'wholesale'
-                      ? item.product.wholesale_price
-                      : item.product.price;
+                {Array.isArray(cartWithProducts) && cartWithProducts.map((item) => {
+                  const price = item.product 
+                    ? (item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price)
+                    : item.unit_price;
+                  
                   return (
-                    <Box key={item.product.id} sx={{ display: 'flex', gap: 2 }}>
+                    <Box key={item.id} sx={{ display: 'flex', gap: 2 }}>
                       <Box
                         sx={{
                           width: 80,
@@ -92,15 +119,21 @@ export function CartDrawer() {
                           flexShrink: 0,
                         }}
                       >
-                        <ImageWithFallback
-                          src={item.product.cover_image_url || ''}
-                          alt={item.product.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
+                        {item.product ? (
+                          <ImageWithFallback
+                            src={item.product.cover_image_url || ''}
+                            alt={item.product.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ShoppingBag sx={{ fontSize: 32, color: 'text.secondary' }} />
+                          </Box>
+                        )}
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography variant="subtitle2" noWrap gutterBottom>
-                          {item.product.name}
+                          {item.product ? item.product.name : `Produit #${item.product_id}`}
                         </Typography>
                         <Typography variant="body2" color="primary" fontWeight="bold" gutterBottom>
                           {(price || 0).toLocaleString('fr-FR')} FCFA
@@ -111,7 +144,7 @@ export function CartDrawer() {
                               size="small"
                               onClick={() =>
                                 updateQuantity(
-                                  item.product.id,
+                                  item.product_id.toString(),
                                   Math.max(1, item.quantity - 1)
                                 )
                               }
@@ -123,9 +156,7 @@ export function CartDrawer() {
                             </Typography>
                             <IconButton
                               size="small"
-                              onClick={() =>
-                                updateQuantity(item.product.id, item.quantity + 1)
-                              }
+                              onClick={() => updateQuantity(item.product_id.toString(), item.quantity + 1)}
                             >
                               <Plus fontSize="small" />
                             </IconButton>
@@ -134,7 +165,7 @@ export function CartDrawer() {
                             size="small"
                             color="error"
                             sx={{ ml: 'auto' }}
-                            onClick={() => removeFromCart(item.product.id)}
+                            onClick={() => removeFromCart(item.product_id.toString())}
                           >
                             <Trash2 fontSize="small" />
                           </IconButton>

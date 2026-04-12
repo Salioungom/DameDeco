@@ -7,11 +7,31 @@ import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { useStore } from '@/store/useStore';
+import { useEffect } from 'react';
 
 import { usePathname } from 'next/navigation';
 
 interface ProvidersProps {
   children: React.ReactNode;
+}
+
+function CartInitializer() {
+  const { loadCart, syncCartWithAPI } = useStore();
+
+  useEffect(() => {
+    // Initialiser le panier au chargement de l'application
+    loadCart();
+    
+    // Synchroniser périodiquement le panier (toutes les 30 secondes)
+    const interval = setInterval(() => {
+      syncCartWithAPI();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [loadCart, syncCartWithAPI]);
+
+  return null;
 }
 
 export function Providers({ children }: ProvidersProps) {
@@ -20,6 +40,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <AuthProvider>
+      <CartInitializer />
       <SnackbarProvider
         maxSnack={3}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

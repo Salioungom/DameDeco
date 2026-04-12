@@ -206,7 +206,7 @@ export class OrderService {
         throw new Error('Vous devez être connecté pour modifier une commande. Veuillez vous reconnecter.');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/orders/${orderId}/modify`, {
+      const response = await fetch(`/api/v1/orders/${orderId}/modify`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ items: modifications })

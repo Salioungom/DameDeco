@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Category } from '@/lib/types';
 import { safeApiCall } from '@/lib/error-handler';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''; // Utiliser le proxy Next.js
 
 const getAuthHeader = () => {
   if (typeof window === 'undefined') {

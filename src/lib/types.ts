@@ -133,3 +133,27 @@ export interface Cart {
     itemCount: number;
     updatedAt: string;
 }
+
+export interface DeliveryOption {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    estimated_days: number;
+    is_available: boolean;
+    zones?: string[];
+}
+
+export interface PromoCodeValidation {
+    valid: boolean;
+    discount_amount: number;
+    discount_type: 'percentage' | 'fixed';
+    message?: string;
+    code?: string;
+    min_order_amount?: number;
+}
+
+export interface PromoCodeRequest {
+    code: string;
+    total_amount: number;
+}

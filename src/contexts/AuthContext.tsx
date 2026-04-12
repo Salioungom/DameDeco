@@ -10,6 +10,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, apiUtils } from '@/lib/api';
+import { useCartSync } from '@/hooks/useCartSync';
 
 // Types pour l'authentification
 interface User {
@@ -63,6 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    
+    // Hook pour la synchronisation du panier
+    useCartSync();
 
     // Gestion sécurisée du localStorage
     const getStoredToken = (): string | null => {

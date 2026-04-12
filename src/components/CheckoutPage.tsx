@@ -79,7 +79,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
     return sum + (price || 0) * item.quantity;
   }, 0);
 
-  const deliveryFee = deliveryMethod === 'delivery' ? 3000 : 0;
+  const deliveryFee = deliveryMethod === 'delivery' ? 5000 : 0;
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = () => {
@@ -91,7 +91,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    const methods = ['wave', 'paypal', 'cod'];
+    const methods = ['wave', 'Orange Money', 'cod'];
     setPaymentMethod(methods[newValue]);
   };
 
@@ -179,7 +179,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                           <Box>
                             <Typography variant="subtitle1">Livraison à domicile</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              2-3 jours ouvrables - 3,000 FCFA
+                               jours ouvrables
                             </Typography>
                           </Box>
                         }
@@ -204,7 +204,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                           <Box>
                             <Typography variant="subtitle1">Retrait en boutique</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              Gratuit - Disponible sous 24h
+                              jours ouvrables
                             </Typography>
                           </Box>
                         }
@@ -262,8 +262,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                       aria-label="payment tabs"
                       variant="fullWidth"
                     >
-                      <Tab icon={<Smartphone />} iconPosition="start" label="Mobile Money" />
-                      <Tab icon={<CreditCard />} iconPosition="start" label="PayPal" />
+                      <Tab icon={<Smartphone />} iconPosition="start" label="Mobile Money" />                 
                       <Tab icon={<DollarSign />} iconPosition="start" label="À la livraison" />
                     </Tabs>
                   </Box>
@@ -289,11 +288,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                     </ClientOnly>
                   </CustomTabPanel>
 
-                  <CustomTabPanel value={tabValue} index={1}>
-                    <Typography variant="body2" color="text.secondary">
-                      Vous serez redirigé vers PayPal pour finaliser votre paiement de manière sécurisée.
-                    </Typography>
-                  </CustomTabPanel>
+              
 
                   <CustomTabPanel value={tabValue} index={2}>
                     <Typography variant="body2" color="text.secondary">

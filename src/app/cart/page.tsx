@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import {
@@ -29,10 +30,15 @@ import { useState, ChangeEvent } from 'react';
 import OrderService, { PAYMENT_METHODS } from '@/services/order.service';
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, clearCart } = useStore();
+    const { cart, removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
     const router = useRouter();
     const [showCheckout, setShowCheckout] = useState(false);
     const [orderPlaced, setOrderPlaced] = useState(false);
+
+    // Charger le panier au montage
+    React.useEffect(() => {
+        loadCart();
+    }, [loadCart]);
 
     // Formulaire de livraison
     const [shippingInfo, setShippingInfo] = useState({

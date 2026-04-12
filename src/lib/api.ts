@@ -6,7 +6,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { Product, Category, Order, Customer } from './types';
+import { Product, Category, Order, Customer, DeliveryOption, PromoCodeValidation, PromoCodeRequest } from './types';
 
 // Types pour les logs structurés
 interface ApiLogData {
@@ -38,7 +38,7 @@ const getApiConfig = () => {
   }
 
   return {
-    baseURL: apiUrl || 'http://localhost:8000',
+    baseURL: 'http://localhost:8000', // URL directe du backend pour développement
     timeout: 15000, // 15 secondes
     headers: {
       'Content-Type': 'application/json',
@@ -248,13 +248,30 @@ export const getProducts = async (params?: {
     page?: number;
     limit?: number;
     search?: string;
-}): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
-    const response = await api.get<{ products: Product[]; total: number; page: number; totalPages: number }>('/products', { params });
+}): Promise<{ items: Product[]; total: number; page: number; pages: number }> => {
+    const response = await api.get<{ items: Product[]; total: number; page: number; pages: number }>('/api/v1/products/', { params });
     return response.data;
 };
 
 export const getProductById = async (id: string): Promise<Product> => {
-    const response = await api.get<Product>(`/products/${id}`);
+    const response = await api.get<Product>(`/api/v1/products/${id}`);
+    return response.data;
+};
+
+export const getProductBySlug = async (slug: string): Promise<Product> => {
+    const response = await api.get<Product>(`/api/v1/products/${slug}`);
+    return response.data;
+};
+
+export const getProductStock = async (id: string): Promise<{
+    product_id: string;
+    inventory_quantity: number;
+    track_inventory: boolean;
+    stock_status: 'in_stock' | 'out_of_stock' | 'low_stock';
+    reserved_quantity: number;
+    available_quantity: number;
+}> => {
+    const response = await api.get(`/api/v1/products/${id}/stock`);
     return response.data;
 };
 
@@ -265,19 +282,19 @@ export const searchProducts = async (query: string, params?: {
     page?: number;
     limit?: number;
 }): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> => {
-    const response = await api.get<{ products: Product[]; total: number; page: number; totalPages: number }>('/products/search', { 
+    const response = await api.get<{ products: Product[]; total: number; page: number; totalPages: number }>('/api/v1/products/search', { 
         params: { q: query, ...params } 
     });
     return response.data;
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-    const response = await api.get<Category[]>('/categories');
+    const response = await api.get<Category[]>('/api/v1/categories/');
     return response.data;
 };
 
 export const getCategoryById = async (id: string): Promise<Category> => {
-    const response = await api.get<Category>(`/categories/${id}`);
+    const response = await api.get<Category>(`/api/v1/categories/${id}`);
     return response.data;
 };
 
@@ -331,33 +348,75 @@ export const getOrderPayments = async (id: string | number): Promise<any[]> => {
     return response.data;
 };
 
-// Cart API
-export const getCart = async (): Promise<{
+// Cart API - Correction vers endpoints API v1
+export const getCart = async (sessionId?: string): Promise<{
     items: { product: Product; quantity: number; priceType: 'retail' | 'wholesale' }[];
     total: number;
     itemCount: number;
 }> => {
-    const response = await api.get('/cart');
+    const params = sessionId ? { session_id: sessionId } : {};
+    const response = await api.get('/api/v1/cartitems/cart', { params });
     return response.data;
 };
 
-export const addToCart = async (productId: string, quantity: number, priceType: 'retail' | 'wholesale' = 'retail') => {
-    const response = await api.post('/cart/items', { productId, quantity, priceType });
+export const addToCart = async (productId: string, quantity: number, priceType: 'retail' | 'wholesale' = 'retail', sessionId?: string) => {
+    const data: any = {
+        product_id: productId,
+        quantity,
+        price_type: priceType
+    };
+    const params = sessionId ? { session_id: sessionId } : {};
+    const response = await api.post('/api/v1/cartitems/items', data, { params });
     return response.data;
 };
 
 export const updateCartItem = async (itemId: string, quantity: number) => {
-    const response = await api.put(`/cart/items/${itemId}`, { quantity });
+    const response = await api.put(`/api/v1/cartitems/items/${itemId}`, { quantity });
     return response.data;
 };
 
 export const removeFromCart = async (itemId: string) => {
-    const response = await api.delete(`/cart/items/${itemId}`);
+    const response = await api.delete(`/api/v1/cartitems/items/${itemId}`);
     return response.data;
 };
 
 export const clearCart = async () => {
-    const response = await api.delete('/cart');
+    const response = await api.delete('/api/v1/cartitems/cart');
+    return response.data;
+};
+
+export const mergeGuestCart = async (sessionId: string): Promise<void> => {
+    const response = await api.post('/api/v1/cartitems/merge-guest-cart', {
+        session_id: sessionId
+    });
+    return response.data;
+};
+
+// Cart API - Endpoints exacts selon spécification
+// getCartItems utilise maintenant le même endpoint que getCart
+
+export const getCartSummary = async (sessionId?: string): Promise<{
+    total_items: number;
+    total_amount: number;
+    subtotal: number;
+    tax: number;
+    shipping: number;
+    currency: string;
+}> => {
+    const params = sessionId ? { session_id: sessionId } : {};
+    const response = await api.get('/api/v1/cartitems/cart/summary', { params });
+    return response.data;
+};
+
+// Delivery Options API
+export const getDeliveryOptions = async (): Promise<DeliveryOption[]> => {
+    const response = await api.get<DeliveryOption[]>('/api/v1/delivery-rules/delivery-options/');
+    return response.data;
+};
+
+// Promo Code API
+export const validatePromoCode = async (request: PromoCodeRequest): Promise<PromoCodeValidation> => {
+    const response = await api.post<PromoCodeValidation>('/api/v1/promo-codes/validate', request);
     return response.data;
 };
 
