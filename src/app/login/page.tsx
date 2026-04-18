@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { ClientOnly } from '@/components/ClientOnly';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -166,70 +167,71 @@ export default function LoginPage() {
                     }}
                 >
                     {/* Login Card with Glassmorphism */}
-                    <Box
-                        sx={{
-                            width: '100%',
-                            p: { xs: 3, sm: 5 },
-                            borderRadius: 4,
-                            background: alpha('#fff', 0.95),
-                            backdropFilter: 'blur(20px)',
-                            boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
-                            border: `1px solid ${alpha('#fff', 0.3)}`,
-                            animation: 'slideUp 0.6s ease-out',
-                            '@keyframes slideUp': {
-                                from: {
-                                    opacity: 0,
-                                    transform: 'translateY(30px)',
-                                },
-                                to: {
-                                    opacity: 1,
-                                    transform: 'translateY(0)',
-                                },
-                            },
-                        }}
-                    >
-                        {/* Logo/Title */}
-                        <Box sx={{ textAlign: 'center', mb: 4 }}>
-                            <Typography
-                                variant="h3"
-                                sx={{
-                                    fontWeight: 800,
-                                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    mb: 1,
-                                }}
-                            >
-                                Dame Sarr
-                            </Typography>
-                            <Typography variant="h6" color="text.secondary" fontWeight={500}>
-                                Bienvenue de retour
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                Connectez-vous pour continuer
-                            </Typography>
-                        </Box>
-
-                        {error && (
-                            <Alert
-                                severity="error"
-                                sx={{
-                                    mb: 3,
-                                    borderRadius: 2,
-                                    animation: 'shake 0.5s',
-                                    '@keyframes shake': {
-                                        '0%, 100%': { transform: 'translateX(0)' },
-                                        '25%': { transform: 'translateX(-10px)' },
-                                        '75%': { transform: 'translateX(10px)' },
+                    <ClientOnly>
+                        <Box
+                            sx={{
+                                width: '100%',
+                                p: { xs: 3, sm: 5 },
+                                borderRadius: 4,
+                                background: alpha('#fff', 0.95),
+                                backdropFilter: 'blur(20px)',
+                                boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
+                                border: `1px solid ${alpha('#fff', 0.3)}`,
+                                animation: 'slideUp 0.6s ease-out',
+                                '@keyframes slideUp': {
+                                    from: {
+                                        opacity: 0,
+                                        transform: 'translateY(30px)',
                                     },
-                                }}
-                            >
-                                {error}
-                            </Alert>
-                        )}
+                                    to: {
+                                        opacity: 1,
+                                        transform: 'translateY(0)',
+                                    },
+                                },
+                            }}
+                        >
+                            {/* Logo/Title */}
+                            <Box sx={{ textAlign: 'center', mb: 4 }}>
+                                <Typography
+                                    variant="h3"
+                                    sx={{
+                                        fontWeight: 800,
+                                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        mb: 1,
+                                    }}
+                                >
+                                    Dame Sarr
+                                </Typography>
+                                <Typography variant="h6" color="text.secondary" fontWeight={500}>
+                                    Bienvenue de retour
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                    Connectez-vous pour continuer
+                                </Typography>
+                            </Box>
 
-                        <Box component="form" onSubmit={handleSubmit} noValidate>
-                            <TextField
+                            {error && (
+                                <Alert
+                                    severity="error"
+                                    sx={{
+                                        mb: 3,
+                                        borderRadius: 2,
+                                        animation: 'shake 0.5s',
+                                        '@keyframes shake': {
+                                            '0%, 100%': { transform: 'translateX(0)' },
+                                            '25%': { transform: 'translateX(-10px)' },
+                                            '75%': { transform: 'translateX(10px)' },
+                                        },
+                                    }}
+                                >
+                                    {error}
+                                </Alert>
+                            )}
+
+                            <Box component="form" onSubmit={handleSubmit} noValidate>
+                                <TextField
                                 margin="normal"
                                 required
                                 fullWidth
@@ -383,7 +385,8 @@ export default function LoginPage() {
                         >
                             Créer un compte
                         </Button>
-                    </Box>
+                        </Box>
+                    </ClientOnly>
                 </Box>
             </Container>
         </Box>

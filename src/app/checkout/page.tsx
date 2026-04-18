@@ -2,18 +2,20 @@
 
 import { CheckoutPage } from '@/components/CheckoutPage';
 import { useStore } from '@/store/useStore';
+import { useCartWithProducts, CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import OrderService from '@/services/order.service';
 
 export default function Page() {
     const { cart, clearCart } = useStore();
+    const { cart: cartWithProducts } = useCartWithProducts();
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handlePlaceOrder = async () => {
-        if (cart.length === 0) {
+        if (cartWithProducts.length === 0) {
             setError('Votre panier est vide');
             return;
         }
@@ -24,7 +26,7 @@ export default function Page() {
 
             // Créer la commande via le backend
             const order = await OrderService.createOrderFromCart(
-                cart,
+                cartWithProducts,
                 {
                     street: 'Adresse par défaut',
                     city: 'Dakar',
@@ -54,7 +56,7 @@ export default function Page() {
 
     return (
         <CheckoutPage
-            items={cart}
+            items={cartWithProducts}
             onBack={() => router.back()}
             onPlaceOrder={handlePlaceOrder}
             isProcessing={isProcessing}

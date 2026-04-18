@@ -4,7 +4,7 @@ import { getProducts } from '@/lib/api';
 import { Product } from '@/lib/types';
 import { CartItem } from '@/services/cart.service';
 
-interface CartItemWithProduct extends CartItem {
+export interface CartItemWithProduct extends CartItem {
   product: Product | null;
 }
 

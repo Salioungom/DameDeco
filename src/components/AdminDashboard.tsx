@@ -51,6 +51,7 @@ import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
+import ShippingManagement from './shipping/ShippingManagement';
 
 // Local Mock Data for Orders and Customers (to be replaced by real services later)
 interface OrderItem {
@@ -485,7 +486,7 @@ export function AdminDashboard() {
 
           {/* Settings Tab */}
           <CustomTabPanel value={activeTab} index={6}>
-            <Typography>Module Paramètres bientôt disponible</Typography>
+            <ShippingManagement />
           </CustomTabPanel>
 
         </Box>

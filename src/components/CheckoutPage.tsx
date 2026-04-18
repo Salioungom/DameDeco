@@ -30,9 +30,11 @@ import {
 import { CartItem } from '@/lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ClientOnly } from './ClientOnly';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 
 interface CheckoutPageProps {
-  items: CartItem[];
+  items: CartItemWithProduct[];
   onBack: () => void;
   onPlaceOrder: () => void;
   isProcessing?: boolean;
@@ -72,14 +74,19 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   const [deliveryMethod, setDeliveryMethod] = useState<string>('delivery');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [tabValue, setTabValue] = useState(0);
+  const { calculateShippingCost, settings } = useShippingSettings();
 
   const subtotal = (items || []).reduce((sum, item) => {
+    if (!item.product) return sum;
     const price =
-      item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
+      item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
     return sum + (price || 0) * item.quantity;
   }, 0);
 
-  const deliveryFee = deliveryMethod === 'delivery' ? 5000 : 0;
+  // Calculer les frais de livraison : gratuit si retrait en boutique ou si seuil atteint
+  const deliveryFee = deliveryMethod === 'pickup' 
+    ? 0 
+    : calculateShippingCost(subtotal);
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = () => {
@@ -307,8 +314,9 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
               <CardContent>
                 <Stack spacing={3}>
                   <Stack spacing={2}>
-                    {Array.isArray(items) && items.map((item) => {
-                      const price = item.priceType === 'wholesale' ? item.product.wholesale_price : item.product.price;
+                    {Array.isArray(items) && items.filter(item => item.product).map((item) => {
+                      if (!item.product) return null;
+                      const price = item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
                       return (
                         <Box key={item.product.id} display="flex" gap={2}>
                           <Box

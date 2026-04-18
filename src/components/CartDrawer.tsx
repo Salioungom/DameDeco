@@ -21,12 +21,14 @@ import {
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { useCartWithProducts } from '@/hooks/useCartWithProducts';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function CartDrawer() {
   const { isCartOpen, toggleCart, updateQuantity, removeFromCart, cartLoading, cartError, loadCart } = useStore();
   const { cart: cartWithProducts } = useCartWithProducts();
+  const { calculateShippingCost, settings } = useShippingSettings();
   const router = useRouter();
   const theme = useTheme();
 
@@ -37,14 +39,17 @@ export function CartDrawer() {
     }
   }, [isCartOpen, cartWithProducts.length, loadCart]);
 
-  const total = (cartWithProducts || []).reduce((sum: number, item) => {
+  const subtotal = (cartWithProducts || []).reduce((sum: number, item) => {
     const price = item.product 
       ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
       : (item.unit_price || 0);
     console.log('Calcul total - item:', item, 'price utilisé:', price, 'quantity:', item.quantity);
     return sum + price * item.quantity;
   }, 0);
-  console.log('Total calculé:', total);
+  console.log('Sous-total calculé:', subtotal);
+
+  // Pas de calcul de frais dans le panier, juste information
+  const isFreeShipping = settings?.freeShippingEnabled && subtotal >= (settings?.freeShippingThreshold || 0);
 
   const handleCheckout = () => {
     toggleCart(false);
@@ -182,19 +187,21 @@ export function CartDrawer() {
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography color="text.secondary">Sous-total</Typography>
-                  <Typography fontWeight="bold">{total.toLocaleString('fr-FR')} FCFA</Typography>
+                  <Typography fontWeight="bold">{subtotal.toLocaleString('fr-FR')} FCFA</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography color="text.secondary">Livraison</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Calculée au paiement
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right', maxWidth: '60%' }}>
+                    {settings?.freeShippingEnabled 
+                      ? `Gratuite dès ${settings.freeShippingThreshold.toLocaleString('fr-FR')} FCFA d'achat ou au retrait en boutique`
+                      : `Gratuite dès ${settings?.freeShippingThreshold?.toLocaleString('fr-FR') || '25 000'} FCFA d'achat ou au retrait en boutique`}
                   </Typography>
                 </Box>
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="h6">Total</Typography>
                   <Typography variant="h6" color="primary">
-                    {total.toLocaleString('fr-FR')} FCFA
+                    {subtotal.toLocaleString('fr-FR')} FCFA
                   </Typography>
                 </Box>
                 <Button

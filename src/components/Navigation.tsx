@@ -50,6 +50,7 @@ import {
   Home,
   Info,
   ContactMail,
+  LocalShipping,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { ClientOnly } from './ClientOnly';
@@ -277,6 +278,11 @@ export function Navigation() {
         path: '/dashboards'  // ✅ Dashboard SuperAdmin
       },
       {
+        label: 'Frais de livraison',
+        icon: <LocalShipping fontSize="small" />,
+        path: '/shipping'
+      },
+      {
         label: 'Déconnexion',
         icon: <Logout fontSize="small" />,
         onClick: async () => {
@@ -289,6 +295,11 @@ export function Navigation() {
         label: 'Tableau de bord',
         icon: <Dashboard fontSize="small" />,
         path: '/dashboard'  // ✅ Admin security
+      },
+      {
+        label: 'Frais de livraison',
+        icon: <LocalShipping fontSize="small" />,
+        path: '/shipping'
       },
       {
         label: 'Déconnexion',

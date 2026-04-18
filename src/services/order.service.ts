@@ -7,6 +7,7 @@
 
 import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments } from '@/lib/api';
 import { Order, CartItem } from '@/lib/types';
+import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 
 // Types pour les statuts de commande
 export const ORDER_STATUS = {
@@ -134,7 +135,7 @@ export class OrderService {
    * Créer une nouvelle commande à partir du panier
    */
   static async createOrderFromCart(
-    cartItems: CartItem[],
+    cartItems: CartItemWithProduct[],
     shippingAddress: {
       street: string;
       city: string;
@@ -147,10 +148,13 @@ export class OrderService {
     try {
       // Transformer les items du panier au format API
       const orderItems = cartItems.map(item => {
-        const price = item.priceType === 'wholesale' 
-          ? item.product.wholesale_price 
+        if (!item.product) {
+          throw new Error(`Produit non trouvé pour l'item ${item.product_id}`);
+        }
+        const price = item.price_type === 'wholesale'
+          ? item.product.wholesale_price
           : item.product.price;
-        
+
         return {
           product_id: item.product.id,
           quantity: item.quantity,
