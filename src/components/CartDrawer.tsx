@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Drawer,
   Box,
@@ -21,16 +21,19 @@ import {
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
 import { useCartWithProducts } from '@/hooks/useCartWithProducts';
-import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { useAuth } from '@/contexts/AuthContext';
+import OrderService from '@/services/order.service';
 
 export function CartDrawer() {
-  const { isCartOpen, toggleCart, updateQuantity, removeFromCart, cartLoading, cartError, loadCart } = useStore();
+  const { isCartOpen, toggleCart, updateQuantity, removeFromCart, cartLoading, cartError, loadCart, clearCart, getSessionId } = useStore();
   const { cart: cartWithProducts } = useCartWithProducts();
-  const { calculateShippingCost, settings } = useShippingSettings();
   const router = useRouter();
   const theme = useTheme();
+  const { isAuthenticated, user } = useAuth();
+  const [shippingSettings, setShippingSettings] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Charger le panier au montage du composant
   React.useEffect(() => {
@@ -38,6 +41,20 @@ export function CartDrawer() {
       loadCart();
     }
   }, [isCartOpen, cartWithProducts.length, loadCart]);
+
+  // Charger les settings de livraison
+  React.useEffect(() => {
+    const loadShippingSettings = async () => {
+      try {
+        const result = await fetch('/api/v1/shipping/settings');
+        const data = await result.json();
+        setShippingSettings(data);
+      } catch (error) {
+        console.error('Erreur lors du chargement des settings de livraison:', error);
+      }
+    };
+    loadShippingSettings();
+  }, []);
 
   const subtotal = (cartWithProducts || []).reduce((sum: number, item) => {
     const price = item.product 
@@ -48,12 +65,19 @@ export function CartDrawer() {
   }, 0);
   console.log('Sous-total calculé:', subtotal);
 
-  // Pas de calcul de frais dans le panier, juste information
-  const isFreeShipping = settings?.freeShippingEnabled && subtotal >= (settings?.freeShippingThreshold || 0);
+  const handleCheckout = async () => {
+    if (cartWithProducts.length === 0) {
+      return;
+    }
 
-  const handleCheckout = () => {
     toggleCart(false);
-    router.push('/checkout');
+
+    // Rediriger vers login si non authentifié, vers checkout si authentifié
+    if (isAuthenticated) {
+      router.push('/checkout');
+    } else {
+      router.push('/login');
+    }
   };
 
   return (
@@ -192,9 +216,9 @@ export function CartDrawer() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography color="text.secondary">Livraison</Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right', maxWidth: '60%' }}>
-                    {settings?.freeShippingEnabled 
-                      ? `Gratuite dès ${settings.freeShippingThreshold.toLocaleString('fr-FR')} FCFA d'achat ou au retrait en boutique`
-                      : `Gratuite dès ${settings?.freeShippingThreshold?.toLocaleString('fr-FR') || '25 000'} FCFA d'achat ou au retrait en boutique`}
+                    {shippingSettings?.freeShippingEnabled !== false 
+                      ? `Gratuite dès ${Number(shippingSettings.freeShippingThreshold || 25000).toLocaleString('fr-FR')} FCFA d'achat ou au retrait en boutique`
+                      : `Gratuite dès ${Number(shippingSettings?.freeShippingThreshold || 25000).toLocaleString('fr-FR')} FCFA d'achat ou au retrait en boutique`}
                   </Typography>
                 </Box>
                 <Divider />
@@ -209,8 +233,9 @@ export function CartDrawer() {
                   size="large"
                   fullWidth
                   onClick={handleCheckout}
+                  disabled={isProcessing}
                 >
-                  Passer la commande
+                  {isProcessing ? 'Traitement en cours...' : 'Passer la commande'}
                 </Button>
                 <Button
                   variant="outlined"

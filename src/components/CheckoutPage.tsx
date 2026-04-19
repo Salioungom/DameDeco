@@ -30,7 +30,6 @@ import {
 import { CartItem } from '@/lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ClientOnly } from './ClientOnly';
-import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 
 interface CheckoutPageProps {
@@ -74,7 +73,17 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   const [deliveryMethod, setDeliveryMethod] = useState<string>('delivery');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const { calculateShippingCost, settings } = useShippingSettings();
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [estimatedDays, setEstimatedDays] = useState<string>('');
+  const [shippingSettings, setShippingSettings] = useState<any>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  
+  // États pour les champs d'adresse
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
+  const [specialInstructions, setSpecialInstructions] = useState<string>('');
 
   const subtotal = (items || []).reduce((sum, item) => {
     if (!item.product) return sum;
@@ -83,11 +92,63 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
     return sum + (price || 0) * item.quantity;
   }, 0);
 
-  // Calculer les frais de livraison : gratuit si retrait en boutique ou si seuil atteint
-  const deliveryFee = deliveryMethod === 'pickup' 
-    ? 0 
-    : calculateShippingCost(subtotal);
   const total = subtotal + deliveryFee;
+
+  // Validation: button disabled if delivery and fields not filled
+  const isDeliveryAddressValid = deliveryMethod === 'pickup' || (
+    firstName.trim() !== '' &&
+    lastName.trim() !== '' &&
+    phone.trim() !== '' &&
+    address.trim() !== ''
+  );
+
+  // Charger les settings de livraison au montage
+  React.useEffect(() => {
+    const loadShippingSettings = async () => {
+      try {
+        const result = await fetch('/api/v1/shipping/settings');
+        const data = await result.json();
+        setShippingSettings(data);
+        
+        // Si livraison à domicile est explicitement désactivé, passer à pickup
+        if (data.deliveryModeEnabled === false && data.pickupModeEnabled !== false) {
+          setDeliveryMethod('pickup');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des settings de livraison:', error);
+      }
+    };
+    loadShippingSettings();
+  }, []);
+
+  // Calculer les frais de livraison via l'API
+  React.useEffect(() => {
+    const calculateShipping = async () => {
+      if (!shippingSettings || subtotal === 0) return;
+      
+      setShippingLoading(true);
+      try {
+        const result = await fetch('/api/v1/shipping/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subtotal,
+            deliveryMode: deliveryMethod
+          })
+        });
+        const data = await result.json();
+        setDeliveryFee(Number(data.shippingCost) || 0);
+        setEstimatedDays(data.estimatedDays || '');
+      } catch (error) {
+        console.error('Erreur lors du calcul des frais de livraison:', error);
+        // Fallback : gratuit pour pickup, sinon 5000
+        setDeliveryFee(deliveryMethod === 'pickup' ? 0 : 5000);
+      } finally {
+        setShippingLoading(false);
+      }
+    };
+    calculateShipping();
+  }, [subtotal, deliveryMethod, shippingSettings]);
 
   const handlePlaceOrder = () => {
     if (isProcessing) return;
@@ -168,56 +229,62 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                 <CardHeader title="Mode de réception" />
                 <CardContent>
                   <RadioGroup value={deliveryMethod} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeliveryMethod(e.target.value)}>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        cursor: 'pointer',
-                        bgcolor: deliveryMethod === 'delivery' ? 'action.selected' : 'background.paper',
-                        '&:hover': { bgcolor: 'action.hover' },
-                      }}
-                      onClick={() => setDeliveryMethod('delivery')}
-                    >
-                      <FormControlLabel
-                        value="delivery"
-                        control={<ClientOnly><Radio /></ClientOnly>}
-                        label={
-                          <Box>
-                            <Typography variant="subtitle1">Livraison à domicile</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                               jours ouvrables
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ width: '100%', m: 0 }}
-                      />
-                    </Paper>
+                    {shippingSettings?.deliveryModeEnabled !== false && (
+                      <Box
+                        sx={{
+                          mb: 2,
+                          p: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          bgcolor: deliveryMethod === 'delivery' ? 'action.selected' : 'background.paper',
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
+                      >
+                        <FormControlLabel
+                          value="delivery"
+                          control={<Radio />}
+                          label={
+                            <Box>
+                              <Typography variant="subtitle1">Livraison à domicile</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {estimatedDays || 'jours ouvrables'}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ width: '100%', m: 0 }}
+                        />
+                      </Box>
+                    )}
 
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2,
-                        cursor: 'pointer',
-                        bgcolor: deliveryMethod === 'pickup' ? 'action.selected' : 'background.paper',
-                        '&:hover': { bgcolor: 'action.hover' },
-                      }}
-                      onClick={() => setDeliveryMethod('pickup')}
-                    >
-                      <FormControlLabel
-                        value="pickup"
-                        control={<ClientOnly><Radio /></ClientOnly>}
-                        label={
-                          <Box>
-                            <Typography variant="subtitle1">Retrait en boutique</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              jours ouvrables
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ width: '100%', m: 0 }}
-                      />
-                    </Paper>
+                    {shippingSettings?.pickupModeEnabled !== false && (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          bgcolor: deliveryMethod === 'pickup' ? 'action.selected' : 'background.paper',
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
+                      >
+                        <FormControlLabel
+                          value="pickup"
+                          control={<Radio />}
+                          label={
+                            <Box>
+                              <Typography variant="subtitle1">Retrait en boutique</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {estimatedDays || 'jours ouvrables'} - Gratuit
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{ width: '100%', m: 0 }}
+                        />
+                      </Box>
+                    )}
                   </RadioGroup>
                 </CardContent>
               </Card>
@@ -230,27 +297,61 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                       <Box>
                         <ClientOnly>
-                          <TextField fullWidth label="Prénom" placeholder="Votre prénom" />
+                          <TextField 
+                            fullWidth 
+                            label="Prénom" 
+                            placeholder="Votre prénom"
+                            value={firstName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
+                            required
+                          />
                         </ClientOnly>
                       </Box>
                       <Box>
                         <ClientOnly>
-                          <TextField fullWidth label="Nom" placeholder="Votre nom" />
+                          <TextField 
+                            fullWidth 
+                            label="Nom" 
+                            placeholder="Votre nom"
+                            value={lastName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
+                            required
+                          />
                         </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1' } }}>
                         <ClientOnly>
-                          <TextField fullWidth label="Téléphone" placeholder="+221 XX XXX XX XX" />
+                          <TextField 
+                            fullWidth 
+                            label="Téléphone" 
+                            placeholder="+221 XX XXX XX XX"
+                            value={phone}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                            required
+                          />
                         </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: '1 / -1' }}>
                         <ClientOnly>
-                          <TextField fullWidth label="Adresse complète" placeholder="Rue, quartier, ville" />
+                          <TextField 
+                            fullWidth 
+                            label="Adresse complète" 
+                            placeholder="Rue, quartier, ville"
+                            value={address}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
+                            required
+                          />
                         </ClientOnly>
                       </Box>
                       <Box sx={{ gridColumn: '1 / -1' }}>
                         <ClientOnly>
-                          <TextField fullWidth label="Instructions spéciales (optionnel)" placeholder="Ex: Appeler en arrivant" />
+                          <TextField 
+                            fullWidth 
+                            label="Instructions spéciales (optionnel)" 
+                            placeholder="Ex: Appeler en arrivant"
+                            value={specialInstructions}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialInstructions(e.target.value)}
+                          />
                         </ClientOnly>
                       </Box>
                     </Box>
@@ -395,10 +496,10 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                       size="large" 
                       fullWidth 
                       onClick={handlePlaceOrder}
-                      disabled={isProcessing}
+                      disabled={isProcessing || !isDeliveryAddressValid}
                       startIcon={isProcessing ? <div style={{width: 16, height: 16, border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> : null}
                     >
-                      {isProcessing ? 'Traitement en cours...' : 'Confirmer la commande'}
+                      {isProcessing ? 'Traitement en cours...' : !isDeliveryAddressValid ? 'Remplissez les champs obligatoires' : 'Confirmer la commande'}
                     </Button>
                   </Box>
 

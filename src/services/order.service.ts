@@ -89,6 +89,9 @@ export interface CreateOrderData {
     unit_price: number;
   }[];
   shipping_address: {
+    first_name: string;
+    last_name: string;
+    address: string;
     street: string;
     city: string;
     country: string;
@@ -97,6 +100,7 @@ export interface CreateOrderData {
   currency?: string;
   payment_method: string;
   order_type?: string;
+  mode?: string;
 }
 
 // Service de gestion des commandes
@@ -137,13 +141,17 @@ export class OrderService {
   static async createOrderFromCart(
     cartItems: CartItemWithProduct[],
     shippingAddress: {
+      first_name: string;
+      last_name: string;
+      address: string;
       street: string;
       city: string;
       country: string;
       phone: string;
     },
     paymentMethod: string = PAYMENT_METHODS.PAYDUNYA,
-    currency: string = 'XOF'
+    currency: string = 'XOF',
+    mode: string = 'home_delivery'
   ): Promise<OrderResponse> {
     try {
       // Transformer les items du panier au format API
@@ -158,7 +166,7 @@ export class OrderService {
         return {
           product_id: item.product.id,
           quantity: item.quantity,
-          unit_price: price || 0
+          unit_price: Number(price) || 0
         };
       });
 
@@ -167,14 +175,15 @@ export class OrderService {
         shipping_address: shippingAddress,
         currency,
         payment_method: paymentMethod,
-        order_type: 'standard'
+        order_type: 'standard',
+        mode
       };
 
       const order = await createOrder(orderData);
       return order;
     } catch (error) {
       console.error('Erreur création commande:', error);
-      throw new Error('Impossible de créer la commande');
+      throw error;
     }
   }
 

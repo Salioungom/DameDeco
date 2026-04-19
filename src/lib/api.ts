@@ -64,7 +64,7 @@ const createApiInstance = (): AxiosInstance => {
       );
       
       if (error) {
-        console.error(`   Error: ${error}`);
+        console.error(`   Error:`, error);
       }
     }
   };
@@ -145,10 +145,23 @@ const createApiInstance = (): AxiosInstance => {
         statusCode = error.response.status;
         const responseData = error.response.data as any;
         
-        errorMessage = responseData?.detail || 
-                     responseData?.message || 
-                     responseData?.error || 
-                     `HTTP ${statusCode}`;
+        // Extraire le message d'erreur en gérant les tableaux et objets complexes
+        if (Array.isArray(responseData)) {
+          errorMessage = responseData.map(err => err?.msg || err?.message || JSON.stringify(err)).join(', ');
+        } else if (typeof responseData === 'object') {
+          // Gérer le cas où detail est un tableau
+          if (Array.isArray(responseData?.detail)) {
+            errorMessage = responseData.detail.map((err: any) => err?.msg || err?.message || JSON.stringify(err)).join(', ');
+          } else {
+            errorMessage = responseData?.detail || 
+                         responseData?.message || 
+                         responseData?.error ||
+                         (responseData?.non_field_errors?.join(', ')) ||
+                         JSON.stringify(responseData);
+          }
+        } else {
+          errorMessage = String(responseData) || `HTTP ${statusCode}`;
+        }
         
         log({
           timestamp: new Date().toISOString(),

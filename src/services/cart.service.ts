@@ -93,9 +93,10 @@ export const cartService = {
   /**
    * Vider le panier complet
    */
-  async clearCart(): Promise<{ data: null; error: any }> {
+  async clearCart(sessionId?: string): Promise<{ data: null; error: any }> {
     return safeApiCall(async () => {
-      const response = await api.delete('/api/v1/cartitems/cart');
+      const params = sessionId ? { session_id: sessionId } : {};
+      const response = await api.delete('/api/v1/cartitems/cart', { params });
       return response.data;
     });
   },

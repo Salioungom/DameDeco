@@ -21,7 +21,7 @@ interface StoreState {
     addToCart: (product: Product, quantity?: number) => Promise<void>;
     removeFromCart: (productId: string) => Promise<void>;
     updateQuantity: (productId: string, quantity: number) => Promise<void>;
-    clearCart: () => Promise<void>;
+    clearCart: (sessionId?: string) => Promise<void>;
     toggleCart: (isOpen?: boolean) => void;
     setUser: (user: User | null) => void;
     toggleFavorite: (productId: string) => void;
@@ -192,10 +192,10 @@ export const useStore = create<StoreState>()(
             },
 
             // Vider le panier via l'API
-            clearCart: async () => {
+            clearCart: async (sessionId?: string) => {
                 set({ cartLoading: true, cartError: null });
                 try {
-                    const result = await cartService.clearCart();
+                    const result = await cartService.clearCart(sessionId);
                     
                     if (result.error) {
                         set({ cartError: 'Impossible de vider le panier', cartLoading: false });
