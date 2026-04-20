@@ -70,12 +70,44 @@ export function CartDrawer() {
       return;
     }
 
-    toggleCart(false);
+    // Si authentifié, créer la commande avant de rediriger
+    if (isAuthenticated && user) {
+      try {
+        setIsProcessing(true);
 
-    // Rediriger vers login si non authentifié, vers checkout si authentifié
-    if (isAuthenticated) {
-      router.push('/checkout');
+        // Créer la commande
+        const order = await OrderService.createOrderFromCart(
+          cartWithProducts,
+          {
+            first_name: user.full_name?.split(' ')[0] || 'Client',
+            last_name: user.full_name?.split(' ').slice(1).join(' ') || 'Doe',
+            address: 'Adresse par défaut',
+            street: 'Adresse par défaut',
+            city: 'Dakar',
+            country: 'Sénégal',
+            phone: user.phone || '770000000'
+          },
+          'wave',
+          'XOF',
+          'home_delivery'
+        );
+
+        console.log('Commande créée avec succès:', order);
+
+        toggleCart(false);
+
+        // Rediriger vers checkout avec l'ID de la commande
+        router.push(`/checkout?orderId=${order.id}`);
+      } catch (error) {
+        console.error('Erreur lors de la création de la commande:', error);
+        toggleCart(false);
+        router.push('/checkout');
+      } finally {
+        setIsProcessing(false);
+      }
     } else {
+      // Non authentifié, rediriger vers login
+      toggleCart(false);
       router.push('/login');
     }
   };

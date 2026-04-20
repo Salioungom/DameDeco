@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import { Providers } from '@/components/Providers';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
     title: 'Dame Sarr - Import & Commerce',
@@ -18,12 +19,14 @@ export default function RootLayout({
     return (
         <html lang="fr" suppressHydrationWarning>
             <body>
-                <AppRouterCacheProvider>
-                    <ThemeProvider theme={theme}>
-                        <CssBaseline />
-                        <Providers>{children}</Providers>
-                    </ThemeProvider>
-                </AppRouterCacheProvider>
+                <AuthProvider>
+                    <AppRouterCacheProvider>
+                        <ThemeProvider theme={theme}>
+                            <CssBaseline />
+                            <Providers>{children}</Providers>
+                        </ThemeProvider>
+                    </AppRouterCacheProvider>
+                </AuthProvider>
             </body>
         </html>
     );

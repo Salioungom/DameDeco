@@ -23,19 +23,32 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    Menu,
+    MenuItem,
+    TablePagination,
+    Card,
+    CardContent,
+    Grid,
 } from '@mui/material';
+import { MoreVert, ShoppingBag as ShoppingBagIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
 import { OrderResponse } from '@/services/order.service';
 
 function OrdersContent() {
     const { user } = useAuth();
+    const router = useRouter();
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const [menuOrderId, setMenuOrderId] = useState<number | null>(null);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetchOrders();
@@ -45,7 +58,7 @@ function OrdersContent() {
         try {
             setLoading(true);
             setError(null);
-            const ordersData = await OrderService.getCustomerOrders(0, 20);
+            const ordersData = await OrderService.getCustomerOrders(page, rowsPerPage);
             setOrders(ordersData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des commandes');
@@ -53,6 +66,19 @@ function OrdersContent() {
             setLoading(false);
         }
     };
+
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, [page, rowsPerPage]);
 
     const handleCancelOrder = async (order: OrderResponse) => {
         try {
@@ -73,6 +99,35 @@ function OrdersContent() {
         setCancelDialogOpen(true);
     };
 
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, orderId: number) => {
+        setMenuAnchorEl(event.currentTarget);
+        setMenuOrderId(orderId);
+    };
+
+    const handleMenuClose = () => {
+        setMenuAnchorEl(null);
+        setMenuOrderId(null);
+    };
+
+    const handleMenuAction = (action: string, order: OrderResponse) => {
+        handleMenuClose();
+        switch (action) {
+            case 'cancel':
+                openCancelDialog(order);
+                break;
+            case 'details':
+                router.push(`/account/orders/${order.id}`);
+                break;
+            case 'change_info':
+                router.push(`/checkout?orderId=${order.id}`);
+                break;
+            case 'validate':
+                // TODO: Implémenter la validation
+                console.log('Valider commande', order.id);
+                break;
+        }
+    };
+
     if (loading) {
         return (
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -84,88 +139,137 @@ function OrdersContent() {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Paper sx={{ p: 4 }}>
-                <Typography variant="h4" gutterBottom>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h3" fontWeight="bold" gutterBottom>
                     Mes Commandes
                 </Typography>
-
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                <Typography variant="body1" color="text.secondary">
                     Historique de vos commandes
                 </Typography>
+            </Box>
 
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>N° Commande</TableCell>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Articles</TableCell>
-                                <TableCell>Total</TableCell>
-                                <TableCell>Statut</TableCell>
-                                <TableCell>Actions</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {orders.map((order) => (
-                                <TableRow key={order.id} hover>
-                                    <TableCell>
-                                        <Typography variant="body2" fontWeight="bold">
-                                            {order.order_number}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        {OrderService.formatDate(order.created_at)}
-                                    </TableCell>
-                                    <TableCell>{order.items_count || 0}</TableCell>
-                                    <TableCell>
-                                        {OrderService.formatAmount(order.total_amount, order.currency)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            label={OrderService.getStatusLabel(order.status)}
-                                            color={OrderService.getStatusColor(order.status)}
-                                            size="small"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        {order.status === ORDER_STATUS.PENDING && (
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                onClick={() => openCancelDialog(order)}
-                                            >
-                                                Annuler
-                                            </Button>
-                                        )}
-                                        <Button
-                                            size="small"
-                                            onClick={() => window.location.href = `/account/orders/${order.id}`}
-                                        >
-                                            Détails
-                                        </Button>
-                                    </TableCell>
+            <Card elevation={2} sx={{ borderRadius: 2 }}>
+                <CardContent sx={{ p: 0 }}>
+                    <TableContainer>
+                        <Table sx={{ minWidth: 650 }}>
+                            <TableHead sx={{ bgcolor: 'grey.50' }}>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>N° Commande</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Date</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Articles</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Total</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Statut</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Actions</TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                            </TableHead>
+                            <TableBody>
+                                {orders.map((order) => (
+                                    <TableRow
+                                        key={order.id}
+                                        hover
+                                        sx={{ '&:last-child td': { border: 0 } }}
+                                    >
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight="bold" color="primary">
+                                                {order.order_number}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2">
+                                                {OrderService.formatDate(order.created_at)}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <ShoppingBagIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                                                <Typography variant="body2">
+                                                    {order.items_count || 0}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight="bold">
+                                                {OrderService.formatAmount(order.total_amount, order.currency)}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={OrderService.getStatusLabel(order.status)}
+                                                color={OrderService.getStatusColor(order.status)}
+                                                size="small"
+                                                sx={{ fontWeight: 'medium' }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <IconButton
+                                                onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuOpen(e, order.id)}
+                                                sx={{ '&:hover': { bgcolor: 'action.hover' } }}
+                                            >
+                                                <MoreVert />
+                                            </IconButton>
+                                            <Menu
+                                                anchorEl={menuAnchorEl}
+                                                open={menuOrderId === order.id}
+                                                onClose={handleMenuClose}
+                                                PaperProps={{
+                                                    elevation: 3,
+                                                    sx: { minWidth: 180 }
+                                                }}
+                                            >
+                                                {order.status === ORDER_STATUS.PENDING && (
+                                                    <MenuItem onClick={() => handleMenuAction('cancel', order)} sx={{ color: 'error.main' }}>
+                                                        Annuler
+                                                    </MenuItem>
+                                                )}
+                                                <MenuItem onClick={() => handleMenuAction('details', order)} sx={{ color: 'primary.main' }}>
+                                                    Détails
+                                                </MenuItem>
+                                                <MenuItem onClick={() => handleMenuAction('change_info', order)} sx={{ color: 'info.main' }}>
+                                                    Changer mes informations
+                                                </MenuItem>
+                                                <MenuItem onClick={() => handleMenuAction('validate', order)} sx={{ color: 'success.main' }}>
+                                                    Valider
+                                                </MenuItem>
+                                            </Menu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
 
-                {orders.length === 0 && (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                        <Typography variant="body1" color="text.secondary">
-                            Vous n'avez pas encore de commandes
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            sx={{ mt: 2 }}
-                            onClick={() => window.location.href = '/shop'}
-                        >
-                            Commencer vos achats
-                        </Button>
-                    </Box>
-                )}
-            </Paper>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        count={-1} // -1 indique que le nombre total n'est pas connu
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        labelRowsPerPage="Lignes par page:"
+                        labelDisplayedRows={({ from, to }: { from: number; to: number }) => `${from}-${to}`}
+                        sx={{ borderTop: 1, borderColor: 'divider' }}
+                    />
+                </CardContent>
+            </Card>
+
+            {orders.length === 0 && (
+                <Card elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'grey.50' }}>
+                    <ShoppingBagIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Vous n'avez pas encore de commandes
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        sx={{ mt: 2 }}
+                        onClick={() => window.location.href = '/shop'}
+                    >
+                        Commencer vos achats
+                    </Button>
+                </Card>
+            )}
 
             {/* Dialogue de confirmation d'annulation */}
             <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>

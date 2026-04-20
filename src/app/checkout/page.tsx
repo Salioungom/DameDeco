@@ -3,24 +3,32 @@
 import { CheckoutPage } from '@/components/CheckoutPage';
 import { useStore } from '@/store/useStore';
 import { useCartWithProducts, CartItemWithProduct } from '@/hooks/useCartWithProducts';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import OrderService from '@/services/order.service';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function Page() {
-    const { cart, clearCart } = useStore();
+    const { cart, clearCart, getSessionId } = useStore();
     const { cart: cartWithProducts } = useCartWithProducts();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth();
+    const [orderData, setOrderData] = useState<any>(null);
 
+    // Charger les données de la commande si orderId est présent
     useEffect(() => {
-        if (!user) {
-            router.push('/login');
+        const orderId = searchParams.get('orderId');
+        if (orderId) {
+            OrderService.getOrderDetails(orderId).then(order => {
+                setOrderData(order);
+                // Vider le panier une fois la commande chargée
+                clearCart(getSessionId());
+            }).catch(err => {
+                console.error('Erreur lors du chargement de la commande:', err);
+            });
         }
-    }, [user, router]);
+    }, [searchParams, getSessionId, clearCart]);
 
     const handlePlaceOrder = async () => {
         if (cartWithProducts.length === 0) {
@@ -32,36 +40,15 @@ export default function Page() {
             setIsProcessing(true);
             setError(null);
 
-            // Créer la commande via le backend
-            const order = await OrderService.createOrderFromCart(
-                cartWithProducts,
-                {
-                    first_name: user?.full_name?.split(' ')[0] || 'Client',
-                    last_name: user?.full_name?.split(' ').slice(1).join(' ') || 'Doe',
-                    address: 'Adresse par défaut',
-                    street: 'Adresse par défaut',
-                    city: 'Dakar',
-                    country: 'Sénégal',
-                    phone: user?.phone || '770000000'
-                },
-                'wave',
-                'XOF',
-                'home_delivery'
-            );
-
-            console.log('Commande créée avec succès:', order);
-
-            // Vider le panier
-            clearCart();
-
-            // Rediriger vers la page de succès
+            // La commande est déjà créée depuis le panier et le panier est déjà vidé
+            // Rediriger directement vers la page de succès
             setTimeout(() => {
                 router.push('/checkout/success');
             }, 2000);
 
         } catch (err: any) {
-            console.error('Erreur lors de la création de la commande:', err);
-            setError(err.message || 'Impossible de créer la commande. Veuillez réessayer.');
+            console.error('Erreur:', err);
+            setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
         } finally {
             setIsProcessing(false);
         }
@@ -74,6 +61,7 @@ export default function Page() {
             onPlaceOrder={handlePlaceOrder}
             isProcessing={isProcessing}
             error={error}
+            orderData={orderData}
         />
     );
 }

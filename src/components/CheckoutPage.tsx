@@ -38,6 +38,7 @@ interface CheckoutPageProps {
   onPlaceOrder: () => void;
   isProcessing?: boolean;
   error?: string | null;
+  orderData?: any;
 }
 
 type TabPanelProps = {
@@ -68,7 +69,7 @@ const CustomTabPanel: React.FC<TabPanelProps> = (props) => {
   );
 };
 
-export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false, error = null }: CheckoutPageProps) {
+export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false, error = null, orderData }: CheckoutPageProps) {
   const [paymentMethod, setPaymentMethod] = useState<string>('wave');
   const [deliveryMethod, setDeliveryMethod] = useState<string>('delivery');
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -85,12 +86,14 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   const [address, setAddress] = useState<string>('');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
 
-  const subtotal = (items || []).reduce((sum, item) => {
-    if (!item.product) return sum;
-    const price =
-      item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
-    return sum + (price || 0) * item.quantity;
-  }, 0);
+  const subtotal = orderData
+    ? Number(orderData.subtotal || 0)
+    : (items || []).reduce((sum, item) => {
+        if (!item.product) return sum;
+        const price =
+          item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
+        return sum + (price || 0) * item.quantity;
+      }, 0);
 
   const total = subtotal + deliveryFee;
 
@@ -121,11 +124,26 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
     loadShippingSettings();
   }, []);
 
+  // Initialiser le mode de livraison et les frais à partir de orderData
+  React.useEffect(() => {
+    if (orderData && orderData.delivery_mode) {
+      setDeliveryMethod(orderData.delivery_mode);
+      setDeliveryFee(Number(orderData.delivery_fee) || 0);
+      // Initialiser les champs d'adresse à partir de orderData si disponibles
+      if (orderData.customer) {
+        setFirstName(orderData.customer.first_name || '');
+        setLastName(orderData.customer.last_name || '');
+        setPhone(orderData.customer.phone || '');
+        setAddress(orderData.customer.address || '');
+      }
+    }
+  }, [orderData]);
+
   // Calculer les frais de livraison via l'API
   React.useEffect(() => {
     const calculateShipping = async () => {
       if (!shippingSettings || subtotal === 0) return;
-      
+
       setShippingLoading(true);
       try {
         const result = await fetch('/api/v1/shipping/calculate', {
@@ -242,19 +260,21 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                           '&:hover': { bgcolor: 'action.hover' },
                         }}
                       >
-                        <FormControlLabel
-                          value="delivery"
-                          control={<Radio />}
-                          label={
-                            <Box>
-                              <Typography variant="subtitle1">Livraison à domicile</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {estimatedDays || 'jours ouvrables'}
-                              </Typography>
-                            </Box>
-                          }
-                          sx={{ width: '100%', m: 0 }}
-                        />
+                        <ClientOnly>
+                          <FormControlLabel
+                            value="delivery"
+                            control={<Radio />}
+                            label={
+                              <Box>
+                                <Typography variant="subtitle1">Livraison à domicile</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {estimatedDays || 'jours ouvrables'}
+                                </Typography>
+                              </Box>
+                            }
+                            sx={{ width: '100%', m: 0 }}
+                          />
+                        </ClientOnly>
                       </Box>
                     )}
 
@@ -270,19 +290,21 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                           '&:hover': { bgcolor: 'action.hover' },
                         }}
                       >
-                        <FormControlLabel
-                          value="pickup"
-                          control={<Radio />}
-                          label={
-                            <Box>
-                              <Typography variant="subtitle1">Retrait en boutique</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {estimatedDays || 'jours ouvrables'} - Gratuit
-                              </Typography>
-                            </Box>
-                          }
-                          sx={{ width: '100%', m: 0 }}
-                        />
+                        <ClientOnly>
+                          <FormControlLabel
+                            value="pickup"
+                            control={<Radio />}
+                            label={
+                              <Box>
+                                <Typography variant="subtitle1">Retrait en boutique</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {estimatedDays || 'jours ouvrables'} - Gratuit
+                                </Typography>
+                              </Box>
+                            }
+                            sx={{ width: '100%', m: 0 }}
+                          />
+                        </ClientOnly>
                       </Box>
                     )}
                   </RadioGroup>
@@ -384,10 +406,14 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value as string)}
                     >
                       <Paper variant="outlined" sx={{ mb: 2, p: 1 }}>
-                        <FormControlLabel value="wave" control={<ClientOnly><Radio /></ClientOnly>} label="Wave" sx={{ width: '100%', m: 0 }} />
+                        <ClientOnly>
+                          <FormControlLabel value="wave" control={<Radio />} label="Wave" sx={{ width: '100%', m: 0 }} />
+                        </ClientOnly>
                       </Paper>
                       <Paper variant="outlined" sx={{ mb: 2, p: 1 }}>
-                        <FormControlLabel value="orange" control={<ClientOnly><Radio /></ClientOnly>} label="Orange Money" sx={{ width: '100%', m: 0 }} />
+                        <ClientOnly>
+                          <FormControlLabel value="orange" control={<Radio />} label="Orange Money" sx={{ width: '100%', m: 0 }} />
+                        </ClientOnly>
                       </Paper>
                     </RadioGroup>
 
@@ -415,11 +441,9 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
               <CardContent>
                 <Stack spacing={3}>
                   <Stack spacing={2}>
-                    {Array.isArray(items) && items.filter(item => item.product).map((item) => {
-                      if (!item.product) return null;
-                      const price = item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
-                      return (
-                        <Box key={item.product.id} display="flex" gap={2}>
+                    {orderData?.items ? (
+                      orderData.items.map((item: any) => (
+                        <Box key={item.id} display="flex" gap={2}>
                           <Box
                             sx={{
                               width: 64,
@@ -431,26 +455,63 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                             }}
                           >
                             <ImageWithFallback
-                              src={item.product.cover_image_url || ''}
-                              alt={item.product.name}
+                              src={item.product?.cover_image_url || item.product?.images?.[0]?.image_url || ''}
+                              alt={item.product?.name || 'Produit'}
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                           </Box>
 
                           <Box flex={1} minWidth={0}>
                             <Typography variant="body2" noWrap>
-                              {item.product.name}
+                              {item.product?.name || `Produit #${item.product_id}`}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               Qté: {item.quantity}
                             </Typography>
                             <Typography variant="body2" color="primary">
-                              {((price || 0) * item.quantity).toLocaleString('fr-FR')} FCFA
+                              {(Number(item.total_price) || Number(item.unit_price) * item.quantity).toLocaleString('fr-FR')} FCFA
                             </Typography>
                           </Box>
                         </Box>
-                      );
-                    })}
+                      ))
+                    ) : (
+                      Array.isArray(items) && items.filter(item => item.product).map((item) => {
+                        if (!item.product) return null;
+                        const price = item.price_type === 'wholesale' ? item.product.wholesale_price : item.product.price;
+                        return (
+                          <Box key={item.product.id} display="flex" gap={2}>
+                            <Box
+                              sx={{
+                                width: 64,
+                                height: 64,
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                bgcolor: 'action.hover',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <ImageWithFallback
+                                src={item.product.cover_image_url || ''}
+                                alt={item.product.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            </Box>
+
+                            <Box flex={1} minWidth={0}>
+                              <Typography variant="body2" noWrap>
+                                {item.product.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Qté: {item.quantity}
+                              </Typography>
+                              <Typography variant="body2" color="primary">
+                                {((price || 0) * item.quantity).toLocaleString('fr-FR')} FCFA
+                              </Typography>
+                            </Box>
+                          </Box>
+                        );
+                      })
+                    )}
                   </Stack>
 
                   <Divider />
