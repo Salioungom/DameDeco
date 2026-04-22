@@ -3,10 +3,15 @@
 import { HomePage } from '@/components/HomePage';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Page() {
-    const { addToCart, userType, favorites, toggleFavorite } = useStore();
+    const { addToCart, userType, favorites, toggleFavorite, loadFavorites } = useStore();
     const router = useRouter();
+
+    useEffect(() => {
+        loadFavorites();
+    }, []);
 
     return (
         <HomePage

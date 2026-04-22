@@ -6,59 +6,58 @@ import {
     Container,
     Typography,
     Grid,
-    Card,
-    CardContent,
-    IconButton,
-    Button,
-    Chip,
     Paper,
-    alpha,
     CircularProgress,
     Alert,
+    Button,
 } from '@mui/material';
 import {
-    Favorite,
     FavoriteBorder,
-    ShoppingCart,
 } from '@mui/icons-material';
-import { useStore } from '@/store/useStore';
-import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import Link from 'next/link';
+import { FavoriteService, Favorite } from '@/services/favorite.service';
 import { productService } from '@/services/product.service';
 import { Product } from '@/lib/types';
+import ProductCard from '@/components/ProductCard';
+import { useStore } from '@/store/useStore';
+import { useRouter } from 'next/navigation';
 
 export default function FavoritesPage() {
-    const { favorites, toggleFavorite, addToCart } = useStore();
+    const [favorites, setFavorites] = useState<Favorite[]>([]);
     const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { addToCart, userType, favorites: storeFavorites, toggleFavorite, loadFavorites: loadStoreFavorites } = useStore();
+    const router = useRouter();
 
     useEffect(() => {
         const loadFavorites = async () => {
-            if (!Array.isArray(favorites) || favorites.length === 0) {
-                setFavoriteProducts([]);
-                setLoading(false);
-                return;
-            }
-
             try {
                 setLoading(true);
-                // Fetch each product by ID. 
-                // Optimization: If backend supports getByIds, use that.
-                // Otherwise Promise.all is acceptable for client-side favorites (usually small list).
-                const promises = favorites.map(id => productService.getProductById(id)); // Assuming getProduct throws if not found
-                const results = await Promise.allSettled(promises);
+                const favoritesData = await FavoriteService.getUserFavorites(0, 20);
+                setFavorites(favoritesData.items);
 
-                const foundProducts: Product[] = [];
-                results.forEach(result => {
-                    if (result.status === 'fulfilled' && result.value) {
-                        foundProducts.push(result.value);
+                // Synchroniser le store avec les favoris
+                await loadStoreFavorites();
+
+                // Récupérer les détails complets des produits
+                const productPromises = favoritesData.items.map(async (favorite) => {
+                    try {
+                        const product = await productService.getProductById(favorite.product.id.toString());
+                        return product;
+                    } catch (err) {
+                        console.error('Erreur récupération produit:', favorite.product.id, err);
+                        return null;
                     }
                 });
-                setFavoriteProducts(foundProducts);
+
+                const products = await Promise.all(productPromises);
+                const validProducts = products.filter(p => p !== null) as Product[];
+                setFavoriteProducts(validProducts);
             } catch (err) {
                 console.error("Error loading favorites", err);
-                setError("Impossible de charger certains favoris.");
+                setError("Impossible de charger vos favoris.");
+                setFavorites([]);
                 setFavoriteProducts([]);
             } finally {
                 setLoading(false);
@@ -66,17 +65,39 @@ export default function FavoritesPage() {
         };
 
         loadFavorites();
-    }, [favorites]);
+    }, []);
 
-    const handleRemoveFavorite = (productId: string) => {
-        toggleFavorite(productId);
-        // Optimistically remove from view
-        setFavoriteProducts(prev => Array.isArray(prev) ? prev.filter(p => p.id !== productId) : []);
-    };
+    // Recharger les favoris quand le store change (après toggleFavorite)
+    useEffect(() => {
+        const reloadFavorites = async () => {
+            try {
+                const favoritesData = await FavoriteService.getUserFavorites(0, 20);
+                setFavorites(favoritesData.items);
 
-    const handleAddToCart = (product: Product) => {
-        addToCart(product);
-    };
+                // Récupérer les détails complets des produits
+                const productPromises = favoritesData.items.map(async (favorite) => {
+                    try {
+                        const product = await productService.getProductById(favorite.product.id.toString());
+                        return product;
+                    } catch (err) {
+                        console.error('Erreur récupération produit:', favorite.product.id, err);
+                        return null;
+                    }
+                });
+
+                const products = await Promise.all(productPromises);
+                const validProducts = products.filter(p => p !== null) as Product[];
+                setFavoriteProducts(validProducts);
+            } catch (err) {
+                console.error("Error reloading favorites", err);
+            }
+        };
+
+        // Ne recharger qu'après le chargement initial pour éviter les appels en double
+        if (!loading) {
+            reloadFavorites();
+        }
+    }, [storeFavorites]);
 
     if (loading) {
         return (
@@ -133,129 +154,14 @@ export default function FavoritesPage() {
             <Grid container spacing={3}>
                 {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (
                     <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                        <Card
-                            sx={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                position: 'relative',
-                                transition: 'all 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: 4,
-                                },
-                            }}
-                        >
-                            {/* Favorite Button */}
-                            <IconButton
-                                sx={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    bgcolor: alpha('#fff', 0.9),
-                                    '&:hover': {
-                                        bgcolor: '#fff',
-                                    },
-                                    zIndex: 1,
-                                }}
-                                onClick={() => handleRemoveFavorite(product.id)}
-                            >
-                                <Favorite sx={{ color: 'error.main' }} />
-                            </IconButton>
-
-                            {/* Product Image */}
-                            <Box
-                                component={Link}
-                                href={`/product/${product.id}`}
-                                sx={{
-                                    position: 'relative',
-                                    paddingTop: '100%',
-                                    overflow: 'hidden',
-                                    bgcolor: 'background.default',
-                                    textDecoration: 'none',
-                                }}
-                            >
-                                <ImageWithFallback
-                                    src={product.cover_image_url || ''}
-                                    alt={product.name}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                                {product.is_featured && (
-                                    <Chip
-                                        label="Populaire"
-                                        color="error"
-                                        size="small"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            left: 8,
-                                        }}
-                                    />
-                                )}
-                            </Box>
-
-                            {/* Product Details */}
-                            <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                                <Typography
-                                    variant="subtitle1"
-                                    component={Link}
-                                    href={`/product/${product.id}`}
-                                    sx={{
-                                        fontWeight: 600,
-                                        mb: 1,
-                                        display: 'block',
-                                        textDecoration: 'none',
-                                        color: 'text.primary',
-                                        '&:hover': {
-                                            color: 'primary.main',
-                                        },
-                                    }}
-                                    noWrap
-                                >
-                                    {product.name}
-                                </Typography>
-
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{
-                                        mb: 2,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
-                                    }}
-                                >
-                                    {product.description}
-                                </Typography>
-
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                    <Typography variant="h6" color="primary" fontWeight={700}>
-                                        {product.price.toLocaleString('fr-FR')} FCFA
-                                    </Typography>
-                                </Box>
-
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    startIcon={<ShoppingCart />}
-                                    onClick={() => handleAddToCart(product)}
-                                    sx={{
-                                        borderRadius: 2,
-                                    }}
-                                >
-                                    Ajouter au panier
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <ProductCard
+                            product={product}
+                            onAddToCart={addToCart}
+                            onViewDetails={(p) => router.push(`/product/${p.id}`)}
+                            userType={userType}
+                            isFavorite={storeFavorites.includes(product.id.toString())}
+                            onToggleFavorite={toggleFavorite}
+                        />
                     </Grid>
                 ))}
             </Grid>

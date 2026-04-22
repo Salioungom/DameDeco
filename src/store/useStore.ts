@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product, User, Review } from '@/lib/types';
 import { cartService, CartItem } from '@/services/cart.service';
+import { FavoriteService } from '@/services/favorite.service';
 
 interface StoreState {
     cart: CartItem[];
@@ -18,13 +19,14 @@ interface StoreState {
 
     // Actions
     loadCart: () => Promise<void>;
+    loadFavorites: () => Promise<void>;
     addToCart: (product: Product, quantity?: number) => Promise<void>;
     removeFromCart: (productId: string) => Promise<void>;
     updateQuantity: (productId: string, quantity: number) => Promise<void>;
     clearCart: (sessionId?: string) => Promise<void>;
     toggleCart: (isOpen?: boolean) => void;
     setUser: (user: User | null) => void;
-    toggleFavorite: (productId: string) => void;
+    toggleFavorite: (productId: string) => Promise<void>;
     toggleAdmin: () => void;
     setUserType: (type: 'retail' | 'wholesale') => void;
     toggleTheme: () => void;
@@ -97,6 +99,17 @@ export const useStore = create<StoreState>()(
                 } catch (error) {
                     console.error('Erreur lors du chargement du panier:', error);
                     set({ cartError: 'Erreur lors du chargement du panier', cartLoading: false });
+                }
+            },
+
+            // Charger les favoris depuis l'API
+            loadFavorites: async () => {
+                try {
+                    const favoritesData = await FavoriteService.getUserFavorites(0, 100);
+                    const favoriteIds = favoritesData.items.map(f => f.product_id.toString());
+                    set({ favorites: favoriteIds });
+                } catch (error) {
+                    console.error('Erreur lors du chargement des favoris:', error);
                 }
             },
 
@@ -221,7 +234,7 @@ export const useStore = create<StoreState>()(
 
             setUser: (user) => {
                 set({ user });
-                // Si l'utilisateur se connecte, fusionner le panier invité
+                // Si l'utilisateur se connecte, fusionner le panier invité et charger les favoris
                 if (user) {
                     const sessionId = get().sessionId;
                     if (sessionId) {
@@ -232,18 +245,26 @@ export const useStore = create<StoreState>()(
                             get().regenerateSessionId();
                         });
                     }
+                    // Charger les favoris depuis l'API
+                    get().loadFavorites();
                 }
             },
 
-            toggleFavorite: (productId) =>
-                set((state) => {
-                    const isFavorite = state.favorites.includes(productId);
-                    return {
-                        favorites: isFavorite
-                            ? state.favorites.filter((id) => id !== productId)
-                            : [...state.favorites, productId],
-                    };
-                }),
+            toggleFavorite: async (productId) => {
+                try {
+                    const productIdStr = productId.toString();
+                    const isFavorite = get().favorites.includes(productIdStr);
+                    if (isFavorite) {
+                        await FavoriteService.removeFavorite(Number(productId));
+                    } else {
+                        await FavoriteService.addFavorite(Number(productId));
+                    }
+                    // Recharger les favoris depuis l'API pour synchroniser l'état partout
+                    await get().loadFavorites();
+                } catch (error) {
+                    console.error('Erreur lors du basculement du favori:', error);
+                }
+            },
 
             toggleAdmin: () => set((state) => ({ isAdmin: !state.isAdmin })),
 
@@ -272,10 +293,10 @@ export const useStore = create<StoreState>()(
             name: 'ecommerce-store',
             storage: createJSONStorage(() => localStorage),
             // Ne pas persister le panier car il vient de l'API
+            // Ne pas persister favorites car ils viennent de l'API
             // sessionId est géré manuellement avec localStorage
             partialize: (state) => ({
                 user: state.user,
-                favorites: state.favorites,
                 isAdmin: state.isAdmin,
                 userType: state.userType,
                 isDark: state.isDark,

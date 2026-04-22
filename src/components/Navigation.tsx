@@ -211,13 +211,15 @@ export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
   // Utiliser AuthContext au lieu de l'état local
   const { user, isAuthenticated, logout } = useAuth();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileAnchorRef = useRef<HTMLButtonElement>(null);
 
@@ -535,77 +537,90 @@ export function Navigation() {
         <Toolbar
           disableGutters
           sx={{
-            minHeight: { xs: 64, md: 72 },
-            gap: { xs: 1, md: 3 },
+            minHeight: { xs: 56, sm: 64, md: 72 },
+            gap: { xs: 0.5, sm: 1, md: 3 },
+            justifyContent: 'space-between',
           }}
         >
-          {/* Mobile Menu Button */}
-          <StyledIconButton
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ display: { md: 'none' } }}
-          >
-            <MenuIcon />
-          </StyledIconButton>
+          {/* Left Section: Logo & Mobile Menu */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            {/* Mobile Menu Button */}
+            <StyledIconButton
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ display: { md: 'none' } }}
+              size="small"
+            >
+              <MenuIcon />
+            </StyledIconButton>
 
-          {/* Logo */}
-          <Button
-            component={Link}
-            href="/"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textTransform: 'none',
-              color: 'text.primary',
-              p: 1,
-              borderRadius: 2,
-              '&:hover': {
-                bgcolor: 'transparent',
-              },
-            }}
-          >
-            <LogoBox
+            {/* Logo */}
+            <Button
+              component={Link}
+              href="/"
               sx={{
-                width: { xs: 40, md: 48 },
-                height: { xs: 40, md: 48 },
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                mr: { xs: 1.5, md: 2 },
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: { xs: '1rem', md: '1.25rem' },
+                textTransform: 'none',
+                color: 'text.primary',
+                p: { xs: 0.5, sm: 1 },
+                borderRadius: 2,
+                minWidth: 'auto',
+                '&:hover': {
+                  bgcolor: 'transparent',
+                },
               }}
             >
-              DS
-            </LogoBox>
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography
-                variant="h6"
-                fontWeight={800}
-                lineHeight={1.2}
+              <LogoBox
                 sx={{
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  width: { xs: 32, sm: 40, md: 48 },
+                  height: { xs: 32, sm: 40, md: 48 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: { xs: 1, sm: 1.5, md: 2 },
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
                 }}
               >
-                Dame Sarr
-              </Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={500}>
-                Import & Commerce
-              </Typography>
-            </Box>
-          </Button>
+                DS
+              </LogoBox>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography
+                  variant="h6"
+                  fontWeight={800}
+                  lineHeight={1.2}
+                  sx={{
+                    fontSize: { sm: '1.1rem', md: '1.25rem' },
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  Dame Sarr
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  fontWeight={500}
+                  sx={{ display: { sm: 'none', md: 'block' } }}
+                >
+                  Import & Commerce
+                </Typography>
+              </Box>
+            </Button>
+          </Stack>
 
-          {/* Desktop Navigation */}
+          {/* Center Section: Navigation */}
           <Stack
             direction="row"
             spacing={0.5}
             sx={{
               display: { xs: 'none', md: 'flex' },
               flexGrow: 1,
+              justifyContent: 'center',
               ml: 4,
             }}
           >
@@ -618,6 +633,8 @@ export function Navigation() {
                 className={pathname === item.path ? 'active' : ''}
                 sx={{
                   color: pathname === item.path ? 'primary.main' : 'text.primary',
+                  fontSize: { md: '0.9rem', lg: '0.95rem' },
+                  px: { md: 1.5, lg: 2 },
                 }}
               >
                 {item.label}
@@ -625,49 +642,78 @@ export function Navigation() {
             ))}
           </Stack>
 
-          {/* Search - Desktop */}
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'block' },
-              width: 300,
-              mr: 2,
-            }}
-          >
-            <form onSubmit={handleSearch}>
-              <SearchContainer sx={{ p: 1 }}>
-                <SearchIcon
-                  sx={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: 'text.secondary',
-                    fontSize: 20,
-                  }}
-                />
-                <ClientOnly>
-                  <InputBase
-                    placeholder="Rechercher..."
-                    value={searchQuery}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+          {/* Right Section: Search & Actions */}
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            {/* Search - Desktop */}
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'block' },
+                width: { md: 250, lg: 300 },
+                mr: { md: 1, lg: 2 },
+              }}
+            >
+              <form onSubmit={handleSearch}>
+                <SearchContainer sx={{ p: { md: 0.75, lg: 1 } }}>
+                  <SearchIcon
                     sx={{
-                      width: '100%',
-                      pl: 5,
-                      pr: 2,
-                      fontSize: '0.875rem',
+                      position: 'absolute',
+                      left: { md: 10, lg: 12 },
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'text.secondary',
+                      fontSize: { md: 18, lg: 20 },
                     }}
                   />
-                </ClientOnly>
-              </SearchContainer>
-            </form>
-          </Box>
+                  <ClientOnly>
+                    <InputBase
+                      placeholder="Rechercher..."
+                      value={searchQuery}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                      sx={{
+                        width: '100%',
+                        pl: { md: 4, lg: 5 },
+                        pr: 2,
+                        fontSize: { md: '0.8rem', lg: '0.875rem' },
+                      }}
+                    />
+                  </ClientOnly>
+                </SearchContainer>
+              </form>
+            </Box>
 
-          {/* Right Side Actions */}
-          <Stack direction="row" spacing={1} alignItems="center">
+            {/* Search - Mobile/Tablet */}
+            {isMobile && (
+              <StyledIconButton
+                onClick={() => setSearchOpen(!searchOpen)}
+                size="small"
+                sx={{ display: { md: 'none' } }}
+              >
+                <SearchIcon fontSize="small" />
+              </StyledIconButton>
+            )}
+
+            {/* Cart */}
+            <StyledIconButton onClick={() => toggleCart()} size="small">
+              <Badge
+                badgeContent={cartCount}
+                color="error"
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontSize: { xs: '0.6rem', sm: '0.7rem' },
+                    height: { xs: 16, sm: 18 },
+                    minWidth: { xs: 16, sm: 18 },
+                  },
+                }}
+              >
+                <ShoppingCart sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              </Badge>
+            </StyledIconButton>
+
             {/* User Menu */}
             <StyledIconButton
               ref={profileAnchorRef}
               onClick={handleProfileMenuToggle}
+              size="small"
               sx={{ position: 'relative' }}
             >
               {user ? (
@@ -676,13 +722,20 @@ export function Navigation() {
                   variant="dot"
                   color="success"
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      width: { xs: 8, sm: 10 },
+                      height: { xs: 8, sm: 10 },
+                      minWidth: { xs: 8, sm: 10 },
+                    },
+                  }}
                 >
                   <Avatar
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: { xs: 28, sm: 32 },
+                      height: { xs: 28, sm: 32 },
                       bgcolor: 'primary.main',
-                      fontSize: '0.875rem',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       fontWeight: 600,
                     }}
                   >
@@ -690,59 +743,67 @@ export function Navigation() {
                   </Avatar>
                 </Badge>
               ) : (
-                <AccountCircle sx={{ fontSize: 28 }} />
+                <AccountCircle sx={{ fontSize: { xs: 24, sm: 28 } }} />
               )}
             </StyledIconButton>
+          </Stack>
+        </Toolbar>
+      </Container>
 
-            {/* Cart */}
-            <StyledIconButton onClick={() => toggleCart()}>
-              <Badge
-                badgeContent={cartCount}
-                color="error"
-                max={99}
+      {/* Mobile Search Bar */}
+      {searchOpen && isMobile && (
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            borderBottom: 1,
+            borderColor: 'divider',
+            py: 2,
+            px: 2,
+          }}
+        >
+          <form onSubmit={handleSearch}>
+            <SearchContainer sx={{ p: 1 }}>
+              <SearchIcon
                 sx={{
-                  '& .MuiBadge-badge': {
-                    fontWeight: 950,
-                    fontSize: '0.5rem',
-                  },
-                }}
-              >
-                <ShoppingCart />
-              </Badge>
-            </StyledIconButton>
-
-            {/* Admin Badge */}
-            {isAdmin && (
-              <Chip
-                icon={<AdminPanelSettings />}
-                label="Admin"
-                size="small"
-                color="error"
-                variant="outlined"
-                onClick={toggleAdmin}
-                sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  fontWeight: 600,
-                  borderWidth: 2,
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.error.main, 0.08),
-                  },
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'text.secondary',
+                  fontSize: 20,
                 }}
               />
-            )}
-          </Stack>
+              <ClientOnly>
+                <InputBase
+                  fullWidth
+                  placeholder="Rechercher des produits..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  sx={{
+                    pl: 5,
+                    pr: 2,
+                    fontSize: '0.875rem',
+                  }}
+                  autoFocus
+                />
+              </ClientOnly>
+            </SearchContainer>
+          </form>
+        </Box>
+      )}
 
-          {/* User Menu Popper */}
-          <Popper
-            open={profileMenuOpen}
-            anchorEl={profileAnchorRef.current}
-            role={undefined}
-            placement="bottom-end"
-            transition
-            disablePortal
-            sx={{ zIndex: theme.zIndex.modal }}
-          >
-            {({ TransitionProps }: { TransitionProps: any }) => (
+      {/* User Menu Popper */}
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <Popper
+          open={profileMenuOpen}
+          anchorEl={profileAnchorRef.current}
+          role={undefined}
+          placement="bottom-end"
+          transition
+          disablePortal
+          sx={{ zIndex: theme.zIndex.modal }}
+        >
+          {({ TransitionProps }: { TransitionProps: any }) => (
               <Grow {...TransitionProps}>
                 <Paper
                   elevation={8}
@@ -881,8 +942,7 @@ export function Navigation() {
               </Grow>
             )}
           </Popper>
-        </Toolbar>
-      </Container>
+      </ClickAwayListener>
 
       {/* Mobile Drawer */}
       <Drawer

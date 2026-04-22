@@ -41,6 +41,7 @@ function OrdersContent() {
     const router = useRouter();
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isPageChanging, setIsPageChanging] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -49,6 +50,8 @@ function OrdersContent() {
     const [menuOrderId, setMenuOrderId] = useState<number | null>(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [hasMore, setHasMore] = useState(true);
+    const [hasOrders, setHasOrders] = useState(false);
 
     useEffect(() => {
         fetchOrders();
@@ -56,18 +59,27 @@ function OrdersContent() {
 
     const fetchOrders = async () => {
         try {
-            setLoading(true);
+            setIsPageChanging(true);
             setError(null);
             const ordersData = await OrderService.getCustomerOrders(page, rowsPerPage);
             setOrders(ordersData);
+            
+            // Détecter si on a atteint la dernière page
+            setHasMore(ordersData.length === rowsPerPage);
+            setHasOrders(ordersData.length > 0 || page > 0);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des commandes');
         } finally {
             setLoading(false);
+            setIsPageChanging(false);
         }
     };
 
     const handleChangePage = (event: unknown, newPage: number) => {
+        // Empêcher d'avancer au-delà de la dernière page
+        if (newPage > page && !hasMore) {
+            return;
+        }
         setPage(newPage);
     };
 
@@ -128,7 +140,7 @@ function OrdersContent() {
         }
     };
 
-    if (loading) {
+    if (loading && !isPageChanging) {
         return (
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -139,28 +151,28 @@ function OrdersContent() {
     }
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h3" fontWeight="bold" gutterBottom>
+        <Container maxWidth="xl" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 } }}>
+            <Box sx={{ mb: { xs: 2, sm: 4 } }}>
+                <Typography variant="h3" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                     Mes Commandes
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                     Historique de vos commandes
                 </Typography>
             </Box>
 
             <Card elevation={2} sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ p: 0 }}>
-                    <TableContainer>
-                        <Table sx={{ minWidth: 650 }}>
+                    <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                        <Table sx={{ minWidth: { xs: 300, sm: 500, md: 650 } }}>
                             <TableHead sx={{ bgcolor: 'grey.50' }}>
                                 <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>N° Commande</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Date</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Articles</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Total</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Statut</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Actions</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>N° Commande</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Articles</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Total</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Statut</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'text.primary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Actions</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -170,43 +182,44 @@ function OrdersContent() {
                                         hover
                                         sx={{ '&:last-child td': { border: 0 } }}
                                     >
-                                        <TableCell>
-                                            <Typography variant="body2" fontWeight="bold" color="primary">
+                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                            <Typography variant="body2" fontWeight="bold" color="primary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                 {order.order_number}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2">
+                                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                            <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                 {OrderService.formatDate(order.created_at)}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <ShoppingBagIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                                                <Typography variant="body2">
+                                                <ShoppingBagIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary' }} />
+                                                <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                     {order.items_count || 0}
                                                 </Typography>
                                             </Box>
                                         </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" fontWeight="bold">
+                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                            <Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                 {OrderService.formatAmount(order.total_amount, order.currency)}
                                             </Typography>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                             <Chip
                                                 label={OrderService.getStatusLabel(order.status)}
                                                 color={OrderService.getStatusColor(order.status)}
                                                 size="small"
-                                                sx={{ fontWeight: 'medium' }}
+                                                sx={{ fontWeight: 'medium', fontSize: { xs: '0.65rem', sm: '0.75rem' }, height: { xs: 20, sm: 24 } }}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                             <IconButton
                                                 onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuOpen(e, order.id)}
-                                                sx={{ '&:hover': { bgcolor: 'action.hover' } }}
+                                                sx={{ '&:hover': { bgcolor: 'action.hover' }, p: { xs: 0.5, sm: 1 } }}
+                                                size="small"
                                             >
-                                                <MoreVert />
+                                                <MoreVert sx={{ fontSize: { xs: 18, sm: 24 } }} />
                                             </IconButton>
                                             <Menu
                                                 anchorEl={menuAnchorEl}
@@ -249,12 +262,26 @@ function OrdersContent() {
                         onRowsPerPageChange={handleChangeRowsPerPage}
                         labelRowsPerPage="Lignes par page:"
                         labelDisplayedRows={({ from, to }: { from: number; to: number }) => `${from}-${to}`}
-                        sx={{ borderTop: 1, borderColor: 'divider' }}
+                        sx={{ borderTop: 1, borderColor: 'divider', '& .MuiTablePagination-toolbar': { minHeight: { xs: 40, sm: 52 } } }}
+                        slotProps={{
+                            actions: {
+                                showFirstButton: { sm: true },
+                                showLastButton: { sm: false }, // Désactiver le bouton last car on ne connaît pas le total
+                                nextButton: { 
+                                    size: 'small',
+                                    disabled: !hasMore // Désactiver le bouton suivant quand on atteint la dernière page
+                                },
+                                previousButton: { size: 'small' }
+                            },
+                            select: {
+                                sx: { fontSize: { xs: '0.75rem', sm: '0.875rem' } }
+                            }
+                        }}
                     />
                 </CardContent>
             </Card>
 
-            {orders.length === 0 && (
+            {orders.length === 0 && page === 0 && !hasOrders && (
                 <Card elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'grey.50' }}>
                     <ShoppingBagIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
                     <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -267,6 +294,22 @@ function OrdersContent() {
                         onClick={() => window.location.href = '/shop'}
                     >
                         Commencer vos achats
+                    </Button>
+                </Card>
+            )}
+
+            {orders.length === 0 && page > 0 && (
+                <Card elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'grey.50' }}>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Aucune commande sur cette page
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        sx={{ mt: 2 }}
+                        onClick={() => setPage(page - 1)}
+                    >
+                        Retour à la page précédente
                     </Button>
                 </Card>
             )}

@@ -585,14 +585,14 @@ export function ProductDetailPage({
                 <IconButton
                   onClick={() => onToggleFavorite(product.id)}
                   sx={{
-                    color: favorites.includes(product.id) ? 'error.main' : 'action.active',
+                    color: favorites.includes(product.id.toString()) ? 'error.main' : 'action.active',
                     '&:hover': {
                       backgroundColor: 'action.hover',
                     },
                   }}
                   size="small"
                 >
-                  {favorites.includes(product.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                  {favorites.includes(product.id.toString()) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 </IconButton>
               </Stack>
 
@@ -905,7 +905,7 @@ export function ProductDetailPage({
                     onAddToCart={(p) => onAddToCart(p, 1)}
                     onViewDetails={onViewProduct}
                     userType={userType}
-                    isFavorite={favorites.includes(similarProduct.id)}
+                    isFavorite={favorites.includes(similarProduct.id.toString())}
                     onToggleFavorite={onToggleFavorite}
                   />
                 </div>

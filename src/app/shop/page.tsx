@@ -3,13 +3,17 @@
 import { ShopPage } from '@/components/ShopPage';
 import { useStore } from '@/store/useStore';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 
 function ShopContent() {
-    const { addToCart, userType, favorites, toggleFavorite } = useStore();
+    const { addToCart, userType, favorites, toggleFavorite, loadFavorites } = useStore();
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialCategory = searchParams.get('category') || undefined;
+
+    useEffect(() => {
+        loadFavorites();
+    }, []);
 
     return (
         <ShopPage

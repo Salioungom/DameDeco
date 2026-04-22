@@ -239,7 +239,7 @@ export function CategoryPage({
                                         onAddToCart={onAddToCart}
                                         onViewDetails={() => onViewProduct(product)}
                                         userType={userType}
-                                        isFavorite={favorites.includes(product.id)}
+                                        isFavorite={favorites.includes(product.id.toString())}
                                         onToggleFavorite={onToggleFavorite}
                                     />
                                 </Box>

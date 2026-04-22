@@ -9,7 +9,7 @@ import { Product } from '@/types/product';
 import { Box, CircularProgress, Typography, Container, Button } from '@mui/material';
 
 export default function Page() {
-    const { addToCart, userType, favorites, toggleFavorite, addReview } = useStore();
+    const { addToCart, userType, favorites, toggleFavorite, addReview, loadFavorites } = useStore();
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
@@ -17,6 +17,10 @@ export default function Page() {
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadFavorites();
+    }, []);
 
     useEffect(() => {
         const fetchProduct = async () => {

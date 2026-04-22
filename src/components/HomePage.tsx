@@ -441,7 +441,7 @@ export function HomePage({
                     onAddToCart={onAddToCart}
                     onViewDetails={onViewProduct}
                     userType={userType}
-                    isFavorite={favorites.includes(product.id)}
+                    isFavorite={favorites.includes(product.id.toString())}
                     onToggleFavorite={onToggleFavorite}
                   />
                 </Box>

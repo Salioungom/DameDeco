@@ -26,10 +26,10 @@ import { PaymentIcons } from './PaymentIcons';
 import { styled, alpha } from '@mui/material/styles';
 
 const FooterContainer = styled(Box)(({ theme }: { theme: any }) => ({
-  background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.95)} 0%, ${alpha(theme.palette.background.default, 0.98)} 100%)`,
+  background: `linear-gradient(135deg, ${alpha(theme.palette.grey[900], 0.03)} 0%, ${alpha(theme.palette.grey[50], 0.5)} 50%, ${alpha(theme.palette.grey[900], 0.03)} 100%)`,
   backdropFilter: 'blur(20px) saturate(180%)',
-  borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  boxShadow: `0 -5px 30px ${alpha(theme.palette.common.black, 0.05)}`,
+  borderTop: `1px solid ${alpha(theme.palette.divider, 0.15)}`,
+  boxShadow: `0 -5px 40px ${alpha(theme.palette.common.black, 0.08)}`,
   marginTop: 'auto',
   position: 'relative',
   overflow: 'hidden',
@@ -39,8 +39,17 @@ const FooterContainer = styled(Box)(({ theme }: { theme: any }) => ({
     top: 0,
     left: 0,
     right: 0,
+    height: '2px',
+    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.3)}, ${alpha(theme.palette.secondary.main, 0.3)}, transparent)`,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: '1px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.2)}, transparent)`,
+    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.2)}, transparent)`,
   },
 }));
 
@@ -48,27 +57,29 @@ const FooterLink = styled(MuiLink)(({ theme }: { theme: any }) => ({
   color: theme.palette.text.secondary,
   textDecoration: 'none',
   position: 'relative',
-  transition: 'all 0.3s ease',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  fontWeight: 500,
   '&:hover': {
     color: theme.palette.primary.main,
-    transform: 'translateX(4px)',
+    transform: 'translateX(6px)',
     '&::before': {
-      width: '6px',
+      width: '8px',
       opacity: 1,
+      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
     },
   },
   '&::before': {
     content: '""',
     position: 'absolute',
-    left: '-12px',
+    left: '-16px',
     top: '50%',
     transform: 'translateY(-50%)',
     width: '0',
-    height: '2px',
+    height: '3px',
     background: theme.palette.primary.main,
     borderRadius: '2px',
     opacity: 0,
-    transition: 'all 0.3s ease',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
 }));
 
@@ -90,7 +101,7 @@ export function Footer() {
   return (
     <FooterContainer component="footer">
       <Container maxWidth="xl" sx={{ 
-        py: 8,
+        py: { xs: 6, sm: 8, md: 10 },
         position: 'relative',
         '&::before': {
           content: '""',
@@ -99,34 +110,34 @@ export function Footer() {
           left: '5%',
           right: '5%',
           height: '1px',
-          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.5)}, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.3)}, transparent)`,
         }
       }}>
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' },
-          gap: 4
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+          gap: { xs: 4, sm: 5, md: 6 }
         }}>
           {/* About */}
           <Box>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 2.5,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  width: { xs: 44, sm: 48, md: 52 },
+                  height: { xs: 44, sm: 48, md: 52 },
+                  borderRadius: 3,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'white',
                   fontWeight: 'bold',
-                  fontSize: '1.25rem',
-                  boxShadow: `0 4px 15px ${alpha(theme.palette.primary.main, 0.3)}`,
-                  transition: 'all 0.3s ease',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
+                  boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.35)}`,
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    transform: 'scale(1.05) rotate(5deg)',
-                    boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
+                    transform: 'scale(1.08) rotate(3deg)',
+                    boxShadow: `0 8px 30px ${alpha(theme.palette.primary.main, 0.45)}`,
                   },
                 }}
               >
@@ -138,10 +149,12 @@ export function Footer() {
                   component="h2" 
                   sx={{ 
                     fontWeight: 800,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
+                    letterSpacing: '-0.5px',
                   }}
                 >
                   Dame Sarr
@@ -150,25 +163,55 @@ export function Footer() {
                   variant="caption" 
                   sx={{ 
                     color: 'text.secondary',
-                    fontWeight: 500,
-                    letterSpacing: '0.5px',
+                    fontWeight: 600,
+                    letterSpacing: '0.75px',
+                    textTransform: 'uppercase',
+                    fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
                   }}
                 >
                   Import-Export
                 </Typography>
               </Box>
             </Stack>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                lineHeight: 1.7,
+                fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
+              }}
+            >
               Importation de produits de qualité depuis la Chine. Votre partenaire de confiance à Dakar.
             </Typography>
           </Box>
 
           {/* Quick Links */}
           <Box>
-            <Typography variant="h6" component="h3" gutterBottom>
+            <Typography 
+              variant="h6" 
+              component="h3" 
+              gutterBottom
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
+                mb: 2.5,
+                position: 'relative',
+                display: 'inline-block',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: 0,
+                  width: '32px',
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  borderRadius: '2px',
+                },
+              }}
+            >
               Liens rapides
             </Typography>
-            <Stack spacing={1}>
+            <Stack spacing={1.5}>
               {['Accueil', 'Boutique', 'À propos', 'Contact'].map((text, index) => (
                 <FooterLink
                   key={`footer-link-${index}`}
@@ -182,8 +225,9 @@ export function Footer() {
                   variant="body2"
                   sx={{ 
                     display: 'block',
-                    py: 0.5,
+                    py: 0.75,
                     width: 'fit-content',
+                    fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
                   }}
                 >
                   {text}
@@ -194,10 +238,31 @@ export function Footer() {
 
           {/* Categories */}
           <Box>
-            <Typography variant="h6" component="h3" gutterBottom>
+            <Typography 
+              variant="h6" 
+              component="h3" 
+              gutterBottom
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
+                mb: 2.5,
+                position: 'relative',
+                display: 'inline-block',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: 0,
+                  width: '32px',
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  borderRadius: '2px',
+                },
+              }}
+            >
               Catégories
             </Typography>
-            <Stack spacing={1}>
+            <Stack spacing={1.5}>
               {categories.map((item: CategoryItem, index: number) => (
                 <FooterLink
                   component={Link}
@@ -205,8 +270,9 @@ export function Footer() {
                   variant="body2"
                   sx={{ 
                     display: 'block',
-                    py: 0.5,
+                    py: 0.75,
                     width: 'fit-content',
+                    fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
                   }}
                   key={index}
                 >
@@ -218,7 +284,28 @@ export function Footer() {
 
           {/* Contact Info */}
           <Box>
-            <Typography variant="h6" component="h3" gutterBottom>
+            <Typography 
+              variant="h6" 
+              component="h3" 
+              gutterBottom
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
+                mb: 2.5,
+                position: 'relative',
+                display: 'inline-block',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: 0,
+                  width: '32px',
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  borderRadius: '2px',
+                },
+              }}
+            >
               Contactez-nous
             </Typography>
             <Stack spacing={2}>
@@ -227,35 +314,37 @@ export function Footer() {
                 spacing={1.5} 
                 alignItems="flex-start"
                 sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  transition: 'all 0.3s ease',
+                  p: { xs: 1.25, sm: 1.5 },
+                  borderRadius: 2.5,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.03),
-                    transform: 'translateY(-2px)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                    transform: 'translateY(-3px)',
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
                   },
                 }}
               >
                 <Box 
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: { xs: 34, sm: 36, md: 38 },
+                    height: { xs: 34, sm: 36, md: 38 },
                     borderRadius: '50%',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: theme.palette.primary.main,
                     flexShrink: 0,
+                    transition: 'all 0.3s ease',
                   }}
                 >
                   <MapPin fontSize="small" />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25 }}>
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     Notre adresse
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     Dakar, Sénégal
                   </Typography>
                 </Box>
@@ -265,35 +354,37 @@ export function Footer() {
                 spacing={1.5} 
                 alignItems="flex-start"
                 sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  transition: 'all 0.3s ease',
+                  p: { xs: 1.25, sm: 1.5 },
+                  borderRadius: 2.5,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.03),
-                    transform: 'translateY(-2px)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                    transform: 'translateY(-3px)',
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
                   },
                 }}
               >
                 <Box 
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: { xs: 34, sm: 36, md: 38 },
+                    height: { xs: 34, sm: 36, md: 38 },
                     borderRadius: '50%',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: theme.palette.primary.main,
                     flexShrink: 0,
+                    transition: 'all 0.3s ease',
                   }}
                 >
                   <Phone fontSize="small" />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25 }}>
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     Téléphone
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     +221 77 XXX XX XX
                   </Typography>
                 </Box>
@@ -303,35 +394,37 @@ export function Footer() {
                 spacing={1.5} 
                 alignItems="flex-start"
                 sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  transition: 'all 0.3s ease',
+                  p: { xs: 1.25, sm: 1.5 },
+                  borderRadius: 2.5,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.03),
-                    transform: 'translateY(-2px)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                    transform: 'translateY(-3px)',
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
                   },
                 }}
               >
                 <Box 
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: { xs: 34, sm: 36, md: 38 },
+                    height: { xs: 34, sm: 36, md: 38 },
                     borderRadius: '50%',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: theme.palette.primary.main,
                     flexShrink: 0,
+                    transition: 'all 0.3s ease',
                   }}
                 >
                   <Mail fontSize="small" />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25 }}>
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     Email
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     contact@damesarr.sn
                   </Typography>
                 </Box>
@@ -341,10 +434,10 @@ export function Footer() {
         </Box>
 
         <Divider sx={{ 
-          my: 4, 
-          borderColor: alpha(theme.palette.divider, 0.1),
+          my: { xs: 4, sm: 5, md: 6 },
+          borderColor: alpha(theme.palette.divider, 0.12),
           '&::before, &::after': {
-            borderColor: alpha(theme.palette.divider, 0.2),
+            borderColor: alpha(theme.palette.divider, 0.15),
           },
         }} />
 
@@ -352,7 +445,7 @@ export function Footer() {
           direction={{ xs: 'column', md: 'row' }}
           justifyContent="space-between"
           alignItems="center"
-          spacing={3}
+          spacing={{ xs: 3, sm: 4 }}
         >
           <Box sx={{ 
             textAlign: { xs: 'center', md: 'left' },
@@ -360,15 +453,29 @@ export function Footer() {
             flexDirection: 'column',
             gap: 0.5,
           }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.9rem' },
+                fontWeight: 500,
+              }}
+            >
               &copy; {new Date().getFullYear()} Dame Sarr. Tous droits réservés.
             </Typography>
-            <Typography variant="caption" color="text.disabled">
+            <Typography 
+              variant="caption" 
+              color="text.disabled"
+              sx={{ 
+                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                fontWeight: 500,
+              }}
+            >
               Conçu avec ❤️ pour vous servir
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={1.5}>
             {[
               { icon: Facebook, label: 'Facebook', id: 'facebook' },
               { icon: Instagram, label: 'Instagram', id: 'instagram' },
@@ -380,19 +487,22 @@ export function Footer() {
                 color="inherit"
                 aria-label={label}
                 sx={{
+                  width: { xs: 36, sm: 40, md: 44 },
+                  height: { xs: 36, sm: 40, md: 44 },
                   color: 'text.secondary',
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': { 
                     color: 'primary.main',
-                    transform: 'translateY(-2px)',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    transform: 'translateY(-4px) scale(1.1)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
                   },
                   '&:active': {
-                    transform: 'translateY(0)',
+                    transform: 'translateY(-2px) scale(1.05)',
                   },
                 }}
               >
-                <Icon />
+                <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
               </IconButton>
             ))}
           </Stack>
