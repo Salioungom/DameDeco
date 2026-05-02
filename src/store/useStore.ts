@@ -110,6 +110,8 @@ export const useStore = create<StoreState>()(
                     set({ favorites: favoriteIds });
                 } catch (error) {
                     console.error('Erreur lors du chargement des favoris:', error);
+                    // En cas d'erreur d'authentification, vider les favoris
+                    set({ favorites: [] });
                 }
             },
 

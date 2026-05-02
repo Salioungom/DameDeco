@@ -90,6 +90,8 @@ export default function FavoritesPage() {
                 setFavoriteProducts(validProducts);
             } catch (err) {
                 console.error("Error reloading favorites", err);
+                // En cas d'erreur, vider la liste
+                setFavoriteProducts([]);
             }
         };
 
@@ -97,7 +99,7 @@ export default function FavoritesPage() {
         if (!loading) {
             reloadFavorites();
         }
-    }, [storeFavorites]);
+    }, [storeFavorites, loading]);
 
     if (loading) {
         return (
@@ -159,7 +161,7 @@ export default function FavoritesPage() {
                             onAddToCart={addToCart}
                             onViewDetails={(p) => router.push(`/product/${p.id}`)}
                             userType={userType}
-                            isFavorite={storeFavorites.includes(product.id.toString())}
+                            isFavorite={true}
                             onToggleFavorite={toggleFavorite}
                         />
                     </Grid>

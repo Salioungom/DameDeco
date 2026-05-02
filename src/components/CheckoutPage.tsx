@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -19,6 +19,9 @@ import {
   Tab,
   Stack,
   Paper,
+  Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   CreditCard,
@@ -26,11 +29,15 @@ import {
   AttachMoney as DollarSign,
   ArrowBack as ArrowLeft,
   CheckCircle as CheckCircle2,
+  LocationOn,
+  Add,
 } from '@mui/icons-material';
 import { CartItem } from '@/lib/types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ClientOnly } from './ClientOnly';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
+import { Address, AddressService } from '@/services/address.service';
+import { AddressFormModal } from './AddressFormModal';
 
 interface CheckoutPageProps {
   items: CartItemWithProduct[];
@@ -79,7 +86,14 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   const [shippingSettings, setShippingSettings] = useState<any>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   
-  // États pour les champs d'adresse
+  // États pour les adresses
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  
+  // États pour les champs d'adresse manuelle
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
@@ -122,6 +136,33 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
       }
     };
     loadShippingSettings();
+  }, []);
+
+  // Charger les adresses utilisateur
+  React.useEffect(() => {
+    const loadAddresses = async () => {
+      try {
+        setAddressesLoading(true);
+        const response = await AddressService.getUserAddresses(0, 100);
+        setSavedAddresses(response.items);
+        
+        // Sélectionner l'adresse par défaut si disponible
+        const defaultAddress = response.items.find(a => a.is_default);
+        if (defaultAddress) {
+          setSelectedAddress(defaultAddress);
+          // Pré-remplir les champs manuels avec l'adresse par défaut
+          setFirstName(defaultAddress.first_name || '');
+          setLastName(defaultAddress.last_name || '');
+          setPhone(defaultAddress.phone);
+          setAddress(defaultAddress.address_line_1);
+        }
+      } catch (error) {
+        console.error('Erreur chargement adresses:', error);
+      } finally {
+        setAddressesLoading(false);
+      }
+    };
+    loadAddresses();
   }, []);
 
   // Initialiser le mode de livraison et les frais à partir de orderData
@@ -179,6 +220,35 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
     setTabValue(newValue);
     const methods = ['wave', 'Orange Money', 'cod'];
     setPaymentMethod(methods[newValue]);
+  };
+
+  const handleAddressSelect = (address: Address) => {
+    setSelectedAddress(address);
+    setShowNewAddressForm(false);
+    // Pré-remplir les champs manuels
+    setFirstName(address.first_name || '');
+    setLastName(address.last_name || '');
+    setPhone(address.phone);
+    setAddress(address.address_line_1);
+  };
+
+  const handleAddNewAddress = () => {
+    setShowAddressModal(true);
+  };
+
+  const handleAddressModalClose = () => {
+    setShowAddressModal(false);
+  };
+
+  const handleAddressModalSuccess = async () => {
+    // Recharger les adresses
+    try {
+      const response = await AddressService.getUserAddresses(0, 100);
+      setSavedAddresses(response.items);
+    } catch (error) {
+      console.error('Erreur rechargement adresses:', error);
+    }
+    setShowAddressModal(false);
   };
 
   if (orderPlaced) {
@@ -316,67 +386,161 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                 <Card>
                   <CardHeader title="Adresse de livraison" />
                   <CardContent>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                    {addressesLoading ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress />
+                      </Box>
+                    ) : savedAddresses.length > 0 && !showNewAddressForm ? (
                       <Box>
-                        <ClientOnly>
-                          <TextField 
-                            fullWidth 
-                            label="Prénom" 
-                            placeholder="Votre prénom"
-                            value={firstName}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
-                            required
-                          />
-                        </ClientOnly>
+                        <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
+                          Sélectionnez une adresse enregistrée :
+                        </Typography>
+                        <Stack spacing={2} sx={{ mb: 3 }}>
+                          {savedAddresses.map((addr) => (
+                            <Paper
+                              key={addr.id}
+                              elevation={0}
+                              onClick={() => handleAddressSelect(addr)}
+                              sx={{
+                                p: 2,
+                                border: '1px solid',
+                                borderColor: selectedAddress?.id === addr.id ? 'primary.main' : 'divider',
+                                borderRadius: 2,
+                                cursor: 'pointer',
+                                bgcolor: selectedAddress?.id === addr.id ? 'action.selected' : 'background.paper',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  borderColor: 'primary.main',
+                                  bgcolor: 'action.hover',
+                                },
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                <LocationOn sx={{ color: 'primary.main', mt: 0.5 }} />
+                                <Box sx={{ flex: 1 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <Typography variant="subtitle1" fontWeight={600}>
+                                      {addr.first_name} {addr.last_name}
+                                    </Typography>
+                                    {addr.is_default && (
+                                      <Chip label="Par défaut" size="small" color="primary" sx={{ height: 20, fontSize: '0.7rem' }} />
+                                    )}
+                                  </Box>
+                                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    {addr.phone}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {addr.address_line_1}
+                                  </Typography>
+                                  {addr.address_line_2 && (
+                                    <Typography variant="body2" color="text.secondary">
+                                      {addr.address_line_2}
+                                    </Typography>
+                                  )}
+                                  <Typography variant="body2" color="text.secondary">
+                                    {addr.city}, {addr.state}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Stack>
+                        <Button
+                          variant="outlined"
+                          startIcon={<Add />}
+                          onClick={() => setShowNewAddressForm(true)}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          Utiliser une nouvelle adresse
+                        </Button>
                       </Box>
+                    ) : (
                       <Box>
-                        <ClientOnly>
-                          <TextField 
-                            fullWidth 
-                            label="Nom" 
-                            placeholder="Votre nom"
-                            value={lastName}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
-                            required
-                          />
-                        </ClientOnly>
+                        {savedAddresses.length > 0 && (
+                          <Button
+                            variant="text"
+                            onClick={() => setShowNewAddressForm(false)}
+                            sx={{ mb: 2 }}
+                          >
+                            ← Retour aux adresses enregistrées
+                          </Button>
+                        )}
+                        <Typography variant="subtitle2" gutterBottom sx={{ mb: 2 }}>
+                          {savedAddresses.length > 0 ? 'Nouvelle adresse' : 'Entrez votre adresse de livraison'}
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                          <Box>
+                            <ClientOnly>
+                              <TextField 
+                                fullWidth 
+                                label="Prénom" 
+                                placeholder="Votre prénom"
+                                value={firstName}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
+                                required
+                              />
+                            </ClientOnly>
+                          </Box>
+                          <Box>
+                            <ClientOnly>
+                              <TextField 
+                                fullWidth 
+                                label="Nom" 
+                                placeholder="Votre nom"
+                                value={lastName}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
+                                required
+                              />
+                            </ClientOnly>
+                          </Box>
+                          <Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1' } }}>
+                            <ClientOnly>
+                              <TextField 
+                                fullWidth 
+                                label="Téléphone" 
+                                placeholder="+221 XX XXX XX XX"
+                                value={phone}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                                required
+                              />
+                            </ClientOnly>
+                          </Box>
+                          <Box sx={{ gridColumn: '1 / -1' }}>
+                            <ClientOnly>
+                              <TextField 
+                                fullWidth 
+                                label="Adresse complète" 
+                                placeholder="Rue, quartier, ville"
+                                value={address}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
+                                required
+                              />
+                            </ClientOnly>
+                          </Box>
+                          <Box sx={{ gridColumn: '1 / -1' }}>
+                            <ClientOnly>
+                              <TextField 
+                                fullWidth 
+                                label="Instructions spéciales (optionnel)" 
+                                placeholder="Ex: Appeler en arrivant"
+                                value={specialInstructions}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialInstructions(e.target.value)}
+                              />
+                            </ClientOnly>
+                          </Box>
+                        </Box>
+                        {savedAddresses.length > 0 && (
+                          <Button
+                            variant="outlined"
+                            startIcon={<Add />}
+                            onClick={handleAddNewAddress}
+                            sx={{ borderRadius: 2, mt: 2 }}
+                          >
+                            Enregistrer cette adresse
+                          </Button>
+                        )}
                       </Box>
-                      <Box sx={{ gridColumn: { xs: '1 / -1', sm: '1 / -1' } }}>
-                        <ClientOnly>
-                          <TextField 
-                            fullWidth 
-                            label="Téléphone" 
-                            placeholder="+221 XX XXX XX XX"
-                            value={phone}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
-                            required
-                          />
-                        </ClientOnly>
-                      </Box>
-                      <Box sx={{ gridColumn: '1 / -1' }}>
-                        <ClientOnly>
-                          <TextField 
-                            fullWidth 
-                            label="Adresse complète" 
-                            placeholder="Rue, quartier, ville"
-                            value={address}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
-                            required
-                          />
-                        </ClientOnly>
-                      </Box>
-                      <Box sx={{ gridColumn: '1 / -1' }}>
-                        <ClientOnly>
-                          <TextField 
-                            fullWidth 
-                            label="Instructions spéciales (optionnel)" 
-                            placeholder="Ex: Appeler en arrivant"
-                            value={specialInstructions}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialInstructions(e.target.value)}
-                          />
-                        </ClientOnly>
-                      </Box>
-                    </Box>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -573,6 +737,12 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
           </Box>
         </Box>
       </Container>
+
+      <AddressFormModal
+        open={showAddressModal}
+        onClose={handleAddressModalClose}
+        onSuccess={handleAddressModalSuccess}
+      />
     </Box>
   );
 }

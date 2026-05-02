@@ -135,7 +135,7 @@ function AccountPageContent() {
 
     const quickActions = [
         { title: 'Mon Profil', icon: <AccountCircle />, path: '/account/profile', color: '#3b82f6' },
-        { title: 'Mes Adresses', icon: <LocationOn />, path: '/account/profile', color: '#8b5cf6' },
+        { title: 'Mes Adresses', icon: <LocationOn />, path: '/account/addresses', color: '#8b5cf6' },
         { title: 'Mes Commandes', icon: <Inventory2 />, path: '/account/orders', color: '#10b981' },
         { title: 'Mes Favoris', icon: <FolderOpen />, path: '/favorites', color: '#f43f5e' },
     ];

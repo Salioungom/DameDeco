@@ -8,6 +8,7 @@ import { CartDrawer } from './CartDrawer';
 import { Toaster } from 'sonner';
 import { useStore } from '@/store/useStore';
 import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { usePathname } from 'next/navigation';
 
@@ -33,6 +34,34 @@ function CartInitializer() {
   return null;
 }
 
+function FavoritesInitializer() {
+  const { loadFavorites, setUser } = useStore();
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // Synchroniser l'utilisateur du store avec AuthContext
+    if (isAuthenticated && user) {
+      // Mapper le User d'AuthContext vers le User du store
+      const storeUser = {
+        id: user.id,
+        name: user.full_name,
+        email: user.email || '',
+        role: user.role,
+        type: 'retail' as const,
+        avatar: user.avatar,
+        phone: user.phone,
+      };
+      setUser(storeUser);
+      // Charger les favoris quand l'utilisateur est connecté
+      loadFavorites();
+    } else if (!isAuthenticated) {
+      setUser(null);
+    }
+  }, [isAuthenticated, user, loadFavorites, setUser]);
+
+  return null;
+}
+
 export function Providers({ children }: ProvidersProps) {
   const pathname = usePathname();
   const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register');
@@ -44,6 +73,7 @@ export function Providers({ children }: ProvidersProps) {
       autoHideDuration={4000}
     >
       <CartInitializer />
+      <FavoritesInitializer />
       <Box
         sx={{
           display: 'flex',
