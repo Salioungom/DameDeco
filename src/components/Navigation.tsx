@@ -280,9 +280,9 @@ export function Navigation() {
         path: '/dashboards'  // ✅ Dashboard SuperAdmin
       },
       {
-        label: 'Frais de livraison',
-        icon: <LocalShipping fontSize="small" />,
-        path: '/shipping'
+        label: 'Profil',
+        icon: <AccountCircle fontSize="small" />,
+        path: '/settings/profile'
       },
       {
         label: 'Déconnexion',
@@ -299,9 +299,9 @@ export function Navigation() {
         path: '/dashboard'  // ✅ Admin security
       },
       {
-        label: 'Frais de livraison',
-        icon: <LocalShipping fontSize="small" />,
-        path: '/shipping'
+        label: 'Profil',
+        icon: <AccountCircle fontSize="small" />,
+        path: '/settings/profile'
       },
       {
         label: 'Déconnexion',
