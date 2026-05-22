@@ -9,14 +9,19 @@ import {
   Card,
   CardContent,
   Stack,
+  Paper,
+  Chip,
   alpha,
   useTheme
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import {
   ArrowForward as ArrowRight,
   Inventory2 as Package,
   LocalShipping as Truck,
   Security as Shield,
+  Place as PlaceIcon,
+  Star as StarIcon,
 } from '@mui/icons-material';
 import { homeService } from '../services/home.service';
 import { productService } from '../services/product.service';
@@ -28,8 +33,6 @@ import { useRouter } from 'next/navigation';
 import { ApiStateWrapper, LoadingSpinner, ErrorDisplay } from './ui/ApiStateWrapper';
 import { ApiError } from '@/lib/error-handler';
 
-// Image bannière depuis le dossier public
-const bannerImage = '/banner.png';
 
 interface HomePageProps {
   onNavigate?: (page: string, category?: string) => void;
@@ -124,147 +127,295 @@ export function HomePage({
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
-      {/* Hero Section */}
+      {/* ── HERO ── */}
       <Box
         sx={{
-          position: 'relative',
-          height: { xs: '100vh', md: '100vh' },
-          minHeight: '500px',
           width: '100%',
-          overflow: 'hidden',
+          bgcolor: '#F5F9FE',
+          minHeight: { xs: 'auto', md: 'calc(100vh - 68px)' },
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          color: 'white',
-          textAlign: 'center',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url('${bannerImage}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
-            zIndex: 0,
-          },
+          alignItems: 'stretch',
+          overflow: 'hidden',
         }}
       >
-        <Box sx={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.1) 70%, transparent 100%)',
-          zIndex: 1,
-        }} />
-
-        <Box sx={{
-          maxWidth: '1200px',
-          width: '100%',
-          mx: 'auto',
-          pb: { xs: '10%', md: '8%' },
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
-          zIndex: 2,
-          px: { xs: 2, sm: 3, md: 4 },
-        }}>
-          <Typography
-            variant="h1"
-            component="h1"
+        <Grid
+          container
+          sx={{
+            width: '100%',
+            flex: 1,
+            minHeight: { xs: 'auto', md: 'calc(100vh - 68px)' },
+          }}
+        >
+          {/* ── Colonne GAUCHE — texte ── */}
+          <Grid
+            size={{ xs: 12, md: 6 }}
             sx={{
-              fontWeight: 800,
-              mb: 3,
-              fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem', lg: '4.5rem' },
-              lineHeight: 1.2,
-              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-              letterSpacing: '0.5px',
-            }}
-          >
-            Découvrez l'Excellence de Notre Sélection
-          </Typography>
-
-          <Typography
-            variant="h4"
-            component="p"
-            sx={{
-              mb: 5,
-              fontSize: { xs: '1.1rem', sm: '1.4rem', md: '1.6rem' },
-              maxWidth: '800px',
-              mx: 'auto',
-              textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-              fontWeight: 400,
-              color: 'rgba(255, 255, 255, 0.95)',
-              lineHeight: 1.6,
-            }}
-          >
-            Une collection soigneusement sélectionnée de produits de haute qualité à des prix compétitifs
-          </Typography>
-
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={3}
-            sx={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
-              '& > *': {
-                flex: { xs: '1 1 100%', sm: '0 1 auto' },
-              }
+              bgcolor: '#F5F9FE',
+              px: { xs: 3, sm: 5, md: 6, lg: 12 },
+              py: { xs: 10, sm: 12, md: 8 },
+              pt: { xs: 14, md: 8 },
             }}
           >
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => handleNavigate('shop')}
-              sx={{
-                px: { xs: 3, sm: 5 },
-                py: 1.8,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                backgroundColor: 'primary.main',
-                color: 'white',
-                borderRadius: '50px',
-                textTransform: 'none',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
-                },
-              }}
-            >
-              Nos Produits
-            </Button>
+            <Box sx={{ width: '100%', maxWidth: 560, textAlign: 'left' }}>
+              {/* Pill eyebrow */}
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  bgcolor: '#E6F1FB',
+                  borderRadius: '50px',
+                  px: 2,
+                  py: 0.75,
+                  mb: 3,
+                  justifyContent: 'center',
+                }}
+              >
+                <PlaceIcon sx={{ fontSize: 16, color: '#0C447C' }} />
+                <Typography sx={{ fontSize: 13, color: '#0C447C', fontWeight: 500 }}>
+                  Dakar, Sénégal · Import depuis la Chine
+                </Typography>
+              </Box>
 
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={() => window.scrollTo({ top: document.getElementById('features')?.offsetTop, behavior: 'smooth' })}
+              {/* Titre principal — responsive */}
+              <Typography
+                variant="h2"
+                component="h1"
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '2.75rem', lg: '3.25rem' },
+                  lineHeight: 1.12,
+                  color: '#042C53',
+                  mb: 2.5,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Produits{' '}
+                <Box component="span" sx={{ color: '#185FA5' }}>
+                  de qualité
+                </Box>{' '}
+                importés directement pour vous
+              </Typography>
+
+              {/* Sous-titre */}
+              <Typography
+                sx={{
+                  fontSize: { xs: '0.95rem', md: '1.05rem' },
+                  color: '#5F5E5A',
+                  lineHeight: 1.7,
+                  mb: 4,
+                  maxWidth: 460,
+                  mx: 'auto',
+                }}
+              >
+                Dame Sarr sélectionne et importe des articles premium depuis la Chine.
+                Meubles, décoration, textile — livrés partout au Sénégal.
+              </Typography>
+
+              {/* Boutons CTA */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 5 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => handleNavigate('shop')}
+                  sx={{
+                    bgcolor: '#185FA5',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    px: 4,
+                    py: 1.5,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#0C447C', boxShadow: 'none' },
+                  }}
+                >
+                  Voir la boutique
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => handleNavigate('contact')}
+                  sx={{
+                    borderColor: '#B5D4F4',
+                    color: '#185FA5',
+                    borderRadius: '8px',
+                    px: 3.5,
+                    py: 1.5,
+                    fontSize: 14,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#E6F1FB', borderColor: '#85B7EB' },
+                  }}
+                >
+                  Demander un devis
+                </Button>
+              </Stack>
+
+              {/* Stats */}
+              <Stack direction="row" spacing={{ xs: 3, sm: 4 }}>
+                {[
+                  { num: '1 200+', label: 'Produits disponibles' },
+                  { num: '8 500', label: 'Clients satisfaits' },
+                  { num: '5 ans', label: "D'expérience" },
+                ].map((s) => (
+                  <Box key={s.label}>
+                    <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.25rem', md: '1.5rem' }, color: '#042C53' }}>
+                      {s.num}
+                    </Typography>
+                    <Typography sx={{ fontSize: { xs: 11, md: 12 }, color: '#5F5E5A' }}>
+                      {s.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          </Grid>
+
+          {/* ── Colonne DROITE — cartes UI ── */}
+          <Grid
+            size={{ xs: 12, md: 6 }}
+            sx={{
+              bgcolor: '#E6F1FB',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: { xs: 3, sm: 5, md: 6 },
+              py: { xs: 6, md: 8 },
+              minHeight: { xs: 'auto', md: '100%' },
+            }}
+          >
+            <Box
               sx={{
-                px: { xs: 3, sm: 5 },
-                py: 1.8,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                color: 'white',
-                border: '2px solid white',
-                borderRadius: '50px',
-                textTransform: 'none',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  borderColor: 'white',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-                },
+                width: '100%',
+                maxWidth: { xs: 400, md: 380, lg: 400 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
               }}
             >
-              En savoir plus
-            </Button>
-          </Stack>
-        </Box>
+              {/* Card 1 : Arrivage */}
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  p: 2.5,
+                  border: '1px solid #B5D4F4',
+                  width: '100%',
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2,
+                      bgcolor: '#E6F1FB',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Package sx={{ color: '#185FA5', fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#042C53' }}>
+                      Nouvelle livraison
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: '#5F5E5A' }}>
+                      Arrivage Chine ·{' '}
+                      {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  {['Meubles', 'Décoration', 'Textile', 'Luminaires'].map((tag) => (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      size="small"
+                      sx={{ bgcolor: '#E6F1FB', color: '#185FA5', fontWeight: 500, fontSize: 12 }}
+                    />
+                  ))}
+                </Stack>
+              </Paper>
+
+              {/* Card 2 : Livraison */}
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  p: 2.5,
+                  border: '1px solid #B5D4F4',
+                  width: '100%',
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2,
+                      bgcolor: '#E6F1FB',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Truck sx={{ color: '#185FA5', fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: '#5F5E5A' }}>
+                      Livraison express
+                    </Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#042C53' }}>
+                      Dakar & banlieue
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+
+              {/* Card 3 : Note */}
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  p: 2.5,
+                  border: '1px solid #B5D4F4',
+                  width: '100%',
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2,
+                      bgcolor: '#E6F1FB',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <StarIcon sx={{ color: '#185FA5', fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: '#5F5E5A' }}>
+                      Note clients
+                    </Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#042C53' }}>
+                      4,9 / 5 · 2 300 avis
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* Features Section */}
@@ -349,12 +500,7 @@ export function HomePage({
               Explorez notre large gamme de produits pour embellir votre intérieur
             </Typography>
           </Box>
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <Typography>Chargement des catégories...</Typography>
-            </Box>
-          ) : (
+ (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
               {categories.map((category: Category) => (
                 <Box key={category.id}>
@@ -403,7 +549,7 @@ export function HomePage({
                 </Box>
               ))}
             </Box>
-          )}
+          
         </Container>
       </Box>
 
@@ -428,11 +574,7 @@ export function HomePage({
             </Button>
           </Box>
 
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <Typography>Chargement des produits...</Typography>
-            </Box>
-          ) : (
+        
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
               {popularProducts.map((product: Product) => (
                 <Box key={product.id}>
@@ -447,7 +589,7 @@ export function HomePage({
                 </Box>
               ))}
             </Box>
-          )}
+          
         </Container>
       </Box>
 
