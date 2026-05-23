@@ -3,6 +3,7 @@ export interface Category {
     name: string;
     icon: string;
     image: string;
+    product_count?: number;
 }
 
 export interface Review {

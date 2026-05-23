@@ -418,7 +418,10 @@ export function HomePage({
         </Grid>
       </Box>
 
-      {/* Features Section */}
+      ici "
+
+```typescriptreact
+ {/* Features Section */}
       <Box id="features" sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper', position: 'relative', overflow: 'hidden' }}>
         <Box
           sx={{
@@ -489,69 +492,111 @@ export function HomePage({
         </Container>
       </Box>
 
-      {/* Categories */}
-      <Box sx={{ py: 8 }}>
-        <Container maxWidth="xl">
-          <Box textAlign="center" mb={6}>
-            <Typography variant="h3" component="h2" gutterBottom>
-              Nos Catégories
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-              Explorez notre large gamme de produits pour embellir votre intérieur
-            </Typography>
-          </Box>
- (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-              {categories.map((category: Category) => (
-                <Box key={category.id}>
-                  <Card
-                    sx={{
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      '&:hover': { boxShadow: theme.shadows[8] },
-                      '&:hover [data-role="category-media"]': { transform: 'scale(1.1)' },
-                    }}
-                    onClick={() => onViewCategory ? onViewCategory(category.id) : handleNavigate('shop')}
-                  >
-                    <CardContent sx={{ p: 0, position: 'relative', height: 200 }}>
-                      <Box
-                        data-role="category-media"
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          transition: 'transform 0.3s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'grey.100'
-                        }}
-                      >
-                        {category.image ? (
-                          <ImageWithFallback
-                            src={category.image}
-                            alt={category.name}
-                            width={400}
-                            height={200}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Box sx={{ fontSize: '3rem', color: 'text.secondary' }}>
-                            {category.icon}
-                          </Box>
-                        )}
-                      </Box>
-                      <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} />
-                      <Typography variant="h6" sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, color: 'white', fontWeight: 'bold' }}>
-                        {category.name}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Box>
-              ))}
+        {/* Categories */}
+<Box sx={{ py: 8, bgcolor: '#F5F9FE' }}>
+  <Container maxWidth="xl">
+    <Box sx={{ mb: 6 }}>
+      <Typography
+        sx={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: '#185FA5', mb: 1 }}
+      >
+        Catalogue
+      </Typography>
+      <Typography component="h2" sx={{ fontSize: { xs: 22, md: 26 }, fontWeight: 600, color: '#042C53', mb: 0.5 }}>
+        Nos catégories
+      </Typography>
+      <Typography sx={{ fontSize: 14, color: '#888780' }}>
+        Explorez notre large gamme de produits pour embellir votre intérieur
+      </Typography>
+    </Box>
+
+    <Box sx={{
+      display: 'grid',
+      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+      gap: 2,
+    }}>
+      {categories.map((category: Category) => (
+        <Box
+          key={category.id}
+          onClick={() => onViewCategory ? onViewCategory(category.id) : handleNavigate('shop')}
+          sx={{
+            position: 'relative',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            aspectRatio: '16/10',
+            bgcolor: '#0f1923',
+            // zoom image au hover
+            '&:hover .cat-img': { transform: 'scale(1.05)' },
+            '&:hover .cat-overlay': {
+              background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.22) 60%, transparent 100%)',
+            },
+          }}
+        >
+          {/* Image full-bleed */}
+          {category.image ? (
+            <Box
+              component="img"
+              src={category.image}
+              alt={category.name}
+              className="cat-img"
+              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                e.currentTarget.style.display = 'none';
+              }}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',        // ← clé : couvre tout sans bandes
+                objectPosition: 'center',
+                transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                display: 'block',
+              }}
+            />
+          ) : (
+            /* Fallback si pas d'image */
+            <Box sx={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(135deg, #042C53 0%, #185FA5 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Typography sx={{ fontSize: '3rem' }}>{category.icon}</Typography>
             </Box>
-          
-        </Container>
-      </Box>
+          )}
+
+          {/* Gradient overlay */}
+          <Box
+            className="cat-overlay"
+            sx={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.08) 55%, transparent 100%)',
+              transition: 'background 0.3s ease',
+            }}
+          />
+
+          {/* Texte en bas */}
+          <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2, zIndex: 2 }}>
+            <Typography sx={{
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: { xs: 15, md: 17 },
+              letterSpacing: '-0.2px',
+              textShadow: '0 1px 6px rgba(0,0,0,0.5)',
+              lineHeight: 1.3,
+            }}>
+              {category.name}
+            </Typography>
+            {category.product_count !== undefined && (
+              <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, mt: 0.25 }}>
+                {category.product_count} produit{category.product_count > 1 ? 's' : ''}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  </Container>
+</Box>
 
       {/* Popular Products - Now Fetched from API */}
       <Box sx={{ py: 8, bgcolor: alpha(theme.palette.secondary.main, 0.05) }}>
@@ -593,7 +638,7 @@ export function HomePage({
         </Container>
       </Box>
 
-      {/* CTA Section */}
+      {/* CTA Section 
       <Box
         sx={{
           py: 10,
@@ -619,7 +664,122 @@ export function HomePage({
             Demander un devis
           </Button>
         </Container>
-      </Box>
+      </Box>*/}
+      {/* ── CTA GROSSISTE ── */}
+<Box
+  sx={{
+    mx: { xs: 2, sm: 4, md: 6 },
+    my: 8,
+    borderRadius: '16px',
+    overflow: 'hidden',
+    position: 'relative',
+    bgcolor: '#042C53',
+    px: { xs: 3, sm: 5, md: 8 },
+    py: { xs: 5, md: 7 },
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+    flexWrap: 'wrap',
+    // Accent décoratif — cercle flou en arrière-plan
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '-60px',
+      right: '-60px',
+      width: '300px',
+      height: '300px',
+      borderRadius: '50%',
+      background: 'rgba(24, 95, 165, 0.25)',
+      filter: 'blur(60px)',
+      pointerEvents: 'none',
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: '-40px',
+      left: '10%',
+      width: '200px',
+      height: '200px',
+      borderRadius: '50%',
+      background: 'rgba(133, 183, 235, 0.12)',
+      filter: 'blur(50px)',
+      pointerEvents: 'none',
+    },
+  }}
+>
+  {/* Texte gauche */}
+  <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 520 }}>
+    <Typography
+      sx={{
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: '1.2px',
+        textTransform: 'uppercase',
+        color: '#85B7EB',
+        mb: 1.5,
+      }}
+    >
+      Achat en gros
+    </Typography>
+
+    <Typography
+      component="h2"
+      sx={{
+        fontSize: { xs: 22, sm: 28, md: 34 },
+        fontWeight: 700,
+        color: '#fff',
+        lineHeight: 1.2,
+        letterSpacing: '-0.5px',
+        mb: 1.5,
+      }}
+    >
+      Vous commandez en grande quantité ?
+    </Typography>
+
+    <Typography
+      sx={{
+        fontSize: { xs: 14, md: 15 },
+        color: 'rgba(255,255,255,0.70)',
+        lineHeight: 1.75,
+        maxWidth: 460,
+      }}
+    >
+      Bénéficiez de tarifs préférentiels dégressifs pour vos achats
+      professionnels. Un devis personnalisé en moins de 24h.
+    </Typography>
+  </Box>
+
+  {/* Bouton droite */}
+  <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
+    <Button
+      variant="contained"
+      size="large"
+      endIcon={<ArrowRight />}
+      onClick={() => handleNavigate('contact')}
+      sx={{
+        bgcolor: '#fff',
+        color: '#042C53',
+        fontWeight: 700,
+        fontSize: 14,
+        px: 4,
+        py: 1.75,
+        borderRadius: '10px',
+        textTransform: 'none',
+        whiteSpace: 'nowrap',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+        '&:hover': {
+          bgcolor: '#E6F1FB',
+          boxShadow: '0 6px 28px rgba(0,0,0,0.22)',
+          transform: 'translateY(-1px)',
+        },
+        transition: 'all 0.2s ease',
+      }}
+    >
+      Demander un devis
+    </Button>
+  </Box>
+</Box>
     </Box>
   );
 }

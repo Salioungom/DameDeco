@@ -10,8 +10,6 @@ import {
   Divider,
   Stack,
   useTheme,
-  TextField,
-  Button,
 } from '@mui/material';
 import {
   LocationOn as MapPin,
@@ -20,496 +18,339 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Send,
+  WhatsApp,
 } from '@mui/icons-material';
 import { PaymentIcons } from './PaymentIcons';
-import { styled, alpha } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 
-const FooterContainer = styled(Box)(({ theme }: { theme: any }) => ({
-  background: `linear-gradient(135deg, ${alpha(theme.palette.grey[900], 0.03)} 0%, ${alpha(theme.palette.grey[50], 0.5)} 50%, ${alpha(theme.palette.grey[900], 0.03)} 100%)`,
-  backdropFilter: 'blur(20px) saturate(180%)',
-  borderTop: `1px solid ${alpha(theme.palette.divider, 0.15)}`,
-  boxShadow: `0 -5px 40px ${alpha(theme.palette.common.black, 0.08)}`,
-  marginTop: 'auto',
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '2px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.primary.main, 0.3)}, ${alpha(theme.palette.secondary.main, 0.3)}, transparent)`,
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '1px',
-    background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.2)}, transparent)`,
-  },
-}));
-
-const FooterLink = styled(MuiLink)(({ theme }: { theme: any }) => ({
-  color: theme.palette.text.secondary,
-  textDecoration: 'none',
-  position: 'relative',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  fontWeight: 500,
-  '&:hover': {
-    color: theme.palette.primary.main,
-    transform: 'translateX(6px)',
-    '&::before': {
-      width: '8px',
-      opacity: 1,
-      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    },
-  },
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    left: '-16px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: '0',
-    height: '3px',
-    background: theme.palette.primary.main,
-    borderRadius: '2px',
-    opacity: 0,
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  },
-}));
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CategoryItem {
   id?: string;
   label: string;
 }
 
+// ─── Données statiques ────────────────────────────────────────────────────────
+
+const NAV_LINKS = [
+  { label: 'Accueil',   href: '/' },
+  { label: 'Boutique',  href: '/shop' },
+  { label: 'À propos',  href: '/about' },
+  { label: 'Contact',   href: '/contact' },
+];
+
+const CATEGORIES: CategoryItem[] = [
+  { id: '1', label: 'Meubles' },
+  { id: '2', label: 'Décoration' },
+  { id: '3', label: 'Luminaires' },
+  { id: '4', label: 'Textile' },
+];
+
+const CONTACT_ITEMS = [
+  { icon: <MapPin sx={{ fontSize: 15 }} />, label: 'Adresse',   value: 'Dakar, Sénégal' },
+  { icon: <Phone  sx={{ fontSize: 15 }} />, label: 'Téléphone', value: '+221 77 XXX XX XX' },
+  { icon: <Mail   sx={{ fontSize: 15 }} />, label: 'Email',     value: 'contact@damesarr.sn' },
+];
+
+const PAYMENT_METHODS = ['Wave', 'Orange Money', 'PayPal', 'Espèces'];
+
+const SOCIALS = [
+  { Icon: Facebook,  label: 'Facebook',  href: '#' },
+  { Icon: Instagram, label: 'Instagram', href: '#' },
+  { Icon: Twitter,   label: 'Twitter',   href: '#' },
+  { Icon: WhatsApp,  label: 'WhatsApp',  href: '#' },
+];
+
+const LEGAL_LINKS = ['Mentions légales', 'CGV', 'Confidentialité'];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export function Footer() {
   const theme = useTheme();
-  
-  const categories: CategoryItem[] = [
-    { id: '1', label: 'Meubles' },
-    { id: '2', label: 'Décoration' },
-    { id: '3', label: 'Luminaires' },
-    { id: '4', label: 'Textile' },
-  ];
 
   return (
-    <FooterContainer component="footer">
-      <Container maxWidth="xl" sx={{ 
-        py: { xs: 6, sm: 8, md: 10 },
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: '5%',
-          right: '5%',
-          height: '1px',
-          background: `linear-gradient(90deg, transparent, ${alpha(theme.palette.divider, 0.3)}, transparent)`,
-        }
-      }}>
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-          gap: { xs: 4, sm: 5, md: 6 }
-        }}>
-          {/* About */}
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: '#fff',
+        borderTop: '1px solid #E6F1FB',
+        mt: 'auto',
+      }}
+    >
+      <Container maxWidth="xl" sx={{ pt: { xs: 6, md: 8 }, pb: { xs: 4, md: 5 }, px: { xs: 2, sm: 3, md: 4 } }}>
+
+        {/* ── GRILLE 4 COLONNES ── */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(4, 1fr)',
+            },
+            gap: { xs: 5, md: 6 },
+          }}
+        >
+
+          {/* ── Colonne 1 : Brand ── */}
           <Box>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+            {/* Logo + nom */}
+            <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2 }}>
               <Box
                 sx={{
-                  width: { xs: 44, sm: 48, md: 52 },
-                  height: { xs: 44, sm: 48, md: 52 },
-                  borderRadius: 3,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                  width: 38,
+                  height: 38,
+                  borderRadius: '50%',
+                  bgcolor: '#185FA5',
+                  color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
-                  boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.35)}`,
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    transform: 'scale(1.08) rotate(3deg)',
-                    boxShadow: `0 8px 30px ${alpha(theme.palette.primary.main, 0.45)}`,
-                  },
+                  fontSize: 13,
+                  fontWeight: 700,
+                  flexShrink: 0,
                 }}
               >
                 DS
               </Box>
               <Box>
-                <Typography 
-                  variant="h6" 
-                  component="h2" 
-                  sx={{ 
-                    fontWeight: 800,
-                    fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    letterSpacing: '-0.5px',
-                  }}
-                >
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#042C53', lineHeight: 1.2 }}>
                   Dame Sarr
                 </Typography>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: 'text.secondary',
-                    fontWeight: 600,
-                    letterSpacing: '0.75px',
-                    textTransform: 'uppercase',
-                    fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  }}
-                >
+                <Typography sx={{ fontSize: 10, color: '#888780', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
                   Import-Export
                 </Typography>
               </Box>
             </Stack>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{ 
-                lineHeight: 1.7,
-                fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
-              }}
-            >
-              Importation de produits de qualité depuis la Chine. Votre partenaire de confiance à Dakar.
-            </Typography>
-          </Box>
 
-          {/* Quick Links */}
-          <Box>
-            <Typography 
-              variant="h6" 
-              component="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 700,
-                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
-                mb: 2.5,
-                position: 'relative',
-                display: 'inline-block',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -8,
-                  left: 0,
-                  width: '32px',
-                  height: '3px',
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  borderRadius: '2px',
-                },
-              }}
-            >
-              Liens rapides
+            {/* Description */}
+            <Typography sx={{ fontSize: 13, color: '#5F5E5A', lineHeight: 1.75, mb: 2.5, maxWidth: 230 }}>
+              Importation de produits de qualité depuis la Chine. Votre partenaire de confiance à Dakar depuis 2020.
             </Typography>
-            <Stack spacing={1.5}>
-              {['Accueil', 'Boutique', 'À propos', 'Contact'].map((text, index) => (
-                <FooterLink
-                  key={`footer-link-${index}`}
-                  component={Link}
-                  href={
-                    text === 'Accueil' ? '/' :
-                      text === 'Boutique' ? '/shop' :
-                        text === 'À propos' ? '/about' :
-                          `/${text.toLowerCase().replace(' ', '-')}`
-                  }
-                  variant="body2"
-                  sx={{ 
-                    display: 'block',
-                    py: 0.75,
-                    width: 'fit-content',
-                    fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
-                  }}
-                >
-                  {text}
-                </FooterLink>
+
+            {/* Coordonnées */}
+            <Stack spacing={1.25}>
+              {CONTACT_ITEMS.map((item) => (
+                <Stack key={item.label} direction="row" alignItems="center" spacing={1}>
+                  <Box sx={{ color: '#B5D4F4', display: 'flex', flexShrink: 0 }}>
+                    {item.icon}
+                  </Box>
+                  <Typography sx={{ fontSize: 12, color: '#5F5E5A' }}>
+                    {item.value}
+                  </Typography>
+                </Stack>
               ))}
             </Stack>
           </Box>
 
-          {/* Categories */}
+          {/* ── Colonne 2 : Navigation ── */}
           <Box>
-            <Typography 
-              variant="h6" 
-              component="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 700,
-                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#042C53',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
                 mb: 2.5,
-                position: 'relative',
-                display: 'inline-block',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -8,
-                  left: 0,
-                  width: '32px',
-                  height: '3px',
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  borderRadius: '2px',
-                },
+              }}
+            >
+              Navigation
+            </Typography>
+            <Stack spacing={1.25}>
+              {NAV_LINKS.map((link) => (
+                <MuiLink
+                  key={link.label}
+                  component={Link}
+                  href={link.href}
+                  sx={{
+                    fontSize: 13,
+                    color: '#888780',
+                    textDecoration: 'none',
+                    transition: 'color 0.15s',
+                    '&:hover': { color: '#185FA5' },
+                  }}
+                >
+                  {link.label}
+                </MuiLink>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* ── Colonne 3 : Catégories ── */}
+          <Box>
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#042C53',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                mb: 2.5,
               }}
             >
               Catégories
             </Typography>
-            <Stack spacing={1.5}>
-              {categories.map((item: CategoryItem, index: number) => (
-                <FooterLink
+            <Stack spacing={1.25}>
+              {CATEGORIES.map((cat) => (
+                <MuiLink
+                  key={cat.id}
                   component={Link}
-                  href={`/shop${item.id ? `?category=${item.id}` : ''}`}
-                  variant="body2"
-                  sx={{ 
-                    display: 'block',
-                    py: 0.75,
-                    width: 'fit-content',
-                    fontSize: { xs: '0.85rem', sm: '0.875rem', md: '0.9rem' },
+                  href={`/shop${cat.id ? `?category=${cat.id}` : ''}`}
+                  sx={{
+                    fontSize: 13,
+                    color: '#888780',
+                    textDecoration: 'none',
+                    transition: 'color 0.15s',
+                    '&:hover': { color: '#185FA5' },
                   }}
-                  key={index}
                 >
-                  {item.label}
-                </FooterLink>
+                  {cat.label}
+                </MuiLink>
               ))}
             </Stack>
           </Box>
 
-          {/* Contact Info */}
+          {/* ── Colonne 4 : Paiement + Compte ── */}
           <Box>
-            <Typography 
-              variant="h6" 
-              component="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 700,
-                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.15rem' },
-                mb: 2.5,
-                position: 'relative',
-                display: 'inline-block',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -8,
-                  left: 0,
-                  width: '32px',
-                  height: '3px',
-                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  borderRadius: '2px',
-                },
+            {/* Paiement */}
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#042C53',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                mb: 2,
               }}
             >
-              Contactez-nous
+              Paiement accepté
             </Typography>
-            <Stack spacing={2}>
-              <Stack 
-                direction="row" 
-                spacing={1.5} 
-                alignItems="flex-start"
-                sx={{
-                  p: { xs: 1.25, sm: 1.5 },
-                  borderRadius: 2.5,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.05),
-                    transform: 'translateY(-3px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                  },
-                }}
-              >
-                <Box 
+            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 4 }}>
+              {PAYMENT_METHODS.map((m) => (
+                <Box
+                  key={m}
                   sx={{
-                    width: { xs: 34, sm: 36, md: 38 },
-                    height: { xs: 34, sm: 36, md: 38 },
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: theme.palette.primary.main,
-                    flexShrink: 0,
-                    transition: 'all 0.3s ease',
+                    border: '1px solid #E6F1FB',
+                    borderRadius: '5px',
+                    px: 1,
+                    py: 0.375,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: '#5F5E5A',
+                    bgcolor: '#F5F9FE',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <MapPin fontSize="small" />
+                  {m}
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    Notre adresse
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    Dakar, Sénégal
-                  </Typography>
-                </Box>
-              </Stack>
-              <Stack 
-                direction="row" 
-                spacing={1.5} 
-                alignItems="flex-start"
-                sx={{
-                  p: { xs: 1.25, sm: 1.5 },
-                  borderRadius: 2.5,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.05),
-                    transform: 'translateY(-3px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                  },
-                }}
-              >
-                <Box 
+              ))}
+            </Box>
+
+            {/* Mon compte */}
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#042C53',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                mb: 2,
+              }}
+            >
+              Mon compte
+            </Typography>
+            <Stack spacing={1.25}>
+              {['Connexion', 'Mes commandes', 'Mes favoris'].map((l) => (
+                <MuiLink
+                  key={l}
+                  component={Link}
+                  href="#"
                   sx={{
-                    width: { xs: 34, sm: 36, md: 38 },
-                    height: { xs: 34, sm: 36, md: 38 },
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: theme.palette.primary.main,
-                    flexShrink: 0,
-                    transition: 'all 0.3s ease',
+                    fontSize: 13,
+                    color: '#888780',
+                    textDecoration: 'none',
+                    transition: 'color 0.15s',
+                    '&:hover': { color: '#185FA5' },
                   }}
                 >
-                  <Phone fontSize="small" />
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    Téléphone
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    +221 77 XXX XX XX
-                  </Typography>
-                </Box>
-              </Stack>
-              <Stack 
-                direction="row" 
-                spacing={1.5} 
-                alignItems="flex-start"
-                sx={{
-                  p: { xs: 1.25, sm: 1.5 },
-                  borderRadius: 2.5,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.05),
-                    transform: 'translateY(-3px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                  },
-                }}
-              >
-                <Box 
-                  sx={{
-                    width: { xs: 34, sm: 36, md: 38 },
-                    height: { xs: 34, sm: 36, md: 38 },
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.15)}, ${alpha(theme.palette.secondary.main, 0.15)})`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: theme.palette.primary.main,
-                    flexShrink: 0,
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <Mail fontSize="small" />
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.25, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    Email
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    contact@damesarr.sn
-                  </Typography>
-                </Box>
-              </Stack>
+                  {l}
+                </MuiLink>
+              ))}
             </Stack>
           </Box>
         </Box>
 
-        <Divider sx={{ 
-          my: { xs: 4, sm: 5, md: 6 },
-          borderColor: alpha(theme.palette.divider, 0.12),
-          '&::before, &::after': {
-            borderColor: alpha(theme.palette.divider, 0.15),
-          },
-        }} />
+        {/* ── DIVIDER ── */}
+        <Divider sx={{ my: { xs: 4, md: 5 }, borderColor: '#E6F1FB' }} />
 
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          justifyContent="space-between"
-          alignItems="center"
-          spacing={{ xs: 3, sm: 4 }}
+        {/* ── FOOTER BOTTOM : 3 zones ── */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr auto 1fr' },
+            alignItems: 'center',
+            gap: { xs: 3, md: 0 },
+          }}
         >
-          <Box sx={{ 
-            textAlign: { xs: 'center', md: 'left' },
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.5,
-          }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{ 
-                fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.9rem' },
-                fontWeight: 500,
-              }}
-            >
-              &copy; {new Date().getFullYear()} Dame Sarr. Tous droits réservés.
-            </Typography>
-            <Typography 
-              variant="caption" 
-              color="text.disabled"
-              sx={{ 
-                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
-                fontWeight: 500,
-              }}
-            >
-              Conçu avec ❤️ pour vous servir
-            </Typography>
-          </Box>
+          {/* Copyright — gauche */}
+          <Typography sx={{ fontSize: 12, color: '#B4B2A9', textAlign: { xs: 'center', md: 'left' } }}>
+            © {new Date().getFullYear()} Dame Sarr · Tous droits réservés · Dakar, Sénégal
+          </Typography>
 
-          <Stack direction="row" spacing={1.5}>
-            {[
-              { icon: Facebook, label: 'Facebook', id: 'facebook' },
-              { icon: Instagram, label: 'Instagram', id: 'instagram' },
-              { icon: Twitter, label: 'Twitter', id: 'twitter' },
-              { icon: Send, label: 'Telegram', id: 'telegram' },
-            ].map(({ icon: Icon, label, id }, index) => (
+          {/* Réseaux sociaux — centre */}
+          <Stack direction="row" spacing={0.75} justifyContent="center">
+            {SOCIALS.map(({ Icon, label, href }) => (
               <IconButton
-                key={id}
-                color="inherit"
+                key={label}
+                component="a"
+                href={href}
                 aria-label={label}
+                size="small"
                 sx={{
-                  width: { xs: 36, sm: 40, md: 44 },
-                  height: { xs: 36, sm: 40, md: 44 },
-                  color: 'text.secondary',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': { 
-                    color: 'primary.main',
-                    transform: 'translateY(-4px) scale(1.1)',
-                    bgcolor: alpha(theme.palette.primary.main, 0.12),
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
-                  },
-                  '&:active': {
-                    transform: 'translateY(-2px) scale(1.05)',
+                  width: 32,
+                  height: 32,
+                  border: '1px solid #E6F1FB',
+                  borderRadius: '8px',
+                  color: '#888780',
+                  transition: 'all 0.15s',
+                  '&:hover': {
+                    color: '#185FA5',
+                    borderColor: '#85B7EB',
+                    bgcolor: '#F5F9FE',
                   },
                 }}
               >
-                <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                <Icon sx={{ fontSize: 16 }} />
               </IconButton>
             ))}
           </Stack>
 
-          <PaymentIcons showLabels={true} />
-        </Stack>
+          {/* Liens légaux — droite */}
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent={{ xs: 'center', md: 'flex-end' }}
+          >
+            {LEGAL_LINKS.map((l) => (
+              <MuiLink
+                key={l}
+                component={Link}
+                href="#"
+                sx={{
+                  fontSize: 12,
+                  color: '#B4B2A9',
+                  textDecoration: 'none',
+                  '&:hover': { color: '#185FA5' },
+                }}
+              >
+                {l}
+              </MuiLink>
+            ))}
+          </Stack>
+        </Box>
+
       </Container>
-    </FooterContainer>
+    </Box>
   );
 }
