@@ -164,10 +164,7 @@ export default function VerifyOTPPage() {
           display: 'flex',
           position: 'relative',
           overflow: 'hidden',
-          background: `linear-gradient(135deg, 
-            ${theme.palette.primary.dark} 0%, 
-            ${theme.palette.primary.main} 50%, 
-            ${theme.palette.secondary.main} 100%)`,
+          background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
         }}
       >
         {/* Animated Background Elements */}
@@ -179,7 +176,7 @@ export default function VerifyOTPPage() {
             width: '40%',
             height: '40%',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(theme.palette.secondary.light, 0.3)}, transparent)`,
+            background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
             animation: 'float 6s ease-in-out infinite',
             '@keyframes float': {
               '0%, 100%': { transform: 'translateY(0) translateX(0)' },
@@ -195,7 +192,7 @@ export default function VerifyOTPPage() {
             width: '50%',
             height: '50%',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.3)}, transparent)`,
+            background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
             animation: 'float 8s ease-in-out infinite',
             animationDelay: '1s',
           }}
@@ -297,10 +294,7 @@ export default function VerifyOTPPage() {
         display: 'flex',
         position: 'relative',
         overflow: 'hidden',
-        background: `linear-gradient(135deg, 
-          ${theme.palette.primary.dark} 0%, 
-          ${theme.palette.primary.main} 50%, 
-          ${theme.palette.secondary.main} 100%)`,
+        background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
       }}
     >
       {/* Animated Background Elements */}
@@ -370,12 +364,12 @@ export default function VerifyOTPPage() {
           <Box
             sx={{
               width: '100%',
-              p: { xs: 3, sm: 5 },
-              borderRadius: 4,
-              background: alpha('#fff', 0.95),
-              backdropFilter: 'blur(20px)',
-              boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
-              border: `1px solid ${alpha('#fff', 0.3)}`,
+              p: { xs: 3.5, sm: 5 },
+              borderRadius: '16px',
+              background: alpha('#fff', 0.97),
+              backdropFilter: 'blur(24px)',
+              boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
               animation: 'slideUp 0.6s ease-out',
               '@keyframes slideUp': {
                 from: {
@@ -390,27 +384,40 @@ export default function VerifyOTPPage() {
             }}
           >
             {/* Logo/Title */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography
-                variant="h3"
+            <Box sx={{ textAlign: 'center', mb: 4.5 }}>
+              <Box
                 sx={{
-                  fontWeight: 800,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 56,
+                  height: 56,
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                  mb: 2.5,
+                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
                 }}
               >
-                Dame Sarr
-              </Typography>
-              <Typography variant="h6" color="text.secondary" fontWeight={500}>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
+                  DS
+                </Typography>
+              </Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: '#042C53',
+                  mb: 0.75,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                }}
+              >
                 Vérification en deux étapes
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
                 Entrez le code à 6 chiffres pour vérifier votre identité
               </Typography>
               {email && (
-                <Typography variant="body2" color="primary" sx={{ mt: 1, fontWeight: 500 }}>
+                <Typography variant="body2" color="#185FA5" sx={{ mt: 1, fontWeight: 600, fontSize: '0.85rem' }}>
                   Code envoyé à: {email}
                 </Typography>
               )}
@@ -460,12 +467,14 @@ export default function VerifyOTPPage() {
                   size="small"
                   sx={{
                     '& .MuiToggleButton-root': {
-                      borderRadius: 2,
-                      border: `2px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                      borderRadius: '8px',
+                      border: '1.5px solid rgba(24, 95, 165, 0.3)',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
                       '&.Mui-selected': {
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                        background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
                         color: 'white',
-                        borderColor: theme.palette.primary.main,
+                        borderColor: '#185FA5',
                       },
                     },
                   }}
@@ -495,24 +504,25 @@ export default function VerifyOTPPage() {
                 disabled={loading || otp.length !== 6}
                 startIcon={loading ? <CircularProgress size={20} /> : <VerifiedUser />}
                 sx={{
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
+                  py: 1.625,
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
                   textTransform: 'none',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                  boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                  transition: 'all 0.3s',
+                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
+                  transition: 'all 0.25s ease',
                   '&:hover': {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 6px 24px ${alpha(theme.palette.primary.main, 0.5)}`,
+                    background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
+                    boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
+                    transform: 'translateY(-1px)',
                   },
                   '&:active': {
                     transform: 'translateY(0)',
                   },
                   '&.Mui-disabled': {
-                    background: theme.palette.action.disabledBackground,
+                    background: '#E6F1FB',
+                    color: '#888780',
                   },
                 }}
               >
@@ -520,8 +530,8 @@ export default function VerifyOTPPage() {
               </Button>
             </Box>
 
-            <Divider sx={{ my: 3 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Divider sx={{ my: 3.5, borderColor: '#E6F1FB' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
                 ou
               </Typography>
             </Divider>
@@ -533,15 +543,16 @@ export default function VerifyOTPPage() {
               disabled={resending}
               startIcon={resending ? <CircularProgress size={16} /> : <RefreshIcon />}
               sx={{
-                py: 1.5,
-                borderRadius: 2,
+                py: 1.625,
+                borderRadius: '10px',
                 fontWeight: 600,
                 textTransform: 'none',
-                color: theme.palette.primary.main,
-                transition: 'all 0.3s',
+                color: '#185FA5',
+                fontSize: '0.95rem',
+                transition: 'all 0.25s ease',
                 '&:hover': {
-                  bgcolor: alpha(theme.palette.primary.main, 0.08),
-                  transform: 'translateY(-2px)',
+                  bgcolor: 'rgba(24, 95, 165, 0.06)',
+                  transform: 'translateY(-1px)',
                 },
               }}
             >

@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
-  Paper,
   Typography,
   TextField,
   Button,
   Alert,
   CircularProgress,
+  IconButton,
+  InputAdornment,
+  alpha,
 } from '@mui/material';
+import { Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
 import apiClient from '@/lib/api-client';
 
@@ -19,6 +22,9 @@ export default function PasswordPage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -80,75 +86,297 @@ export default function PasswordPage() {
   };
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, my: 3 }}>
-        Mot de passe
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        position: 'relative',
+        overflow: 'hidden',
+        background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
+      }}
+    >
+      {/* Animated Background Elements */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '-10%',
+          right: '-10%',
+          width: '40%',
+          height: '40%',
+          borderRadius: '50%',
+          background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
+          animation: 'float 6s ease-in-out infinite',
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translateY(0) translateX(0)' },
+            '50%': { transform: 'translateY(-20px) translateX(20px)' },
+          },
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '-10%',
+          left: '-10%',
+          width: '50%',
+          height: '50%',
+          borderRadius: '50%',
+          background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
+          animation: 'float 8s ease-in-out infinite',
+          animationDelay: '1s',
+        }}
+      />
 
-      <Paper sx={{ p: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-          Changer le mot de passe
-        </Typography>
-
-        <Box component="form" onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Mot de passe actuel"
-            type="password"
-            value={currentPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Nouveau mot de passe"
-            type="password"
-            value={newPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-
-          <PasswordStrengthMeter
-            password={newPassword}
-            onStrengthCheck={checkPasswordStrength}
-          />
-
-          <TextField
-            fullWidth
-            label="Confirmer le nouveau mot de passe"
-            type="password"
-            value={confirmPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-            required
-            sx={{ mb: 3 }}
-          />
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 1 }}>
-              {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 2, borderRadius: 1 }}>
-              {success}
-            </Alert>
-          )}
-
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={loading || !currentPassword || !newPassword || !confirmPassword || !userId}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-            sx={{ px: 4, py: 1, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+      <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
+        <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh' }}>
+          <Box
+            sx={{
+              p: { xs: 3.5, sm: 5 },
+              borderRadius: '16px',
+              background: alpha('#fff', 0.97),
+              backdropFilter: 'blur(24px)',
+              boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              animation: 'slideUp 0.6s ease-out',
+              '@keyframes slideUp': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateY(30px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateY(0)',
+                },
+              },
+            }}
           >
-            {loading ? 'Modification...' : 'Changer le mot de passe'}
-          </Button>
+            <Box sx={{ textAlign: 'center', mb: 4.5 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 56,
+                  height: 56,
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                  mb: 2.5,
+                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
+                }}
+              >
+                <Lock sx={{ fontSize: 26, color: '#fff' }} />
+              </Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: '#042C53',
+                  mb: 0.75,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                }}
+              >
+                Mot de passe
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
+                Changez votre mot de passe pour sécuriser votre compte
+              </Typography>
+            </Box>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: '10px' }}>
+                {error}
+              </Alert>
+            )}
+
+            {success && (
+              <Alert severity="success" sx={{ mb: 3, borderRadius: '10px' }}>
+                {success}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Mot de passe actuel"
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        edge="end"
+                        sx={{
+                          color: '#888780',
+                          '&:hover': {
+                            color: '#185FA5',
+                            bgcolor: 'rgba(24, 95, 165, 0.08)',
+                          },
+                        }}
+                      >
+                        {showCurrentPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  mb: 2.5,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '10px',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#85B7EB',
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#185FA5',
+                      boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: '0.875rem',
+                    '&.Mui-focused': {
+                      color: '#185FA5',
+                    },
+                  },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Nouveau mot de passe"
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                        sx={{
+                          color: '#888780',
+                          '&:hover': {
+                            color: '#185FA5',
+                            bgcolor: 'rgba(24, 95, 165, 0.08)',
+                          },
+                        }}
+                      >
+                        {showNewPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  mb: 2.5,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '10px',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#85B7EB',
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#185FA5',
+                      boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: '0.875rem',
+                    '&.Mui-focused': {
+                      color: '#185FA5',
+                    },
+                  },
+                }}
+              />
+
+              <PasswordStrengthMeter
+                password={newPassword}
+                onStrengthCheck={checkPasswordStrength}
+              />
+
+              <TextField
+                fullWidth
+                label="Confirmer le nouveau mot de passe"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                        sx={{
+                          color: '#888780',
+                          '&:hover': {
+                            color: '#185FA5',
+                            bgcolor: 'rgba(24, 95, 165, 0.08)',
+                          },
+                        }}
+                      >
+                        {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '10px',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#85B7EB',
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#185FA5',
+                      boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: '0.875rem',
+                    '&.Mui-focused': {
+                      color: '#185FA5',
+                    },
+                  },
+                }}
+              />
+
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading || !currentPassword || !newPassword || !confirmPassword || !userId}
+                startIcon={!loading && <Lock sx={{ fontSize: 18 }} />}
+                sx={{
+                  py: 1.625,
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
+                  transition: 'all 0.25s ease',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
+                    boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                  '&.Mui-disabled': {
+                    background: '#E6F1FB',
+                    color: '#888780',
+                  },
+                }}
+              >
+                {loading ? 'Modification...' : 'Changer le mot de passe'}
+              </Button>
+            </Box>
+          </Box>
         </Box>
-      </Paper>
-    </Container>
+      </Container>
+    </Box>
   );
 }

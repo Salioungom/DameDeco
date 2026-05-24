@@ -54,10 +54,7 @@ export default function ForgotPasswordPage() {
         display: 'flex',
         position: 'relative',
         overflow: 'hidden',
-        background: `linear-gradient(135deg, 
-          ${theme.palette.primary.dark} 0%, 
-          ${theme.palette.primary.main} 50%, 
-          ${theme.palette.secondary.main} 100%)`,
+        background: `linear-gradient(135deg, #042C53 0%, #185FA5 50%, #0C447C 100%)`,
       }}
     >
       {/* Animated Background Elements */}
@@ -69,7 +66,7 @@ export default function ForgotPasswordPage() {
           width: '45%',
           height: '45%',
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.3)}, transparent)`,
+          background: `radial-gradient(circle, ${alpha('#E6F1FB', 0.2)}, transparent)`,
           animation: 'float 7s ease-in-out infinite',
           '@keyframes float': {
             '0%, 100%': { transform: 'translateY(0) translateX(0)' },
@@ -85,7 +82,7 @@ export default function ForgotPasswordPage() {
           width: '55%',
           height: '55%',
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${alpha(theme.palette.secondary.light, 0.3)}, transparent)`,
+          background: `radial-gradient(circle, ${alpha('#85B7EB', 0.25)}, transparent)`,
           animation: 'float 9s ease-in-out infinite',
           animationDelay: '1.5s',
         }}
@@ -127,13 +124,13 @@ export default function ForgotPasswordPage() {
           <Box
             sx={{
               width: '100%',
-              maxWidth: 500,
-              p: { xs: 3, sm: 5 },
-              borderRadius: 4,
-              background: alpha('#fff', 0.95),
-              backdropFilter: 'blur(20px)',
-              boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2)`,
-              border: `1px solid ${alpha('#fff', 0.3)}`,
+              maxWidth: 460,
+              p: { xs: 3.5, sm: 5 },
+              borderRadius: '16px',
+              background: alpha('#fff', 0.97),
+              backdropFilter: 'blur(24px)',
+              boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
               animation: 'slideUp 0.6s ease-out',
               '@keyframes slideUp': {
                 from: {
@@ -153,32 +150,29 @@ export default function ForgotPasswordPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  mb: 2,
+                  width: 56,
+                  height: 56,
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                  mb: 2.5,
+                  boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
                 }}
               >
-                <Email sx={{ fontSize: 32, color: 'white' }} />
+                <Email sx={{ fontSize: 26, color: '#fff' }} />
               </Box>
               <Typography
-                variant="h3"
+                variant="h4"
                 sx={{
-                  fontWeight: 800,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 1,
+                  fontWeight: 700,
+                  color: '#042C53',
+                  mb: 0.75,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
                 }}
               >
-                Dame Sarr
-              </Typography>
-              <Typography variant="h5" color="text.secondary" fontWeight={600}>
                 Mot de passe oublié
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
+                Entrez votre adresse email pour recevoir un lien de réinitialisation
               </Typography>
             </Box>
 
@@ -194,14 +188,20 @@ export default function ForgotPasswordPage() {
                   sx={{
                     mb: 3,
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      transition: 'all 0.3s',
+                      borderRadius: '10px',
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
+                        borderColor: '#85B7EB',
                       },
                       '&.Mui-focused': {
-                        boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
+                        borderColor: '#185FA5',
+                        boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: '0.875rem',
+                      '&.Mui-focused': {
+                        color: '#185FA5',
                       },
                     },
                   }}
@@ -230,27 +230,31 @@ export default function ForgotPasswordPage() {
                   fullWidth
                   variant="contained"
                   disabled={loading}
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <MarkEmailRead />}
+                  startIcon={!loading && <MarkEmailRead sx={{ fontSize: 18 }} />}
                   sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
+                    py: 1.625,
+                    borderRadius: '10px',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
                     textTransform: 'none',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                    boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                    transition: 'all 0.3s',
+                    background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
+                    boxShadow: '0 4px 16px rgba(24, 95, 165, 0.35)',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 6px 24px ${alpha(theme.palette.primary.main, 0.5)}`,
+                      background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 100%)',
+                      boxShadow: '0 6px 20px rgba(24, 95, 165, 0.45)',
+                      transform: 'translateY(-1px)',
                     },
                     '&:active': {
                       transform: 'translateY(0)',
                     },
+                    '&.Mui-disabled': {
+                      background: '#E6F1FB',
+                      color: '#888780',
+                    },
                   }}
                 >
-                  {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
+                  {loading ? 'Envoi...' : 'Envoyer le lien'}
                 </Button>
 
                 <Box sx={{ mt: 3, textAlign: 'center' }}>
@@ -315,19 +319,21 @@ export default function ForgotPasswordPage() {
                   href="/login"
                   fullWidth
                   sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    borderWidth: 2,
+                    py: 1.625,
+                    borderRadius: '10px',
+                    borderWidth: 1.5,
                     fontWeight: 600,
                     textTransform: 'none',
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
-                    transition: 'all 0.3s',
+                    borderColor: '#185FA5',
+                    color: '#185FA5',
+                    fontSize: '0.95rem',
+                    transition: 'all 0.25s ease',
                     '&:hover': {
-                      borderWidth: 2,
-                      borderColor: theme.palette.primary.dark,
-                      bgcolor: alpha(theme.palette.primary.main, 0.08),
-                      transform: 'translateY(-2px)',
+                      borderWidth: 1.5,
+                      borderColor: '#0C447C',
+                      bgcolor: 'rgba(24, 95, 165, 0.06)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(24, 95, 165, 0.2)',
                     },
                   }}
                 >
