@@ -364,8 +364,8 @@ export function Navigation() {
       ];
     }
     return [
-      { label: 'Mon profil', icon: <AccountCircleOutlined fontSize="small" />, path: '/account' },
-      { label: 'Mes favoris', icon: <FavoriteBorder fontSize="small" />, path: '/favorites' },
+      { label: 'Tableau de bord', icon: <DashboardOutlined fontSize="small" />, path: '/account' },
+      { label: 'Profil', icon: <AccountCircleOutlined fontSize="small" />, path: '/settings/profile' },
       { label: 'Déconnexion', icon: <LogoutOutlined fontSize="small" />, action: 'logout' as const },
     ];
   }, [user]);
