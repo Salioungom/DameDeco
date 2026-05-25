@@ -2,7 +2,7 @@
 
 import { SnackbarProvider } from 'notistack';
 import { Box } from '@mui/material';
-import { Navigation } from './Navigation';
+import { Navigation, NAVBAR_HEIGHT } from './Navigation';
 import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
 import { Toaster } from 'sonner';
@@ -91,7 +91,7 @@ export function Providers({ children }: ProvidersProps) {
             width: '100%',
             maxWidth: '100%',
             mx: 'auto',
-            pt: isAuthPage ? 0 : { xs: 8, md: 9 }, // Compensation pour header fixe
+            pt: isAuthPage ? 0 : `${NAVBAR_HEIGHT}px`,
           }}
         >
           {children}
