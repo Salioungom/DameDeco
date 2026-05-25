@@ -796,31 +796,65 @@ export function ProductManagement() {
         onClose={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
         maxWidth="md"
         fullWidth
+        scroll="paper"
         PaperProps={{
-          sx: { borderRadius: 4, boxShadow: theme.shadows[20] }
+          sx: {
+            borderRadius: '20px',
+            overflow: 'hidden',
+            border: `1px solid ${BRAND.border}`,
+            boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
+            maxHeight: '92vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
         }}
       >
-        <DialogTitle sx={{
-          fontWeight: 800,
-          pb: 2,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          borderBottom: `1px solid ${theme.palette.divider}`
-        }}>
-          <Box sx={{
-            p: 1,
-            borderRadius: 1.5,
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            color: 'primary.main',
-            display: 'flex'
-          }}>
-            {isAddDialogOpen ? <Plus /> : <Edit />}
-          </Box>
-          {isAddDialogOpen ? 'Nouveau Produit' : 'Modifier le Produit'}
-        </DialogTitle>
+        <Box
+          sx={{
+            px: 3,
+            py: 2.5,
+            bgcolor: BRAND.dark,
+            color: BRAND.white,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '12px',
+                bgcolor: alpha(BRAND.white, 0.12),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {isAddDialogOpen ? <Plus /> : <Edit />}
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>
+                {isAddDialogOpen ? 'Nouveau produit' : 'Modifier le produit'}
+              </Typography>
+              <Typography sx={{ fontSize: 13, color: alpha(BRAND.white, 0.72) }}>
+                {isAddDialogOpen ? 'Ajoutez une référence à votre catalogue' : formData.name || 'Mettre à jour les informations'}
+              </Typography>
+            </Box>
+          </Stack>
+          <IconButton
+            onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
+            aria-label="Fermer"
+            size="small"
+            sx={{ color: alpha(BRAND.white, 0.85), '&:hover': { bgcolor: alpha(BRAND.white, 0.1) } }}
+          >
+            <X fontSize="small" />
+          </IconButton>
+        </Box>
 
-        <DialogContent sx={{ p: 4, bgcolor: 'background.default' }}>
+        <DialogContent sx={{ p: { xs: 2.5, md: 4 }, bgcolor: BRAND.surface, flex: 1, overflowY: 'auto' }}>
           <Grid container spacing={4}>
             {/* SECTION: INFORMATIONS GÉNÉRALES */}
             <Grid item xs={12}>
@@ -1377,28 +1411,35 @@ export function ProductManagement() {
           </Grid>
         </DialogContent>
 
-        <DialogActions sx={{ p: 4, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2.5,
+            bgcolor: BRAND.white,
+            borderTop: `1px solid ${BRAND.border}`,
+            flexShrink: 0,
+            gap: 1,
+          }}
+        >
           <Button
             onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
-            sx={{ borderRadius: 2, px: 3, fontWeight: 600 }}
+            sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted, borderRadius: '10px' }}
           >
-            Fermer
+            Annuler
           </Button>
           <Button
             variant="contained"
             onClick={isAddDialogOpen ? handleCreateProduct : handleUpdateProduct}
             disabled={isSubmitting}
-            sx={{
-              borderRadius: 2,
-              px: 6,
-              py: 1.2,
-              fontWeight: 700,
-              boxShadow: theme.shadows[4],
-              textTransform: 'none',
-              fontSize: '1rem'
-            }}
+            sx={{ ...primaryBtnSx, px: 4, py: 1.1, fontWeight: 700, fontSize: '0.95rem' }}
           >
-            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (isAddDialogOpen ? 'Publier le produit' : 'Enregistrer')}
+            {isSubmitting ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : isAddDialogOpen ? (
+              'Publier le produit'
+            ) : (
+              'Enregistrer les modifications'
+            )}
           </Button>
         </DialogActions>
       </Dialog>

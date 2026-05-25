@@ -58,6 +58,7 @@ import {
   Sort as SortIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { categoryService, type Category } from '@/services/category.service';
 
@@ -79,6 +80,137 @@ const primaryBtnSx = {
   boxShadow: 'none',
   '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
 };
+
+const dialogPaperProps = {
+  sx: {
+    borderRadius: '20px',
+    overflow: 'hidden',
+    border: `1px solid ${BRAND.border}`,
+    boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
+    maxHeight: '92vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+  },
+};
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: BRAND.white },
+};
+
+function CategoryDialogHeader({
+  icon,
+  title,
+  subtitle,
+  onClose,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  onClose: () => void;
+}) {
+  return (
+    <Box
+      sx={{
+        px: 3,
+        py: 2.5,
+        bgcolor: BRAND.dark,
+        color: BRAND.white,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 2,
+      }}
+    >
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box
+          sx={{
+            width: 44,
+            height: 44,
+            borderRadius: '12px',
+            bgcolor: alpha(BRAND.white, 0.12),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {icon}
+        </Box>
+        <Box>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>{title}</Typography>
+          <Typography sx={{ fontSize: 13, color: alpha(BRAND.white, 0.72), mt: 0.25 }}>{subtitle}</Typography>
+        </Box>
+      </Stack>
+      <IconButton onClick={onClose} aria-label="Fermer" size="small" sx={{ color: alpha(BRAND.white, 0.8), '&:hover': { bgcolor: alpha(BRAND.white, 0.1) } }}>
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+}
+
+function CategoryImageUpload({
+  previewUrl,
+  selectedImage,
+  onSelect,
+  existingLabel,
+}: {
+  previewUrl: string | null;
+  selectedImage: File | null;
+  onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  existingLabel?: string;
+}) {
+  return (
+    <Box
+      sx={{
+        p: 2.5,
+        borderRadius: '14px',
+        border: `1px dashed ${alpha(BRAND.primary, 0.35)}`,
+        bgcolor: BRAND.surface,
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: 'center',
+        gap: 2.5,
+      }}
+    >
+      <Box
+        sx={{
+          width: 120,
+          height: 120,
+          borderRadius: '14px',
+          overflow: 'hidden',
+          flexShrink: 0,
+          bgcolor: BRAND.white,
+          border: `1px solid ${BRAND.border}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {previewUrl ? (
+          <Box component="img" src={previewUrl} alt="Aperçu" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <ImageIcon sx={{ fontSize: 40, color: alpha(BRAND.muted, 0.4) }} />
+        )}
+      </Box>
+      <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 14, color: BRAND.dark, mb: 0.5 }}>
+          Image de couverture
+        </Typography>
+        <Typography sx={{ fontSize: 12, color: BRAND.muted, mb: 1.5 }}>
+          {existingLabel || 'JPG ou PNG · recommandé 800×600 px'}
+        </Typography>
+        <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small" sx={{ ...primaryBtnSx, borderColor: BRAND.border, color: BRAND.primary, bgcolor: BRAND.white }}>
+          Choisir une image
+          <input type="file" hidden accept="image/*" onChange={onSelect} />
+        </Button>
+        {selectedImage && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 1, color: BRAND.muted }}>
+            {selectedImage.name}
+          </Typography>
+        )}
+      </Box>
+    </Box>
+  );
+}
 
 interface CategoriesState {
   categories: Category[];
@@ -210,7 +342,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         return;
       }
 
-      if (selectedImage) {
+      if (selectedImage && newCategory.id) {
         await categoryService.uploadCategoryImage(newCategory.id, selectedImage);
       }
 
@@ -236,6 +368,9 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
 
     try {
       const updatedCategory = await categoryService.updateCategory(selectedCategory.id, formData);
+      if (selectedImage) {
+        await categoryService.uploadCategoryImage(selectedCategory.id, selectedImage);
+      }
       setSnackbar({
         open: true,
         message: 'Catégorie mise à jour avec succès',
@@ -379,6 +514,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       is_active: category.is_active,
       sort_order: category.sort_order,
     });
+    setSelectedImage(null);
+    setPreviewUrl(category.cover_image_url || null);
     setEditDialogOpen(true);
   };
 
@@ -1062,174 +1199,109 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         </Box>
       )}
 
-      {/* Formulaire de création */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Créer une nouvelle catégorie</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                <Box
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: 2,
-                    border: `2px dashed ${alpha(theme.palette.primary.main, 0.4)}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    mb: 2,
-                    position: 'relative',
-                    bgcolor: alpha(theme.palette.primary.main, 0.04),
-                  }}
-                >
-                  {previewUrl ? (
-                    <Box
-                      component="img"
-                      src={previewUrl}
-                      alt="Preview"
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <ImageIcon sx={{ fontSize: 40, color: alpha(theme.palette.text.secondary, 0.4) }} />
-                  )}
-                </Box>
-                <Button
-                  component="label"
-                  variant="outlined"
-                  startIcon={<UploadIcon />}
-                  size="small"
-                >
-                  Sélectionner une image
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageSelect}
+      {/* Création catégorie */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => { setCreateDialogOpen(false); resetFormData(); }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={dialogPaperProps}
+      >
+        <CategoryDialogHeader
+          icon={<AddIcon sx={{ color: BRAND.white }} />}
+          title="Nouvelle catégorie"
+          subtitle="Ajoutez un univers à votre catalogue"
+          onClose={() => { setCreateDialogOpen(false); resetFormData(); }}
+        />
+        <DialogContent sx={{ p: 3, bgcolor: BRAND.surface, overflowY: 'auto' }}>
+          <Stack spacing={2.5}>
+            <CategoryImageUpload previewUrl={previewUrl} selectedImage={selectedImage} onSelect={handleImageSelect} />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} helperText="Vide = généré auto" sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '10px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 56, display: 'flex', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 14 }}>Visible sur la boutique</Typography>}
                   />
-                </Button>
-                {selectedImage && (
-                  <Typography variant="caption" color="text.secondary" mt={1}>
-                    {selectedImage.name}
-                  </Typography>
-                )}
-              </Box>
+                </Paper>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nom *"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Slug"
-                value={formData.slug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                helperText="Laisser vide pour générer automatiquement"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ordre de tri"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.is_active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
-                  />
-                }
-                label="Catégorie active"
-              />
-            </Grid>
-          </Grid>
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleCreateCategory} variant="contained" disabled={!formData.name.trim()}>
-            Créer
+        <DialogActions sx={{ px: 3, py: 2.5, bgcolor: BRAND.white, borderTop: `1px solid ${BRAND.border}`, gap: 1 }}>
+          <Button onClick={() => { setCreateDialogOpen(false); resetFormData(); }} sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted }}>
+            Annuler
+          </Button>
+          <Button onClick={handleCreateCategory} variant="contained" disabled={!formData.name.trim()} sx={{ ...primaryBtnSx, px: 3 }}>
+            Créer la catégorie
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Formulaire d'édition */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Modifier la catégorie</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nom *"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Slug"
-                value={formData.slug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ordre de tri"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.is_active}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+      {/* Édition catégorie */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={dialogPaperProps}
+      >
+        <CategoryDialogHeader
+          icon={<EditIcon sx={{ color: BRAND.white }} />}
+          title="Modifier la catégorie"
+          subtitle={selectedCategory?.name || 'Mettre à jour les informations'}
+          onClose={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }}
+        />
+        <DialogContent sx={{ p: 3, bgcolor: BRAND.surface, overflowY: 'auto' }}>
+          <Stack spacing={2.5}>
+            <CategoryImageUpload
+              previewUrl={previewUrl}
+              selectedImage={selectedImage}
+              onSelect={handleImageSelect}
+              existingLabel={selectedCategory?.cover_image_url ? 'Remplacez l’image actuelle si besoin' : undefined}
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '10px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 56, display: 'flex', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 14 }}>Visible sur la boutique</Typography>}
                   />
-                }
-                label="Catégorie active"
-              />
+                </Paper>
+              </Grid>
             </Grid>
-          </Grid>
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Annuler</Button>
-          <Button onClick={handleUpdateCategory} variant="contained" disabled={!formData.name.trim()}>
-            Mettre à jour
+        <DialogActions sx={{ px: 3, py: 2.5, bgcolor: BRAND.white, borderTop: `1px solid ${BRAND.border}`, gap: 1 }}>
+          <Button onClick={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }} sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted }}>
+            Annuler
+          </Button>
+          <Button onClick={handleUpdateCategory} variant="contained" disabled={!formData.name.trim()} sx={{ ...primaryBtnSx, px: 3 }}>
+            Enregistrer
           </Button>
         </DialogActions>
       </Dialog>

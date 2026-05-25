@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Container,
@@ -138,6 +139,31 @@ function SectionHeader({
   );
 }
 
+function HeroProductThumb({ name }: { name?: string }) {
+  const initial = (name?.trim().charAt(0) || 'D').toUpperCase();
+  return (
+    <Box
+      sx={{
+        width: 56,
+        height: 56,
+        borderRadius: '12px',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: `linear-gradient(145deg, ${C.primary} 0%, ${C.dark} 100%)`,
+        color: '#fff',
+        fontWeight: 800,
+        fontSize: 22,
+        letterSpacing: '-0.02em',
+        boxShadow: `0 4px 14px ${alpha(C.primary, 0.35)}`,
+      }}
+    >
+      {initial}
+    </Box>
+  );
+}
+
 interface HomePageProps {
   onNavigate?: (page: string, category?: string) => void;
   onAddToCart: (product: Product) => void;
@@ -226,7 +252,23 @@ export function HomePage({
     }
   };
 
-  const featuredProduct = popularProducts[0];
+  const featuredProduct = useMemo(() => {
+    const featured = popularProducts.find((p) => p.is_featured);
+    return featured ?? popularProducts[0] ?? null;
+  }, [popularProducts]);
+
+  const heroCategoryTags = useMemo(() => {
+    if (categories.length > 0) {
+      return categories.slice(0, 4).map((c) => c.name);
+    }
+    return ['Meubles', 'Décoration', 'Textile', 'Luminaires'];
+  }, [categories]);
+
+  const featuredDiscount =
+    featuredProduct?.compare_price && featuredProduct.compare_price > featuredProduct.price
+      ? Math.round(((featuredProduct.compare_price - featuredProduct.price) / featuredProduct.compare_price) * 100)
+      : null;
+
   const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px)`;
 
   const trustItems = [
@@ -424,190 +466,179 @@ export function HomePage({
             </Grid>
 
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Box
-                sx={{
-                  position: 'relative',
-                  mx: 'auto',
-                  width: '100%',
-                  maxWidth: { xs: 480, lg: 560 },
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'relative',
-                    borderRadius: { xs: '20px', md: '24px' },
-                    overflow: 'hidden',
-                    aspectRatio: { xs: '4/5', sm: '5/6' },
-                    boxShadow: '0 24px 80px rgba(4, 44, 83, 0.18)',
-                    border: `1px solid ${alpha('#fff', 0.8)}`,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={featuredProduct?.cover_image_url || HERO_IMAGE}
-                    alt={featuredProduct?.name || 'Intérieur premium Dame Sarr'}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: 'center',
-                      display: 'block',
-                    }}
-                  />
+              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: 480, lg: 560 } }}>
+                <Box sx={{ position: 'relative' }}>
                   <Box
                     sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: `linear-gradient(to top, ${alpha(C.dark, 0.55)} 0%, transparent 45%)`,
-                    }}
-                  />
-
-                  <Chip
-                    icon={<StarIcon sx={{ fontSize: '14px !important', color: '#fbbf24 !important' }} />}
-                    label="4,9 · 2 300+ avis clients"
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      top: 20,
-                      right: 20,
-                      bgcolor: alpha('#fff', 0.92),
-                      backdropFilter: 'blur(12px)',
-                      fontWeight: 600,
-                      fontSize: 12,
-                      color: C.dark,
+                      position: 'relative',
+                      borderRadius: { xs: '20px', md: '24px' },
+                      overflow: 'hidden',
+                      aspectRatio: '4/5',
+                      minHeight: { xs: 360, sm: 420, lg: 480 },
+                      maxHeight: { lg: 560 },
+                      bgcolor: C.light,
+                      boxShadow: '0 24px 80px rgba(4, 44, 83, 0.18)',
                       border: `1px solid ${C.border}`,
-                      '& .MuiChip-icon': { color: '#fbbf24' },
-                    }}
-                  />
-
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      bottom: 20,
-                      left: 20,
-                      right: 20,
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 1,
                     }}
                   >
-                    {['Meubles', 'Décoration', 'Textile', 'Luminaires'].map((tag) => (
-                      <Chip
-                        key={tag}
-                        label={tag}
-                        size="small"
-                        sx={{
-                          bgcolor: alpha('#fff', 0.9),
-                          color: C.dark,
-                          fontWeight: 600,
-                          fontSize: 11,
-                          backdropFilter: 'blur(8px)',
-                        }}
-                      />
-                    ))}
+                    <Image
+                      src={HERO_IMAGE}
+                      alt="Intérieur premium — Dame Sarr Import"
+                      fill
+                      priority
+                      sizes="(max-width: 900px) 90vw, 560px"
+                      style={{ objectFit: 'cover', objectPosition: 'center' }}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: `linear-gradient(to top, ${alpha(C.dark, 0.35)} 0%, transparent 40%)`,
+                      }}
+                    />
+                    <Chip
+                      icon={<StarIcon sx={{ fontSize: '14px !important', color: '#fbbf24 !important' }} />}
+                      label="4,9 · 2 300+ avis"
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: 16,
+                        right: 16,
+                        bgcolor: alpha('#fff', 0.95),
+                        fontWeight: 700,
+                        fontSize: 11,
+                        color: C.dark,
+                        border: `1px solid ${C.border}`,
+                      }}
+                    />
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        position: 'absolute',
+                        top: 16,
+                        left: 16,
+                        display: { xs: 'none', sm: 'flex' },
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 1.75,
+                        py: 1,
+                        borderRadius: '12px',
+                        bgcolor: C.dark,
+                        color: '#fff',
+                        boxShadow: '0 8px 24px rgba(4, 44, 83, 0.3)',
+                      }}
+                    >
+                      <Truck sx={{ fontSize: 17, color: C.mid }} />
+                      <Box>
+                        <Typography sx={{ fontSize: 9, color: alpha('#fff', 0.65), lineHeight: 1.2 }}>Livraison express</Typography>
+                        <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Dakar & banlieue</Typography>
+                      </Box>
+                    </Paper>
                   </Box>
                 </Box>
+
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
+                  {heroCategoryTags.map((tag) => (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      size="small"
+                      onClick={() => handleNavigate('shop')}
+                      sx={{
+                        bgcolor: '#fff',
+                        color: C.dark,
+                        fontWeight: 600,
+                        fontSize: 11,
+                        border: `1px solid ${C.border}`,
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: C.light, borderColor: C.mid },
+                      }}
+                    />
+                  ))}
+                </Stack>
 
                 <Paper
                   elevation={0}
                   onClick={() => featuredProduct && onViewProduct(featuredProduct)}
                   sx={{
-                    position: 'absolute',
-                    bottom: { xs: -28, sm: -32 },
-                    left: { xs: 12, sm: -24 },
-                    right: { xs: 12, sm: 'auto' },
-                    width: { sm: 280 },
+                    mt: 2,
                     p: 2,
                     borderRadius: '16px',
-                    bgcolor: alpha('#fff', 0.95),
-                    backdropFilter: 'blur(16px)',
+                    bgcolor: '#fff',
                     border: `1px solid ${C.border}`,
-                    boxShadow: '0 16px 48px rgba(4, 44, 83, 0.14)',
+                    boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
                     cursor: featuredProduct ? 'pointer' : 'default',
-                    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                    transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                     ...(featuredProduct && {
                       '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 20px 56px rgba(4, 44, 83, 0.18)',
+                        transform: 'translateY(-3px)',
+                        boxShadow: `0 16px 48px ${alpha(C.dark, 0.14)}`,
                       },
                     }),
                   }}
                 >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        bgcolor: C.light,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {featuredProduct?.cover_image_url ? (
-                        <Box
-                          component="img"
-                          src={featuredProduct.cover_image_url}
-                          alt={featuredProduct.name}
-                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Package sx={{ color: C.primary, fontSize: 26 }} />
-                        </Box>
-                      )}
-                    </Box>
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary, mb: 0.25 }}>
-                        {featuredProduct ? 'Sélection du moment' : 'Nouvelle collection'}
-                      </Typography>
-                      <Typography
+                  {loading ? (
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Skeleton variant="rounded" width={56} height={56} sx={{ borderRadius: '12px' }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Skeleton width="50%" height={10} sx={{ mb: 1 }} />
+                        <Skeleton width="75%" height={16} sx={{ mb: 0.75 }} />
+                        <Skeleton width="35%" height={14} />
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <HeroProductThumb name={featuredProduct?.name} />
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
+                            Sélection du moment
+                          </Typography>
+                          {featuredDiscount != null && (
+                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: '#fef2f2', color: '#b91c1c' }} />
+                          )}
+                        </Stack>
+                        <Typography
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: 15,
+                            color: C.dark,
+                            lineHeight: 1.3,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {featuredProduct?.name || 'Découvrir la boutique'}
+                        </Typography>
+                        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mt: 0.5 }}>
+                          <Typography sx={{ fontSize: 15, fontWeight: 800, color: C.primary }}>
+                            {featuredProduct ? formatPrice(featuredProduct.price) : 'Voir les prix'}
+                          </Typography>
+                          {featuredProduct?.compare_price && featuredProduct.compare_price > featuredProduct.price && (
+                            <Typography sx={{ fontSize: 12, color: C.muted, textDecoration: 'line-through' }}>
+                              {formatPrice(featuredProduct.compare_price)}
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Box>
+                      <Box
                         sx={{
-                          fontWeight: 700,
-                          fontSize: 13,
-                          color: C.dark,
-                          lineHeight: 1.3,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          width: 36,
+                          height: 36,
+                          borderRadius: '10px',
+                          bgcolor: C.light,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
-                        {featuredProduct?.name || 'Arrivage premium · Chine'}
-                      </Typography>
-                      <Typography sx={{ fontSize: 14, fontWeight: 800, color: C.primary, mt: 0.5 }}>
-                        {featuredProduct ? formatPrice(featuredProduct.price) : 'À partir de 15 000 FCFA'}
-                      </Typography>
-                    </Box>
-                    {featuredProduct && (
-                      <ArrowRight sx={{ color: C.primary, fontSize: 20, flexShrink: 0 }} />
-                    )}
-                  </Stack>
-                </Paper>
-
-                <Paper
-                  elevation={0}
-                  sx={{
-                    position: 'absolute',
-                    top: { xs: 16, sm: 24 },
-                    left: { xs: 12, sm: -20 },
-                    display: { xs: 'none', sm: 'flex' },
-                    alignItems: 'center',
-                    gap: 1.25,
-                    px: 2,
-                    py: 1.25,
-                    borderRadius: '12px',
-                    bgcolor: C.dark,
-                    color: '#fff',
-                    boxShadow: '0 8px 32px rgba(4, 44, 83, 0.25)',
-                  }}
-                >
-                  <Truck sx={{ fontSize: 18, color: C.mid }} />
-                  <Box>
-                    <Typography sx={{ fontSize: 10, color: alpha('#fff', 0.65), lineHeight: 1.2 }}>
-                      Livraison express
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, fontWeight: 700 }}>Dakar & banlieue</Typography>
-                  </Box>
+                        <ArrowRight sx={{ color: C.primary, fontSize: 20 }} />
+                      </Box>
+                    </Stack>
+                  )}
                 </Paper>
               </Box>
             </Grid>
