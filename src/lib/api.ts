@@ -326,6 +326,19 @@ export const getOrders = async (page = 0, limit = 20, status?: string): Promise<
     return response.data;
 };
 
+/** Commandes — endpoint admin (toutes les commandes) */
+export const getAdminOrders = async (page = 0, limit = 50, status?: string): Promise<Order[]> => {
+    const params = new URLSearchParams({
+        skip: (page * limit).toString(),
+        limit: limit.toString(),
+    });
+    if (status) {
+        params.append('status', status);
+    }
+    const response = await api.get<Order[]>(`/api/v1/orders/admin?${params}`);
+    return response.data;
+};
+
 export const getOrderById = async (id: string | number): Promise<Order> => {
     const response = await api.get<Order>(`/api/v1/orders/${id}`);
     return response.data;

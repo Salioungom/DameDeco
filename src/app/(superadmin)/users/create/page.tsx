@@ -2,68 +2,88 @@
 
 import { useState, ChangeEvent, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Container, 
-  Paper, 
-  Typography, 
-  TextField, 
-  Button, 
-  Alert, 
-  Box, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem,
-  Card,
-  CardContent,
-  Avatar,
-  Stepper,
-  Step,
-  StepLabel,
+import {
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Box,
+  FormControl,
+  InputLabel,
+  OutlinedInput,
   Grid,
   CircularProgress,
-  Chip,
-  OutlinedInput, 
-  InputAdornment, 
-  IconButton, 
-  FormHelperText
+  Stack,
+  InputAdornment,
+  IconButton,
+  FormHelperText,
+  alpha,
 } from '@mui/material';
-import { 
+import {
   PersonAdd as PersonAddIcon,
   ArrowBack as ArrowBackIcon,
   CheckCircle as CheckCircleIcon,
   Email as EmailIcon,
-  Lock as LockIcon,
   Phone as PhoneIcon,
   AdminPanelSettings as AdminIcon,
   Visibility,
-  VisibilityOff
+  VisibilityOff,
+  PersonOutline,
+  BadgeOutlined,
 } from '@mui/icons-material';
 import { RequireRole } from '@/components/RequireRole';
+import { useAuth } from '@/contexts/AuthContext';
+
+const BRAND = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
+
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    bgcolor: BRAND.white,
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: BRAND.primary,
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: BRAND.primary,
+      borderWidth: 2,
+    },
+  },
+};
 
 export default function CreateAdminPage() {
+  const router = useRouter();
+  const { accessToken } = useAuth();
+
   const [formData, setFormData] = useState({
-    username: '',      // requis, unique
-    email: '',         // optionnel, unique si fourni
-    password: '',      // requis, min 8 caractères
+    username: '',
+    email: '',
+    password: '',
     confirmPassword: '',
-    full_name: '',     // optionnel
-    phone: '',         // optionnel
-    role: 'admin' as 'admin',
-    is_active: true    // optionnel, défaut: true
+    full_name: '',
+    phone: '',
+    role: 'admin' as const,
+    is_active: true,
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name as string]: value
+      [name as string]: value,
     }));
   };
 
@@ -95,47 +115,39 @@ export default function CreateAdminPage() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    
-    if (!validateForm()) {
-      return;
-    }
+
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = accessToken || localStorage.getItem('accessToken') || localStorage.getItem('token');
       if (!token) {
         throw new Error('Non authentifié');
       }
 
-      // Utiliser notre système de gestion d'erreurs avec une URL par défaut
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      console.log('URL de l\'API utilisée pour création:', apiUrl);
 
-      // Préparer les données pour l'API
       const userData = {
         username: formData.username.trim(),
-        email: formData.email.trim() || undefined, // Optionnel
+        email: formData.email.trim() || undefined,
         password: formData.password,
-        full_name: formData.full_name.trim() || undefined, // Optionnel
-        phone: formData.phone.trim() || undefined, // Optionnel
-        role: 'admin', // Toujours admin pour ce formulaire
-        is_active: true
+        full_name: formData.full_name.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        role: 'admin',
+        is_active: true,
       };
 
       const res = await fetch(`${apiUrl}/api/v1/users/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
       });
 
-      console.log('Réponse API création status:', res.status);
-
       if (!res.ok) {
-        // Gérer les erreurs HTTP
         if (res.status === 401) {
           throw new Error('Session expirée. Veuillez vous reconnecter.');
         }
@@ -145,9 +157,9 @@ export default function CreateAdminPage() {
         if (res.status === 400) {
           const errorData = await res.json();
           if (errorData.detail && Array.isArray(errorData.detail)) {
-            const errorMessages = errorData.detail.map((err: any) => 
-              `${err.loc?.join('.')} : ${err.msg}`
-            ).join(', ');
+            const errorMessages = errorData.detail
+              .map((err: { loc?: string[]; msg: string }) => `${err.loc?.join('.')} : ${err.msg}`)
+              .join(', ');
             throw new Error(errorMessages);
           }
           throw new Error(errorData.detail || errorData.message || 'Données invalides');
@@ -155,11 +167,8 @@ export default function CreateAdminPage() {
         throw new Error(`Erreur ${res.status}: ${res.statusText}`);
       }
 
-      const responseData = await res.json();
+      setSuccess('Administrateur créé avec succès !');
 
-      setSuccess(`${formData.role === 'admin' ? 'Admin' : 'Client'} créé avec succès !`);
-      
-      // Réinitialiser le formulaire
       setFormData({
         username: '',
         email: '',
@@ -168,430 +177,330 @@ export default function CreateAdminPage() {
         full_name: '',
         phone: '',
         role: 'admin',
-        is_active: true
+        is_active: true,
       });
 
-      // Rediriger après un court délai
       setTimeout(() => {
-        router.push('/users');
+        router.push('/dashboards');
       }, 2000);
-
-    } catch (err: any) {
-      console.error('Erreur création utilisateur:', err);
-      setError(err.message || 'Erreur lors de la création de l\'utilisateur');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erreur lors de la création de l'utilisateur";
+      setError(message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    // <RequireRole allowedRoles={["superadmin"]} redirectTo="/">
-    <>  // Temporairement désactivé pour debugging
-      <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-        {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Box 
-            sx={{ 
-              p: 4, 
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              position: 'relative',
-              overflow: 'hidden',
-              mb: 3
+    <RequireRole allowedRoles={['superadmin']} redirectTo="/">
+      <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
+        {/* Hero */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
+            color: BRAND.white,
+            px: { xs: 2, sm: 3, md: 4 },
+            py: { xs: 3.5, md: 4.5 },
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -60,
+              right: -60,
+              width: 240,
+              height: 240,
+              borderRadius: '50%',
+              bgcolor: alpha(BRAND.white, 0.06),
             }}
-          >
-            {/* Background Pattern */}
-            <Box
+          />
+          <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 720, mx: 'auto' }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => router.push('/dashboards')}
               sx={{
-                position: 'absolute',
-                top: -50,
-                right: -50,
-                width: 200,
-                height: 200,
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '50%',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: -30,
-                left: -30,
-                width: 150,
-                height: 150,
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '50%',
-              }}
-            />
-            
-            <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Avatar 
-                sx={{ 
-                  width: 64, 
-                  height: 64, 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  fontSize: '2rem'
-                }}
-              >
-                <PersonAddIcon sx={{ fontSize: '2.5rem' }} />
-              </Avatar>
-              <Box>
-                <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
-                  Créer un Administrateur
-                </Typography>
-                <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                  Ajoutez un nouvel administrateur à la plateforme
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                  <Chip 
-                    label="🔐 Accès SuperAdmin"
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                      color: 'white',
-                      fontWeight: 600,
-                    }}
-                  />
-                  <Chip 
-                    label="⚡ Création Rapide"
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                      color: 'white',
-                      fontWeight: 600,
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Back Button */}
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => router.push('/users')}
-            sx={{ 
-              mb: 3,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: 2
-            }}
-          >
-            Retour à la liste
-          </Button>
-        </Box>
-
-        <Grid container spacing={4}>
-          {/* Main Form Card */}
-          <Grid item xs={12} md={8}>
-            <Card 
-              sx={{ 
-                borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                overflow: 'hidden'
+                mb: 2,
+                color: alpha(BRAND.white, 0.9),
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: '10px',
+                px: 0,
+                '&:hover': { bgcolor: alpha(BRAND.white, 0.08) },
               }}
             >
-              {/* Card Header */}
-              <Box sx={{ 
-                p: 3, 
-                background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                borderBottom: '1px solid rgba(0,0,0,0.1)'
-              }}>
-                <Typography variant="h5" component="h2" fontWeight={600} color="text.primary">
-                  Informations de l'Administrateur
+              Retour au tableau de bord
+            </Button>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '14px',
+                  bgcolor: alpha(BRAND.white, 0.15),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <PersonAddIcon sx={{ fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                  Créer un administrateur
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                  Complétez les informations pour créer un nouveau compte administrateur
+                <Typography sx={{ fontSize: 14, opacity: 0.9, mt: 0.5 }}>
+                  Ajoutez un nouveau compte admin à la plateforme Dame Sarr
                 </Typography>
               </Box>
+            </Stack>
+          </Box>
+        </Box>
 
-              <CardContent sx={{ p: 4 }}>
-                {/* Alerts */}
-                {error && (
-                  <Alert 
-                    severity="error" 
-                    sx={{ mb: 3, borderRadius: 2 }} 
-                    onClose={() => setError(null)}
-                  >
-                    {error}
-                  </Alert>
-                )}
-                
-                {success && (
-                  <Alert 
-                    severity="success" 
-                    sx={{ mb: 3, borderRadius: 2 }}
-                    icon={<CheckCircleIcon />}
-                  >
-                    {success}
-                  </Alert>
-                )}
+        {/* Formulaire */}
+        <Box sx={{ maxWidth: 720, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -2, position: 'relative', zIndex: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              border: `1px solid ${BRAND.border}`,
+              bgcolor: BRAND.white,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                px: { xs: 2.5, sm: 3 },
+                py: 2.5,
+                bgcolor: BRAND.light,
+                borderBottom: `1px solid ${BRAND.border}`,
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <AdminIcon sx={{ color: BRAND.primary }} />
+                <Box>
+                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>
+                    Informations du compte
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: BRAND.muted }}>
+                    Les champs marqués * sont obligatoires
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
 
-                <Box component="form" onSubmit={handleSubmit}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Nom complet (optionnel)"
-                        name="full_name"
-                        value={formData.full_name}
-                        onChange={handleChange}
-                        disabled={loading}
-                        sx={{ 
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2
-                          }
-                        }}
-                        InputProps={{
-                          startAdornment: <PersonAddIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                        }}
-                      />
-                    </Grid>
+            <Box sx={{ p: { xs: 2.5, sm: 3 } }}>
+              {error && (
+                <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setError(null)}>
+                  {error}
+                </Alert>
+              )}
 
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Email (optionnel)"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        disabled={loading}
-                        sx={{ 
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2
-                          }
-                        }}
-                        InputProps={{
-                          startAdornment: <EmailIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                        }}
-                        helperText="Doit être unique si fourni"
-                      />
-                    </Grid>
+              {success && (
+                <Alert
+                  severity="success"
+                  icon={<CheckCircleIcon />}
+                  sx={{ mb: 2.5, borderRadius: '12px' }}
+                >
+                  {success}
+                </Alert>
+              )}
 
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Téléphone (optionnel)"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        disabled={loading}
-                        sx={{ 
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2
-                          }
-                        }}
-                        InputProps={{
-                          startAdornment: <PhoneIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                        }}
-                      />
-                    </Grid>
+              <Box component="form" onSubmit={handleSubmit}>
+                <Grid container spacing={2.5}>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      label="Nom complet"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleChange}
+                      disabled={loading}
+                      sx={fieldSx}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutline sx={{ color: BRAND.muted, fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
 
-                    {/* Rôle caché - valeur par défaut */}
-                    <input type="hidden" name="role" value="admin" />
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={loading}
+                      sx={fieldSx}
+                      helperText="Optionnel — doit être unique"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
 
-                    {/* Champ Username */}
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Nom d'utilisateur *"
-                        name="username"
-                        value={formData.username}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="Téléphone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={loading}
+                      sx={fieldSx}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      label="Nom d'utilisateur *"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      sx={fieldSx}
+                      helperText="Unique, minimum 3 caractères"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BadgeOutlined sx={{ color: BRAND.muted, fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FormControl fullWidth sx={fieldSx}>
+                      <InputLabel>Mot de passe *</InputLabel>
+                      <OutlinedInput
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
                         onChange={handleChange}
                         required
                         disabled={loading}
-                        sx={{ 
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2
-                          },
-                          mb: 2
-                        }}
-                        helperText="Doit être unique, minimum 3 caractères"
+                        label="Mot de passe *"
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="Afficher le mot de passe"
+                              onClick={() => setShowPassword(!showPassword)}
+                              onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
+                              edge="end"
+                              size="small"
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        }
                       />
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Mot de passe *</InputLabel>
-                        <OutlinedInput
-                          name="password"
-                          type={showPassword ? 'text' : 'password'}
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          disabled={loading}
-                          sx={{ 
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2
-                            }
-                          }}
-                          endAdornment={
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={() => setShowPassword(!showPassword)}
-                                onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
-                                edge="end"
-                                sx={{ color: 'text.secondary' }}
-                              >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          }
-                          label="Mot de passe"
-                        />
-                        <FormHelperText>Minimum 8 caractères</FormHelperText>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Confirmer le mot de passe *</InputLabel>
-                        <OutlinedInput
-                          name="confirmPassword"
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          value={formData.confirmPassword}
-                          onChange={handleChange}
-                          required
-                          disabled={loading}
-                          sx={{ 
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2
-                            }
-                          }}
-                          endAdornment={
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
-                                edge="end"
-                                sx={{ color: 'text.secondary' }}
-                              >
-                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          }
-                          label="Confirmer le mot de passe"
-                        />
-                      </FormControl>
-                    </Grid>
+                      <FormHelperText>Minimum 8 caractères</FormHelperText>
+                    </FormControl>
                   </Grid>
 
-                  <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => router.push('/users')}
-                      disabled={loading}
-                      size="large"
-                      sx={{ 
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: 4
-                      }}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={loading}
-                      size="large"
-                      fullWidth
-                      sx={{ 
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: 4,
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FormControl fullWidth sx={fieldSx}>
+                      <InputLabel>Confirmer le mot de passe *</InputLabel>
+                      <OutlinedInput
+                        name="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        disabled={loading}
+                        label="Confirmer le mot de passe *"
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="Afficher la confirmation"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
+                              edge="end"
+                              size="small"
+                            >
+                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
                         }
-                      }}
-                    >
-                      {loading ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress size={20} thickness={4} />
-                          Création en cours...
-                        </Box>
-                      ) : (
-                        `Créer ${formData.role === 'admin' ? 'l\'Admin' : 'le Client'}`
-                      )}
-                    </Button>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+                      />
+                    </FormControl>
+                  </Grid>
+                </Grid>
 
-          {/* Side Info Card */}
-          <Grid item xs={12} md={4}>
-            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <AdminIcon color="primary" />
-                  Informations Importantes
-                </Typography>
-                
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    <strong>Rôle Admin :</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 2, pl: 2 }}>
-                    • Accès complet au dashboard<br/>
-                    • Gestion des utilisateurs<br/>
-                    • Modération du contenu<br/>
-                    • Accès aux rapports
-                  </Typography>
-                  
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    <strong>Sécurité :</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 2, pl: 2 }}>
-                    • Mot de passe robuste requis<br/>
-                    • Email professionnel vérifié<br/>
-                    • Accès révocable à tout moment
-                  </Typography>
-                  
-                  <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-                    <Typography variant="body2" fontWeight={600}>
-                      💡 Conseil
-                    </Typography>
-                    <Typography variant="body2">
-                      Utilisez un email professionnel et un mot de passe unique pour chaque administrateur.
-                    </Typography>
-                  </Alert>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Stats Card */}
-            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', mt: 3 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Statistiques Actuelles
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Admins actifs</Typography>
-                    <Chip label="1" size="small" color="primary" />
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Total utilisateurs</Typography>
-                    <Chip label="24" size="small" color="default" />
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Système</Typography>
-                    <Chip label="100%" size="small" color="success" />
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Container>
-    </>
-    // </RequireRole>
+                <Stack
+                  direction={{ xs: 'column-reverse', sm: 'row' }}
+                  spacing={1.5}
+                  sx={{ mt: 3.5 }}
+                >
+                  <Button
+                    variant="outlined"
+                    onClick={() => router.push('/dashboards')}
+                    disabled={loading}
+                    size="large"
+                    sx={{
+                      flex: { sm: 1 },
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderColor: BRAND.border,
+                      color: BRAND.dark,
+                      py: 1.25,
+                      '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
+                    }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    size="large"
+                    sx={{
+                      flex: { sm: 2 },
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      py: 1.25,
+                      bgcolor: BRAND.primary,
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+                    }}
+                  >
+                    {loading ? (
+                      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
+                        <CircularProgress size={20} sx={{ color: BRAND.white }} />
+                        <span>Création en cours…</span>
+                      </Stack>
+                    ) : (
+                      "Créer l'administrateur"
+                    )}
+                  </Button>
+                </Stack>
+              </Box>
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    </RequireRole>
   );
 }

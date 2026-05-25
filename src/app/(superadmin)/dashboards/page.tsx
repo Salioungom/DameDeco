@@ -1,12 +1,74 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container, Typography, Box, Button, Grid, Paper, CircularProgress, Card, CardContent, Avatar, Chip, Stack, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Pagination, Tooltip, Alert, FormControlLabel, Switch } from '@mui/material';
 import Link from 'next/link';
+import {
+  Typography,
+  Box,
+  Button,
+  Grid,
+  Paper,
+  CircularProgress,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
+  Stack,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Pagination,
+  Tooltip,
+  Alert,
+  FormControlLabel,
+  Switch,
+  alpha,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  MoreVert as MoreVertIcon,
+  Refresh as RefreshIcon,
+  People as PeopleIcon,
+  Security as SecurityIcon,
+  Settings as SettingsIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  Dashboard as DashboardIcon,
+  ManageAccounts as ManageAccountsIcon,
+  CheckCircleOutline,
+  CancelOutlined,
+  ShieldOutlined,
+  ArrowForward,
+} from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, MoreVert as MoreVertIcon, Refresh as RefreshIcon, People as PeopleIcon, Security as SecurityIcon, Analytics as AnalyticsIcon, Speed as SpeedIcon, Settings as SettingsIcon, AdminPanelSettings as AdminPanelSettingsIcon, Logout as LogoutIcon, Dashboard as DashboardIcon, ManageAccounts as ManageAccountsIcon } from '@mui/icons-material';
 import { safeApiCall } from '@/lib/error-handler';
+
+const BRAND = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
 
 type User = {
   id: number;
@@ -20,37 +82,147 @@ type User = {
   last_login?: string;
 };
 
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  accent = BRAND.primary,
+}: {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: React.ReactNode;
+  accent?: string;
+}) {
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        height: '100%',
+        borderRadius: '16px',
+        border: `1px solid ${BRAND.border}`,
+        bgcolor: BRAND.white,
+        transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+        '&:hover': {
+          boxShadow: `0 12px 32px ${alpha(BRAND.primary, 0.12)}`,
+          transform: 'translateY(-2px)',
+        },
+      }}
+    >
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: '12px',
+              bgcolor: alpha(accent, 0.1),
+              color: accent,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {icon}
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 13, color: BRAND.muted, fontWeight: 500, mb: 0.5 }}>
+              {title}
+            </Typography>
+            <Typography sx={{ fontSize: 28, fontWeight: 700, color: BRAND.dark, lineHeight: 1.1 }}>
+              {value}
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: BRAND.muted, mt: 0.5 }}>
+              {subtitle}
+            </Typography>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickActionButton({
+  label,
+  href,
+  onClick,
+  icon,
+  variant = 'primary',
+}: {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  icon: React.ReactNode;
+  variant?: 'primary' | 'outline';
+}) {
+  const isPrimary = variant === 'primary';
+  const sx = {
+    py: 1.5,
+    px: 2,
+    justifyContent: 'space-between',
+    borderRadius: '12px',
+    textTransform: 'none' as const,
+    fontWeight: 600,
+    fontSize: 14,
+    width: '100%',
+    boxShadow: 'none',
+    ...(isPrimary
+      ? {
+          bgcolor: BRAND.primary,
+          color: BRAND.white,
+          '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+        }
+      : {
+          bgcolor: BRAND.white,
+          color: BRAND.dark,
+          border: `1px solid ${BRAND.border}`,
+          '&:hover': { bgcolor: BRAND.surface, borderColor: BRAND.primary },
+        }),
+  };
+
+  const endIcon = <ArrowForward sx={{ fontSize: 18, opacity: 0.7 }} />;
+
+  if (href) {
+    return (
+      <Button component={Link} href={href} variant={isPrimary ? 'contained' : 'outlined'} startIcon={icon} endIcon={endIcon} sx={sx}>
+        {label}
+      </Button>
+    );
+  }
+
+  return (
+    <Button variant={isPrimary ? 'contained' : 'outlined'} startIcon={icon} endIcon={endIcon} onClick={onClick} sx={sx}>
+      {label}
+    </Button>
+  );
+}
+
 export default function SuperAdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user, isAuthenticated, logout, accessToken } = useAuth();
-  
-  // Tab state
+
   const [tabValue, setTabValue] = useState(0);
-  
-  // User management state
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  // Dialog states
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  
-  // Menu state
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
-  // Pagination
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const usersPerPage = 10;
 
-  // Form states for editing
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
@@ -58,10 +230,13 @@ export default function SuperAdminDashboardPage() {
     is_active: true,
   });
 
-  const loadUsers = async () => {
+  const activeCount = useMemo(() => users.filter((u) => u.is_active).length, [users]);
+  const inactiveCount = useMemo(() => users.filter((u) => !u.is_active).length, [users]);
+
+  const loadUsers = useCallback(async () => {
     setUsersLoading(true);
     setUsersError(null);
-    
+
     try {
       if (!isAuthenticated || !accessToken) {
         router.push('/login');
@@ -69,11 +244,11 @@ export default function SuperAdminDashboardPage() {
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      
+
       const result = await safeApiCall(async () => {
         const response = await fetch(`${apiUrl}/api/v1/users/`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         });
@@ -99,36 +274,38 @@ export default function SuperAdminDashboardPage() {
 
       const data = result.data;
       let usersData: User[] = [];
-      
+
       if (data.items && Array.isArray(data.items)) {
-        usersData = data.items.filter((user: any) => {
-          const role = user.role?.toLowerCase().trim();
+        usersData = data.items.filter((u: User) => {
+          const role = u.role?.toLowerCase().trim();
           return role === 'admin' || role === 'administrator';
         });
       } else if (Array.isArray(data)) {
-        usersData = data.filter((user: any) => 
-          user.role === 'admin' || 
-          (user.username && user.username.includes('admin')) ||
-          (user.email && user.email.includes('admin'))
+        usersData = data.filter(
+          (u: User) =>
+            u.role === 'admin' ||
+            (u.username && u.username.includes('admin')) ||
+            (u.email && u.email.includes('admin')),
         );
       }
-      
+
       setUsers(usersData);
       setTotalPages(data.pages || Math.ceil((data.total || usersData.length) / usersPerPage));
-    } catch (err: any) {
-      setUsersError(err.message || 'Impossible de charger les utilisateurs');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Impossible de charger les utilisateurs';
+      setUsersError(message);
     } finally {
       setUsersLoading(false);
     }
-  };
+  }, [isAuthenticated, accessToken, router, usersPerPage]);
 
-  const handleEditUser = (user: User) => {
-    setUserToEdit(user);
+  const handleEditUser = (target: User) => {
+    setUserToEdit(target);
     setEditForm({
-      name: user.full_name,
-      email: user.email,
-      role: (user.role === 'superadmin' ? 'admin' : user.role) || 'client',
-      is_active: user.is_active,
+      name: target.full_name,
+      email: target.email,
+      role: (target.role === 'superadmin' ? 'admin' : target.role) || 'client',
+      is_active: target.is_active,
     });
     setEditDialogOpen(true);
     handleCloseMenu();
@@ -152,7 +329,7 @@ export default function SuperAdminDashboardPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToEdit.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(updateData),
@@ -167,17 +344,18 @@ export default function SuperAdminDashboardPage() {
       setEditDialogOpen(false);
       loadUsers();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setUsersError(err.message || 'Erreur lors de la mise à jour');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
+      setUsersError(message);
     }
   };
 
-  const handleDeleteUser = (user: User) => {
-    if (user.role === 'superadmin') {
+  const handleDeleteUser = (target: User) => {
+    if (target.role === 'superadmin') {
       setUsersError('Impossible de supprimer un SuperAdmin');
       return;
     }
-    setUserToDelete(user);
+    setUserToDelete(target);
     setDeleteDialogOpen(true);
     handleCloseMenu();
   };
@@ -193,7 +371,7 @@ export default function SuperAdminDashboardPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -206,14 +384,15 @@ export default function SuperAdminDashboardPage() {
       setDeleteDialogOpen(false);
       loadUsers();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setUsersError(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erreur lors de la suppression';
+      setUsersError(message);
     }
   };
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, user: User) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, target: User) => {
     setAnchorEl(event.currentTarget);
-    setSelectedUser(user);
+    setSelectedUser(target);
   };
 
   const handleCloseMenu = () => {
@@ -221,756 +400,711 @@ export default function SuperAdminDashboardPage() {
     setSelectedUser(null);
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'superadmin': return 'error';
-      case 'admin': return 'primary';
-      case 'client': return 'default';
-      default: return 'default';
-    }
-  };
-
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'superadmin': return 'SuperAdmin';
-      case 'admin': return 'Admin';
-      case 'client': return 'Client';
-      default: return role;
+      case 'superadmin':
+        return 'SuperAdmin';
+      case 'admin':
+        return 'Admin';
+      case 'client':
+        return 'Client';
+      default:
+        return role;
     }
   };
 
-  // Load users when switching to users tab
   useEffect(() => {
-    if (tabValue === 1 && isAuthenticated && user?.role === 'superadmin') {
+    if (!loading && isAuthenticated && user?.role === 'superadmin') {
       loadUsers();
     }
-  }, [tabValue, isAuthenticated, user]);
+  }, [loading, isAuthenticated, user, loadUsers]);
 
   useEffect(() => {
-    console.log('useEffect déclenché - isAuthenticated:', isAuthenticated, 'user:', user);
-    
-    // Si l'utilisateur est authentifié et a le bon rôle
     if (isAuthenticated && user) {
-      console.log('Utilisateur authentifié:', user);
-      
       if (user.role === 'superadmin') {
-        console.log('SuperAdmin confirmé, affichage dashboard');
         setLoading(false);
       } else {
-        console.log('Rôle incorrect:', user.role, 'redirection vers /');
         router.push('/');
       }
       return;
     }
-    
-    // Si pas authentifié, attendre un peu puis vérifier à nouveau
+
     const timer = setTimeout(() => {
-      console.log('Vérification différée - isAuthenticated:', isAuthenticated, 'user:', user);
-      
       if (!isAuthenticated || !user) {
-        console.log('Toujours non authentifié, redirection vers login');
         router.push('/login');
       } else if (user.role !== 'superadmin') {
-        console.log('Rôle incorrect après délai:', user.role, 'redirection vers /');
         router.push('/');
       } else {
-        console.log('SuperAdmin confirmé après délai, affichage dashboard');
         setLoading(false);
       }
-    }, 500); // 500ms de délai
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, user, router]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
+      <Box
+        sx={{
+          minHeight: '60vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          bgcolor: BRAND.surface,
+        }}
+      >
+        <CircularProgress sx={{ color: BRAND.primary }} size={48} />
+        <Typography sx={{ color: BRAND.muted, fontWeight: 500 }}>Chargement du tableau de bord…</Typography>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Typography color="error">{error}</Typography>
-      </Container>
+      <Box sx={{ mt: 4, px: 2 }}>
+        <Alert severity="error" sx={{ borderRadius: '12px' }}>
+          {error}
+        </Alert>
+      </Box>
     );
   }
 
-    return (
-    <Box sx={{ mt: 4, mb: 6, px: { xs: 2, sm: 3 }, width: '100%' }}>
-      {/* Header Welcome */}
-      <Paper 
-        sx={{ 
-          p: { xs: 3, sm: 4, md: 5 }, 
-          mb: 4,
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 50%, #db2777 100%)',
-          color: 'white',
+  return (
+    <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
+      {/* Hero */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
+          color: BRAND.white,
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 4, md: 5 },
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 3,
-          boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
-        }} 
-        elevation={0}
+        }}
       >
-        {/* Background Pattern */}
         <Box
           sx={{
             position: 'absolute',
-            top: -100,
-            right: -100,
-            width: 400,
-            height: 400,
-            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            top: -80,
+            right: -80,
+            width: 320,
+            height: 320,
             borderRadius: '50%',
+            bgcolor: alpha(BRAND.white, 0.06),
           }}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -50,
-            left: -50,
-            width: 200,
-            height: 200,
-            background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-            borderRadius: '50%',
-          }}
-        />
-        
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <AdminPanelSettingsIcon sx={{ fontSize: { xs: 32, sm: 40, md: 48 } }} />
-            <Typography variant="h3" component="h1" fontWeight={700} sx={{ fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' } }}>
-              Tableau de Bord SuperAdmin
-            </Typography>
-          </Box>
-          
-          <Typography variant="h6" sx={{ mb: 3, opacity: 0.95, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
-            Bienvenue, <strong>{user?.full_name || 'SuperAdmin'}</strong>
-          </Typography>
-
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-            <Chip 
-              icon={<SecurityIcon sx={{ fontSize: 18 }} />}
-              label="Authentification Active"
-              sx={{ 
-                bgcolor: 'rgba(255, 255, 255, 0.15)', 
-                color: 'white',
-                fontWeight: 500,
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                '& .MuiChip-label': { px: 1 }
+        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1200, mx: 'auto' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
+            <Box>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    bgcolor: alpha(BRAND.white, 0.15),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AdminPanelSettingsIcon sx={{ fontSize: 26 }} />
+                </Box>
+                <Typography sx={{ fontSize: { xs: 24, md: 32 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                  SuperAdmin
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 15, opacity: 0.9, mb: 2 }}>
+                Bienvenue, <strong>{user?.full_name || 'SuperAdmin'}</strong> — gestion de la plateforme Dame Sarr
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Chip
+                  icon={<ShieldOutlined sx={{ fontSize: '16px !important', color: `${BRAND.white} !important` }} />}
+                  label="Accès sécurisé"
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(BRAND.white, 0.12),
+                    color: BRAND.white,
+                    border: `1px solid ${alpha(BRAND.white, 0.2)}`,
+                    fontWeight: 600,
+                  }}
+                />
+                <Chip
+                  label="Rôle SuperAdmin"
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(BRAND.white, 0.12),
+                    color: BRAND.white,
+                    border: `1px solid ${alpha(BRAND.white, 0.2)}`,
+                    fontWeight: 600,
+                  }}
+                />
+              </Stack>
+            </Box>
+            <Button
+              variant="outlined"
+              onClick={() => logout()}
+              sx={{
+                color: BRAND.white,
+                borderColor: alpha(BRAND.white, 0.4),
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                alignSelf: { xs: 'flex-start', sm: 'center' },
+                '&:hover': { borderColor: BRAND.white, bgcolor: alpha(BRAND.white, 0.1) },
               }}
-            />
-            <Chip 
-              icon={<AdminPanelSettingsIcon sx={{ fontSize: 18 }} />}
-              label="Rôle SuperAdmin"
-              sx={{ 
-                bgcolor: 'rgba(255, 255, 255, 0.15)', 
-                color: 'white',
-                fontWeight: 500,
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                '& .MuiChip-label': { px: 1 }
-              }}
-            />
-            <Chip 
-              icon={<SpeedIcon sx={{ fontSize: 18 }} />}
-              label="Système Opérationnel"
-              sx={{ 
-                bgcolor: 'rgba(255, 255, 255, 0.15)', 
-                color: 'white',
-                fontWeight: 500,
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                '& .MuiChip-label': { px: 1 }
-              }}
-            />
-          </Box>
+            >
+              Déconnexion
+            </Button>
+          </Stack>
         </Box>
-      </Paper>
-
-      {/* Tabs */}
-      <Box sx={{ mb: 4 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={(_e: React.SyntheticEvent, newValue: number) => setTabValue(newValue)}
-          sx={{ 
-            bgcolor: 'white',
-            borderRadius: 2,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-            '& .MuiTab-root': {
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              textTransform: 'none',
-              minHeight: 56,
-              px: 3,
-            },
-            '& .Mui-selected': {
-              color: 'primary.main',
-              bgcolor: 'rgba(25, 118, 210, 0.08)',
-              borderRadius: 2,
-            },
-            '& .MuiTabs-indicator': {
-              display: 'none',
-            }
-          }}
-        >
-          <Tab icon={<DashboardIcon sx={{ mr: 1 }} />} label="Vue d'ensemble" />
-          <Tab icon={<ManageAccountsIcon sx={{ mr: 1 }} />} label="Gestion des Administrateurs" />
-        </Tabs>
       </Box>
 
-      {/* Tab Content */}
-      {tabValue === 0 && (
-        <Box sx={{ width: '100%' }}>
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} lg={3}>
-          <Card sx={{ 
-            height: '100%',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: 2.5,
-            border: '1px solid rgba(0,0,0,0.08)',
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            '&:hover': {
-              transform: 'translateY(-8px)',
-              boxShadow: '0 12px 24px rgba(0,0,0,0.12)',
-              borderColor: 'primary.main'
-            }
-          }}>
-            <CardContent sx={{ textAlign: 'center', py: { xs: 2.5, sm: 3 } }}>
-              <Box sx={{ 
-                width: 64, 
-                height: 64, 
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -3, position: 'relative', zIndex: 2 }}>
+        {/* Tabs */}
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: '14px',
+            border: `1px solid ${BRAND.border}`,
+            bgcolor: BRAND.white,
+            mb: 3,
+            overflow: 'hidden',
+          }}
+        >
+          <Tabs
+            value={tabValue}
+            onChange={(_e: React.SyntheticEvent, v: number) => setTabValue(v)}
+            variant="fullWidth"
+            sx={{
+              minHeight: 56,
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: 14,
+                color: BRAND.muted,
+                minHeight: 56,
+              },
+              '& .Mui-selected': {
+                color: `${BRAND.primary} !important`,
+              },
+              '& .MuiTabs-indicator': {
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+                bgcolor: BRAND.primary,
+              },
+            }}
+          >
+            <Tab icon={<DashboardIcon sx={{ fontSize: 20 }} />} iconPosition="start" label="Vue d'ensemble" />
+            <Tab icon={<ManageAccountsIcon sx={{ fontSize: 20 }} />} iconPosition="start" label="Administrateurs" />
+          </Tabs>
+        </Paper>
+
+        {usersError && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setUsersError(null)}>
+            {usersError}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setSuccess(null)}>
+            {success}
+          </Alert>
+        )}
+
+        {/* Vue d'ensemble */}
+        {tabValue === 0 && (
+          <Box>
+            <Grid container spacing={2.5} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  title="Administrateurs"
+                  value={users.length}
+                  subtitle="Comptes admin enregistrés"
+                  icon={<PeopleIcon />}
+                  accent={BRAND.primary}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  title="Actifs"
+                  value={activeCount}
+                  subtitle="Comptes actuellement actifs"
+                  icon={<CheckCircleOutline />}
+                  accent="#0D7A4A"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  title="Inactifs"
+                  value={inactiveCount}
+                  subtitle="Comptes désactivés"
+                  icon={<CancelOutlined />}
+                  accent={BRAND.muted}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  title="Sécurité"
+                  value="OK"
+                  subtitle="Authentification & API"
+                  icon={<SecurityIcon />}
+                  accent={BRAND.dark}
+                />
+              </Grid>
+            </Grid>
+
+            <Grid container spacing={2.5}>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    borderRadius: '16px',
+                    border: `1px solid ${BRAND.border}`,
+                    bgcolor: BRAND.white,
+                    height: '100%',
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark, mb: 2.5 }}>
+                    Actions rapides
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    <QuickActionButton
+                      label="Gérer les administrateurs"
+                      onClick={() => setTabValue(1)}
+                      icon={<ManageAccountsIcon />}
+                      variant="primary"
+                    />
+                    <QuickActionButton
+                      label="Créer un administrateur"
+                      href="/users/create"
+                      icon={<AddIcon />}
+                      variant="outline"
+                    />
+                    <QuickActionButton
+                      label="Paramètres système"
+                      href="/settings"
+                      icon={<SettingsIcon />}
+                      variant="outline"
+                    />
+                    <QuickActionButton
+                      label="Sécurité & monitoring"
+                      href="/admin/security/summary"
+                      icon={<SecurityIcon />}
+                      variant="outline"
+                    />
+                  </Stack>
+                </Paper>
+              </Grid>
+
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    borderRadius: '16px',
+                    border: `1px solid ${BRAND.border}`,
+                    bgcolor: BRAND.white,
+                    height: '100%',
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark, mb: 2.5 }}>
+                    État du système
+                  </Typography>
+                  <Stack spacing={2}>
+                    {[
+                      { label: 'Backend API', value: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000' },
+                      { label: 'Votre rôle', value: 'SuperAdmin' },
+                      { label: 'Session', value: isAuthenticated ? 'Connectée' : 'Non connectée' },
+                      { label: 'Dernière synchro', value: usersLoading ? 'En cours…' : 'À jour' },
+                    ].map((row) => (
+                      <Box
+                        key={row.label}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          py: 1.25,
+                          px: 1.5,
+                          borderRadius: '10px',
+                          bgcolor: BRAND.surface,
+                          border: `1px solid ${BRAND.border}`,
+                          gap: 2,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 13, color: BRAND.muted, fontWeight: 500 }}>
+                          {row.label}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: BRAND.dark,
+                            textAlign: 'right',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {row.value}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+
+        {/* Gestion administrateurs */}
+        {tabValue === 1 && (
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              border: `1px solid ${BRAND.border}`,
+              bgcolor: BRAND.white,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                px: { xs: 2, sm: 3 },
+                py: 2.5,
+                bgcolor: BRAND.light,
+                borderBottom: `1px solid ${BRAND.border}`,
                 display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2,
                 alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)'
-              }}>
-                <PeopleIcon sx={{ fontSize: 32, color: 'white' }} />
-              </Box>
-              <Typography variant="h6" fontWeight={600} gutterBottom color="text.primary">
-                Utilisateurs
-              </Typography>
-              <Typography variant="h4" color="primary.main" fontWeight={700} sx={{ fontSize: { xs: '1.75rem', sm: '2rem' } }}>
-                {users.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total administrateurs
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Action Buttons */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 2.5,
-            border: '1px solid rgba(0,0,0,0.08)',
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-          }}>
-            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Box sx={{ 
-                  width: 40, 
-                  height: 40, 
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: 2
-                }}>
-                  <DashboardIcon sx={{ fontSize: 20, color: 'white' }} />
-                </Box>
-                Actions Rapides
-              </Typography>
-              
-              <Stack spacing={2}>
-                <Button 
-                  onClick={() => setTabValue(1)}
-                  variant="contained" 
-                  size="large"
-                  startIcon={<ManageAccountsIcon />}
-                  sx={{ 
-                    py: 1.5, 
-                    justifyContent: 'flex-start',
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-                    }
-                  }}
-                >
-                  Gérer les Administrateurs
-                </Button>
-                
-                <Button 
-                  component={Link} 
-                  href="/settings" 
-                  variant="outlined" 
-                  size="large"
-                  startIcon={<SettingsIcon />}
-                  sx={{ 
-                    py: 1.5, 
-                    justifyContent: 'flex-start',
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: 'rgba(0,0,0,0.12)',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'rgba(25, 118, 210, 0.04)'
-                    }
-                  }}
-                >
-                  Paramètres Système
-                </Button>
-                
-                <Button 
-                  component={Link} 
-                  href="/admin/security/summary" 
-                  variant="outlined" 
-                  size="large"
-                  startIcon={<SecurityIcon />}
-                  sx={{ 
-                    py: 1.5, 
-                    justifyContent: 'flex-start',
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: 'rgba(0,0,0,0.12)',
-                    '&:hover': {
-                      borderColor: 'success.main',
-                      bgcolor: 'rgba(76, 175, 80, 0.04)'
-                    }
-                  }}
-                >
-                  Sécurité & Monitoring
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ 
-            height: '100%',
-            borderRadius: 2.5,
-            border: '1px solid rgba(0,0,0,0.08)',
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-          }}>
-           
-          </Card>
-        </Grid>
-      </Grid>
-        </Box>
-      )}
-
-      {tabValue === 1 && (
-        <Card sx={{ 
-          borderRadius: 2.5, 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)', 
-          overflow: 'hidden',
-          border: '1px solid rgba(0,0,0,0.06)'
-        }}>
-          <Box sx={{ 
-            p: { xs: 2.5, sm: 3 }, 
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', 
-            borderBottom: '1px solid rgba(0,0,0,0.06)' 
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                justifyContent: 'space-between',
+              }}
+            >
               <Box>
-                <Typography variant="h5" component="h2" fontWeight={600} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                  Liste des Administrateurs
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark }}>
+                  Liste des administrateurs
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                  {users.length} administrateur(s) trouvé(s)
+                <Typography sx={{ fontSize: 13, color: BRAND.muted, mt: 0.25 }}>
+                  {users.length} administrateur{users.length !== 1 ? 's' : ''} trouvé{users.length !== 1 ? 's' : ''}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<RefreshIcon />} 
-                  onClick={loadUsers} 
-                  disabled={usersLoading} 
-                  sx={{ 
-                    borderRadius: 2, 
-                    textTransform: 'none', 
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={loadUsers}
+                  disabled={usersLoading}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
                     fontWeight: 600,
-                    borderColor: 'rgba(0,0,0,0.12)',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'rgba(25, 118, 210, 0.04)'
-                    }
+                    borderColor: BRAND.border,
+                    color: BRAND.dark,
+                    '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
                   }}
                 >
                   Actualiser
                 </Button>
-                <Button 
-                  variant="contained" 
-                  startIcon={<AddIcon />} 
-                  onClick={() => router.push('/users/create')} 
-                  sx={{ 
-                    borderRadius: 2, 
-                    textTransform: 'none', 
-                    fontWeight: 600, 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-                    }
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/users/create')}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    bgcolor: BRAND.primary,
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
                   }}
                 >
-                  Créer un Admin
+                  Créer un admin
+                </Button>
+              </Stack>
+            </Box>
+
+            {usersLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress sx={{ color: BRAND.primary }} />
+              </Box>
+            ) : users.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
+                <PeopleIcon sx={{ fontSize: 48, color: BRAND.border, mb: 1 }} />
+                <Typography sx={{ color: BRAND.muted, fontWeight: 500 }}>Aucun administrateur trouvé</Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => router.push('/users/create')}
+                  sx={{ mt: 2, bgcolor: BRAND.primary, borderRadius: '10px', textTransform: 'none', fontWeight: 600, boxShadow: 'none' }}
+                >
+                  Créer le premier admin
                 </Button>
               </Box>
-            </Box>
-          </Box>
-
-          {usersError && <Alert severity="error" sx={{ m: 3, borderRadius: 2 }} onClose={() => setUsersError(null)}>{usersError}</Alert>}
-          {success && <Alert severity="success" sx={{ m: 3, borderRadius: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
-
-          {usersLoading && <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}><CircularProgress size={60} thickness={4} /></Box>}
-
-          {!usersLoading && (
-            <Box sx={{ p: { xs: 2, sm: 3 } }}>
-              <TableContainer sx={{ borderRadius: 2, border: '1px solid rgba(0,0,0,0.06)' }}>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ 
-                      background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                      '& th': {
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        fontSize: '0.875rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }
-                    }}>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>ID</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Administrateur</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Email</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Rôle</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Statut</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.primary' }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow 
-                        key={user.id} 
-                        hover 
-                        sx={{ 
-                          '&:hover': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                          transition: 'background-color 0.2s'
+            ) : (
+              <Box sx={{ p: { xs: 1.5, sm: 2.5 } }}>
+                <TableContainer sx={{ borderRadius: '12px', border: `1px solid ${BRAND.border}` }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow
+                        sx={{
+                          bgcolor: BRAND.dark,
+                          '& th': {
+                            color: BRAND.white,
+                            fontWeight: 600,
+                            fontSize: 12,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.06em',
+                            borderBottom: 'none',
+                            py: 1.5,
+                          },
                         }}
                       >
-                        <TableCell>
-                          <Typography variant="body2" fontWeight={600} color="text.primary">
-                            #{user.id}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Avatar sx={{ 
-                              width: 40, 
-                              height: 40, 
-                              bgcolor: user.is_active ? 'primary.main' : 'grey.400', 
-                              fontSize: '0.875rem', 
-                              fontWeight: 600,
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                            }}>
-                              {user.full_name?.charAt(0) || user.username?.charAt(0) || '?'}
-                            </Avatar>
-                            <Box>
-                              <Typography variant="body2" fontWeight={600} color="text.primary">{user.full_name || user.username}</Typography>
-                              <Typography variant="caption" color="text.secondary">@{user.username}</Typography>
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" sx={{ wordBreak: 'break-word' }} color="text.secondary">
-                            {user.email || 'Non renseigné'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={getRoleLabel(user.role || 'client')} 
-                            color={getRoleColor(user.role || 'client') as any} 
-                            size="small" 
-                            sx={{ 
-                              fontWeight: 600, 
-                              borderRadius: 1.5,
-                              fontSize: '0.75rem'
-                            }} 
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={user.is_active ? 'Actif' : 'Inactif'} 
-                            color={user.is_active ? 'success' : 'default'} 
-                            size="small" 
-                            sx={{ 
-                              fontWeight: 600, 
-                              borderRadius: 1.5,
-                              fontSize: '0.75rem'
-                            }} 
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Tooltip title="Actions">
-                            <IconButton 
-                              onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, user)} 
-                              sx={{ 
-                                '&:hover': { 
-                                  backgroundColor: 'rgba(102, 126, 234, 0.1)', 
-                                  color: 'primary.main' 
-                                },
-                                borderRadius: 1.5
-                              }}
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
+                        <TableCell>ID</TableCell>
+                        <TableCell>Administrateur</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Rôle</TableCell>
+                        <TableCell>Statut</TableCell>
+                        <TableCell align="right">Actions</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {users.map((row, index) => (
+                        <TableRow
+                          key={row.id}
+                          hover
+                          sx={{
+                            bgcolor: index % 2 === 0 ? BRAND.white : BRAND.surface,
+                            '&:hover': { bgcolor: alpha(BRAND.primary, 0.04) },
+                            '& td': { borderColor: BRAND.border, py: 1.75 },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography sx={{ fontSize: 13, fontWeight: 700, color: BRAND.primary }}>
+                              #{row.id}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Avatar
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  bgcolor: row.is_active ? BRAND.primary : BRAND.muted,
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {row.full_name?.charAt(0) || row.username?.charAt(0) || '?'}
+                              </Avatar>
+                              <Box>
+                                <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark }}>
+                                  {row.full_name || row.username}
+                                </Typography>
+                                <Typography sx={{ fontSize: 12, color: BRAND.muted }}>@{row.username}</Typography>
+                              </Box>
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 13, color: BRAND.muted, wordBreak: 'break-word' }}>
+                              {row.email || '—'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={getRoleLabel(row.role || 'client')}
+                              size="small"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: 11,
+                                bgcolor: alpha(BRAND.primary, 0.1),
+                                color: BRAND.primary,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={row.is_active ? 'Actif' : 'Inactif'}
+                              size="small"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: 11,
+                                bgcolor: row.is_active ? alpha('#0D7A4A', 0.1) : alpha(BRAND.muted, 0.15),
+                                color: row.is_active ? '#0D7A4A' : BRAND.muted,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Actions">
+                              <IconButton
+                                size="small"
+                                onClick={(e: React.MouseEvent<HTMLElement>) => handleMenuClick(e, row)}
+                                sx={{
+                                  borderRadius: '8px',
+                                  color: BRAND.dark,
+                                  '&:hover': { bgcolor: alpha(BRAND.primary, 0.1), color: BRAND.primary },
+                                }}
+                              >
+                                <MoreVertIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-              {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                  <Pagination 
-                    count={totalPages} 
-                    page={page} 
-                    onChange={(_e: React.ChangeEvent<unknown>, newPage: number) => setPage(newPage)} 
-                    color="primary" 
-                    size="large" 
-                    sx={{
-                      '& .MuiPaginationItem-root': {
-                        borderRadius: 2,
-                        fontWeight: 600
-                      }
-                    }}
-                  />
-                </Box>
-              )}
-            </Box>
-          )}
-        </Card>
-      )}
+                {totalPages > 1 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={(_e: React.ChangeEvent<unknown>, newPage: number) => setPage(newPage)}
+                      sx={{
+                        '& .MuiPaginationItem-root.Mui-selected': {
+                          bgcolor: BRAND.primary,
+                          color: BRAND.white,
+                          '&:hover': { bgcolor: BRAND.dark },
+                        },
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Paper>
+        )}
+      </Box>
 
-      <Menu 
-        anchorEl={anchorEl} 
-        open={Boolean(anchorEl)} 
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            minWidth: 180
-          }
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '12px',
+              border: `1px solid ${BRAND.border}`,
+              minWidth: 180,
+              boxShadow: `0 8px 24px ${alpha(BRAND.dark, 0.12)}`,
+            },
+          },
         }}
       >
-        <MenuItem 
+        <MenuItem
           onClick={() => selectedUser && handleEditUser(selectedUser)}
-          sx={{ 
-            borderRadius: 1,
-            mx: 1,
-            my: 0.5,
-            '&:hover': {
-              bgcolor: 'rgba(25, 118, 210, 0.08)'
-            }
-          }}
+          sx={{ borderRadius: '8px', mx: 0.5, fontSize: 14 }}
         >
-          <EditIcon sx={{ mr: 1.5, fontSize: 18, color: 'text.secondary' }} />
-          <Typography variant="body2" fontWeight={500}>Modifier</Typography>
+          <ListItemIcon>
+            <EditIcon fontSize="small" sx={{ color: BRAND.primary }} />
+          </ListItemIcon>
+          <ListItemText>Modifier</ListItemText>
         </MenuItem>
-        <MenuItem 
-          onClick={() => selectedUser && handleDeleteUser(selectedUser)} 
+        <MenuItem
+          onClick={() => selectedUser && handleDeleteUser(selectedUser)}
           disabled={selectedUser?.role === 'superadmin'}
-          sx={{ 
-            borderRadius: 1,
-            mx: 1,
-            my: 0.5,
-            color: 'error.main',
-            '&:hover': {
-              bgcolor: 'rgba(211, 47, 47, 0.08)'
-            },
-            '&.Mui-disabled': {
-              opacity: 0.5
-            }
-          }}
+          sx={{ borderRadius: '8px', mx: 0.5, fontSize: 14, color: 'error.main' }}
         >
-          <DeleteIcon sx={{ mr: 1.5, fontSize: 18 }} />
-          <Typography variant="body2" fontWeight={500}>Supprimer</Typography>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Supprimer</ListItemText>
         </MenuItem>
       </Menu>
 
-      <Dialog 
-        open={deleteDialogOpen} 
+      <Dialog
+        open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: 2.5,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-            maxWidth: 500
-          }
-        }}
+        PaperProps={{ sx: { borderRadius: '16px', maxWidth: 440 } }}
       >
-        <DialogTitle sx={{ 
-          pb: 2,
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          color: 'text.primary'
-        }}>
+        <DialogTitle sx={{ fontWeight: 700, color: BRAND.dark, pb: 1 }}>
           Confirmer la suppression
         </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Êtes-vous sûr de vouloir supprimer l'administrateur <strong>"{userToDelete?.full_name || userToDelete?.username}"</strong> ({userToDelete?.email}) ?
+        <DialogContent>
+          <Typography sx={{ color: BRAND.muted, mb: 2 }}>
+            Supprimer l&apos;administrateur{' '}
+            <strong style={{ color: BRAND.dark }}>
+              {userToDelete?.full_name || userToDelete?.username}
+            </strong>{' '}
+            ({userToDelete?.email}) ?
           </Typography>
-          <Box sx={{ 
-            bgcolor: 'rgba(211, 47, 47, 0.05)',
-            p: 2,
-            borderRadius: 2,
-            border: '1px solid rgba(211, 47, 47, 0.2)'
-          }}>
-            <Typography variant="body2" color="error.main" fontWeight={500}>
-              ⚠️ Cette action est irréversible.
-            </Typography>
-          </Box>
+          <Alert severity="warning" sx={{ borderRadius: '10px' }}>
+            Cette action est irréversible.
+          </Alert>
         </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button 
-            onClick={() => setDeleteDialogOpen(false)}
-            sx={{ 
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3
-            }}
-          >
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '10px' }}>
             Annuler
           </Button>
-          <Button 
-            onClick={confirmDeleteUser} 
-            color="error" 
+          <Button
+            onClick={confirmDeleteUser}
+            color="error"
             variant="contained"
-            sx={{ 
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3
-            }}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '10px', boxShadow: 'none' }}
           >
             Supprimer
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog 
-        open={editDialogOpen} 
-        onClose={() => setEditDialogOpen(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2.5,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-          }
-        }}
+        PaperProps={{ sx: { borderRadius: '16px' } }}
       >
-        <DialogTitle sx={{ 
-          pb: 2,
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          color: 'text.primary'
-        }}>
-          Modifier l'administrateur
+        <DialogTitle sx={{ fontWeight: 700, color: BRAND.dark, pb: 1 }}>
+          Modifier l&apos;administrateur
         </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Box sx={{ pt: 2 }}>
-            <TextField 
-              fullWidth 
-              label="Nom complet" 
-              value={editForm.name} 
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, name: e.target.value})} 
-              margin="normal"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Nom complet"
+            value={editForm.name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, name: e.target.value })}
+            margin="normal"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            value={editForm.email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, email: e.target.value })}
+            margin="normal"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+          <Box sx={{ mt: 2, p: 2, borderRadius: '10px', bgcolor: BRAND.surface, border: `1px solid ${BRAND.border}` }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editForm.is_active}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, is_active: e.target.checked })}
+                  sx={{
+                    '& .Mui-checked': { color: BRAND.primary },
+                    '& .Mui-checked + .MuiSwitch-track': { bgcolor: BRAND.primary },
+                  }}
+                />
+              }
+              label={<Typography sx={{ fontSize: 14, fontWeight: 500, color: BRAND.dark }}>Compte actif</Typography>}
             />
-            <TextField 
-              fullWidth 
-              label="Email" 
-              value={editForm.email} 
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, email: e.target.value})} 
-              margin="normal"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 2 }}>
-              <FormControlLabel 
-                control={
-                  <Switch 
-                    checked={editForm.is_active} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, is_active: e.target.checked})}
-                    sx={{ mr: 1 }}
-                  />
-                } 
-                label={<Typography variant="body2" fontWeight={500}>Compte actif</Typography>}
-              />
-            </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button 
-            onClick={() => setEditDialogOpen(false)}
-            sx={{ 
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3
-            }}
-          >
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '10px' }}>
             Annuler
           </Button>
-          <Button 
-            onClick={handleUpdateUser} 
+          <Button
+            onClick={handleUpdateUser}
             variant="contained"
-            sx={{ 
-              borderRadius: 2,
+            sx={{
               textTransform: 'none',
               fontWeight: 600,
-              px: 3,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
-              }
+              borderRadius: '10px',
+              bgcolor: BRAND.primary,
+              boxShadow: 'none',
+              '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
             }}
           >
             Sauvegarder

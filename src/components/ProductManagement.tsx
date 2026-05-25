@@ -51,19 +51,37 @@ import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ProductImage } from './ProductImage';
 
-// Styles personnalisés
-const StyledCard = styled(Card)(({ theme }: any) => ({
+const BRAND = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
+
+const primaryBtnSx = {
+  bgcolor: BRAND.primary,
+  borderRadius: '10px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  boxShadow: 'none',
+  '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+};
+
+const StyledCard = styled(Card)(() => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  transition: 'all 0.3s ease-in-out',
-  cursor: 'pointer',
+  borderRadius: '16px',
+  border: `1px solid ${BRAND.border}`,
+  overflow: 'hidden',
+  transition: 'box-shadow 0.25s ease, transform 0.25s ease',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-    '& .product-image-overlay': {
-      opacity: 1,
-    }
+    transform: 'translateY(-3px)',
+    boxShadow: `0 12px 28px ${alpha(BRAND.primary, 0.12)}`,
+    '& .product-image-overlay': { opacity: 1 },
   },
 }));
 
@@ -543,36 +561,61 @@ export function ProductManagement() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        justifyContent: 'space-between',
-        alignItems: { md: 'center' },
-        mb: 4,
-        gap: 2
-      }}>
+    <Box sx={{ width: '100%' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '16px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.light,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box>
-          <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
-            Gestion des Produits
+          <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 700, color: BRAND.dark }}>
+            Gestion des produits
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Catalogue de {total} produits
+          <Typography sx={{ fontSize: 14, color: BRAND.muted, mt: 0.5 }}>
+            Catalogue de {total} produit{total !== 1 ? 's' : ''}
           </Typography>
         </Box>
         <Button
           variant="contained"
           startIcon={<Plus />}
           onClick={openAddDialog}
-          sx={{ px: 3, py: 1 }}
+          sx={{ ...primaryBtnSx, px: 2.5, py: 1.1 }}
         >
-          Nouveau Produit
+          Nouveau produit
         </Button>
-      </Box>
+      </Paper>
 
-      <Card sx={{ mb: 4, p: 2 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          borderRadius: '16px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 20 }} />
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>
+              Filtres et recherche
+            </Typography>
+          </Stack>
+        </Box>
+        <Box sx={{ p: 2.5 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               placeholder="Rechercher un produit..."
@@ -582,9 +625,10 @@ export function ProductManagement() {
                 startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
               }}
               size="small"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: BRAND.surface } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Catégorie</InputLabel>
               <MuiSelect
@@ -599,7 +643,7 @@ export function ProductManagement() {
               </MuiSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Statut</InputLabel>
               <MuiSelect
@@ -615,35 +659,45 @@ export function ProductManagement() {
               </MuiSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               fullWidth
               onClick={fetchProducts}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: BRAND.border,
+                color: BRAND.dark,
+                py: 1,
+                '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
+              }}
             >
               Actualiser
             </Button>
           </Grid>
         </Grid>
-      </Card>
+        </Box>
+      </Paper>
 
       {loading ? (
         <Box display="flex" justifyContent="center" py={8}>
-          <CircularProgress />
+          <CircularProgress sx={{ color: BRAND.primary }} />
         </Box>
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : !Array.isArray(products) || products.length === 0 ? (
-        <Box textAlign="center" py={8}>
-          <Package sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">Aucun produit trouvé</Typography>
-        </Box>
+        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', border: `1px solid ${BRAND.border}` }}>
+          <Package sx={{ fontSize: 56, color: BRAND.border, mb: 1 }} />
+          <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.muted }}>Aucun produit trouvé</Typography>
+        </Paper>
       ) : (
         <>
-          <Grid container spacing={3}>
+          <Grid container spacing={2.5}>
             {products.map((product) => (
-              <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
                 <StyledCard>
                   <Box sx={{ position: 'relative', pt: '100%', bgcolor: 'action.hover' }}>
                     <ProductImage
@@ -684,8 +738,8 @@ export function ProductManagement() {
                       {product.name}
                     </Typography>
                     <Box display="flex" alignItems="center" gap={1} mt={1}>
-                      <Typography variant="h6" color="primary">
-                        {product.price.toLocaleString()} XOF
+                      <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 700 }}>
+                        {Number(product.price).toLocaleString('fr-FR')} FCFA
                       </Typography>
                       {product.original_price && product.original_price > product.price && (
                         <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.disabled' }}>
@@ -704,14 +758,14 @@ export function ProductManagement() {
                       )}
                     </Box>
                   </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <IconButton size="small" onClick={() => openViewDialog(product)}>
+                  <CardActions sx={{ p: 1.5, pt: 0, borderTop: `1px solid ${BRAND.border}`, justifyContent: 'flex-end', gap: 0.5 }}>
+                    <IconButton size="small" onClick={() => openViewDialog(product)} sx={{ color: BRAND.muted, '&:hover': { bgcolor: alpha(BRAND.primary, 0.08), color: BRAND.primary } }}>
                       <Eye fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" color="primary" onClick={() => openEditDialog(product)}>
+                    <IconButton size="small" onClick={() => openEditDialog(product)} sx={{ color: BRAND.primary, '&:hover': { bgcolor: alpha(BRAND.primary, 0.1) } }}>
                       <Edit fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" color="error" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }}>
+                    <IconButton size="small" onClick={() => { setProductToDelete(product); setDeleteDialogOpen(true); }} sx={{ color: '#DC2626', '&:hover': { bgcolor: alpha('#DC2626', 0.08) } }}>
                       <Trash2 fontSize="small" />
                     </IconButton>
                   </CardActions>
@@ -720,12 +774,18 @@ export function ProductManagement() {
             ))}
           </Grid>
 
-          <Box mt={4} display="flex" justifyContent="center">
+          <Box mt={3} display="flex" justifyContent="center">
             <Pagination
               count={Math.ceil(total / limit)}
               page={page}
               onChange={handlePageChange}
-              color="primary"
+              sx={{
+                '& .MuiPaginationItem-root.Mui-selected': {
+                  bgcolor: BRAND.primary,
+                  color: BRAND.white,
+                  '&:hover': { bgcolor: BRAND.dark },
+                },
+              }}
             />
           </Box>
         </>

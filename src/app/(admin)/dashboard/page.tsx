@@ -4,38 +4,49 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Box, CircularProgress, Container } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
+
+const BRAND = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  surface: '#F5F9FE',
+  muted: '#5F6B7A',
+} as const;
 
 export default function Page() {
-    const { user, loading } = useAuth();
-    const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (!loading && (!user || user.role !== 'admin')) {
-            router.push('/');
-        }
-    }, [user, loading, router]);
-
-    if (loading) {
-        return (
-            <Container maxWidth="xl">
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        minHeight: '100vh',
-                    }}
-                >
-                    <CircularProgress />
-                </Box>
-            </Container>
-        );
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/');
     }
+  }, [user, loading, router]);
 
-    if (!user || user.role !== 'admin') {
-        return null;
-    }
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh',
+          gap: 2,
+          bgcolor: BRAND.surface,
+        }}
+      >
+        <CircularProgress sx={{ color: BRAND.primary }} size={48} />
+        <Typography sx={{ color: BRAND.muted, fontWeight: 500 }}>
+          Chargement du dashboard…
+        </Typography>
+      </Box>
+    );
+  }
 
-    return <AdminDashboard />;
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
+
+  return <AdminDashboard />;
 }

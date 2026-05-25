@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Button,
   TextField,
@@ -61,6 +60,25 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { categoryService, type Category } from '@/services/category.service';
+
+const BRAND = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  white: '#FFFFFF',
+  light: '#E6F1FB',
+  surface: '#F5F9FE',
+  border: '#D4E8F7',
+  muted: '#5F6B7A',
+} as const;
+
+const primaryBtnSx = {
+  bgcolor: BRAND.primary,
+  borderRadius: '10px',
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  boxShadow: 'none',
+  '&:hover': { bgcolor: BRAND.dark, boxShadow: 'none' },
+};
 
 interface CategoriesState {
   categories: Category[];
@@ -388,54 +406,49 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
   const totalPages = Math.ceil(state.pagination.total / state.pagination.limit);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header Section */}
-      <Box
+    <Box sx={{ width: '100%' }}>
+      <Paper
+        elevation={0}
         sx={{
-          mb: 4,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
-          borderRadius: 3,
-          p: 3,
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          mb: 2.5,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '16px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.light,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box>
-            <Typography variant="h3" component="h1" fontWeight={800} color="primary.main" mb={1}>
-              Gestion des catégories
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Gérez votre catalogue de catégories de produits
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              resetFormData();
-              setCreateDialogOpen(true);
-            }}
-            sx={{
-              px: 4,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
-              '&:hover': {
-                boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-              }
-            }}
-          >
-            Nouvelle catégorie
-          </Button>
+        <Box>
+          <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 700, color: BRAND.dark, lineHeight: 1.2 }}>
+            Gestion des catégories
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: BRAND.muted, mt: 0.5 }}>
+            Gérez votre catalogue de catégories de produits
+          </Typography>
         </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => {
+            resetFormData();
+            setCreateDialogOpen(true);
+          }}
+          sx={{ ...primaryBtnSx, px: 2.5, py: 1.1 }}
+        >
+          Nouvelle catégorie
+        </Button>
+      </Paper>
+      <Box sx={{ display: showStats ? 'block' : 'none', mb: 2.5 }}>
 
         {/* Stats Cards - Conditionally rendered */}
         {showStats && (
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`, color: 'white' }}>
+              <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '12px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.pagination.total}
@@ -447,7 +460,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`, color: 'white' }}>
+              <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '12px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.is_active).length}
@@ -459,7 +472,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`, color: 'white' }}>
+              <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '12px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => !c.is_active).length}
@@ -471,7 +484,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: `linear-gradient(135deg, ${theme.palette.info.main} 0%, ${theme.palette.info.dark} 100%)`, color: 'white' }}>
+              <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '12px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.cover_image_url).length}
@@ -487,36 +500,40 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       </Box>
 
       {state.error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>
           {state.error}
         </Alert>
       )}
 
-      {/* Filters Section */}
-      <Card
+      <Paper
+        elevation={0}
         sx={{
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          mb: 2.5,
+          borderRadius: '16px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
+          overflow: 'hidden',
         }}
       >
-        <CardContent sx={{ p: 3 }}>
-          <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <FilterIcon color="action" />
-            <Typography variant="h6" fontWeight={600}>
+        <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 20 }} />
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
             </Typography>
             <Box flexGrow={1} />
             <IconButton
               onClick={() => setState(prev => ({ ...prev, filters: { search: '', is_active: null }, pagination: { ...prev.pagination, skip: 0 } }))}
               title="Réinitialiser les filtres"
+              sx={{ color: BRAND.primary, '&:hover': { bgcolor: alpha(BRAND.primary, 0.08) } }}
             >
               <RefreshIcon />
             </IconButton>
           </Box>
+        </Box>
+        <Box sx={{ p: 2.5 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 placeholder="Rechercher par nom, slug ou description..."
@@ -533,20 +550,16 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     </InputAdornment>
                   ),
                   sx: {
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.background.paper, 0.8),
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                    },
+                    borderRadius: '10px',
+                    bgcolor: BRAND.surface,
                     '&.Mui-focused': {
-                      backgroundColor: 'background.paper',
-                      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                      boxShadow: `0 0 0 2px ${alpha(BRAND.primary, 0.15)}`,
                     },
                   },
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -571,58 +584,77 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 sx={{ ml: 0 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <Stack direction="row" spacing={1}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Button
-                  variant={state.filters.is_active === null ? "contained" : "outlined"}
+                  variant={state.filters.is_active === null ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: null },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    ...(state.filters.is_active === null
+                      ? primaryBtnSx
+                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                  }}
                 >
                   Toutes
                 </Button>
                 <Button
-                  variant={state.filters.is_active === true ? "contained" : "outlined"}
+                  variant={state.filters.is_active === true ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: true },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
-                  color="success"
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    ...(state.filters.is_active === true
+                      ? { bgcolor: '#0D7A4A', boxShadow: 'none', '&:hover': { bgcolor: '#0a6240' } }
+                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                  }}
                 >
                   Actives
                 </Button>
                 <Button
-                  variant={state.filters.is_active === false ? "contained" : "outlined"}
+                  variant={state.filters.is_active === false ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
                     ...prev,
                     filters: { ...prev.filters, is_active: false },
                     pagination: { ...prev.pagination, skip: 0 },
                   }))}
-                  color="error"
                   size="small"
-                  sx={{ borderRadius: 2 }}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    ...(state.filters.is_active === false
+                      ? { bgcolor: '#DC2626', boxShadow: 'none', '&:hover': { bgcolor: '#b91c1c' } }
+                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                  }}
                 >
                   Inactives
                 </Button>
               </Stack>
             </Grid>
           </Grid>
-        </CardContent>
-      </Card>
+        </Box>
+      </Paper>
 
-      {/* Table Section */}
-      <Card
+      <Paper
+        elevation={0}
         sx={{
-          borderRadius: 3,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          borderRadius: '16px',
+          border: `1px solid ${BRAND.border}`,
+          bgcolor: BRAND.white,
           overflow: 'hidden',
         }}
       >
@@ -634,7 +666,23 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow
+                sx={{
+                  '& th': {
+                    bgcolor: BRAND.dark,
+                    color: BRAND.white,
+                    fontWeight: 600,
+                    fontSize: 12,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    py: 1.75,
+                    borderBottom: 'none',
+                  },
+                  '& .MuiTypography-root': { color: BRAND.white, fontSize: 12 },
+                  '& .MuiSvgIcon-root': { color: alpha(BRAND.white, 0.85) },
+                  '& th > div > div': { bgcolor: alpha(BRAND.white, 0.12) },
+                }}
+              >
                 <TableCell sx={{
                   backgroundColor: alpha(theme.palette.primary.main, 0.08),
                   fontWeight: 700,
@@ -996,7 +1044,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             </TableBody>
           </Table>
         </TableContainer>
-      </Card>
+      </Paper>
 
       {totalPages > 1 && (
         <Box display="flex" justifyContent="center" mt={3}>
@@ -1221,6 +1269,6 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }
