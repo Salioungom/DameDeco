@@ -30,7 +30,7 @@ export default function Page() {
         }
     }, [searchParams, getSessionId, clearCart]);
 
-    const handlePlaceOrder = async () => {
+    const handlePlaceOrder = async (data: import('@/components/CheckoutPage').OrderCheckoutData) => {
         if (cartWithProducts.length === 0) {
             setError('Votre panier est vide');
             return;
@@ -40,14 +40,27 @@ export default function Page() {
             setIsProcessing(true);
             setError(null);
 
-            // La commande est déjà créée depuis le panier et le panier est déjà vidé
-            // Rediriger directement vers la page de succès
-            setTimeout(() => {
-                router.push('/checkout/success');
-            }, 2000);
+            const order = await OrderService.createOrderFromCart(
+                cartWithProducts,
+                {
+                    first_name: data.firstName,
+                    last_name: data.lastName,
+                    address: data.address,
+                    street: data.address,
+                    city: data.city,
+                    country: data.country,
+                    phone: data.phone,
+                },
+                data.paymentMethod,
+                'XOF',
+                data.deliveryMethod,
+            );
+
+            clearCart(getSessionId());
+            router.push('/checkout/success');
 
         } catch (err: any) {
-            console.error('Erreur:', err);
+            console.error('Erreur création commande:', err);
             setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
         } finally {
             setIsProcessing(false);

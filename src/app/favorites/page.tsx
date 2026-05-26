@@ -7,12 +7,16 @@ import {
     Typography,
     Grid,
     Paper,
-    CircularProgress,
+    Skeleton,
     Alert,
     Button,
+    useTheme,
+    alpha,
 } from '@mui/material';
 import {
     FavoriteBorder,
+    FavoriteRounded,
+    ArrowForward,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { FavoriteService, Favorite } from '@/services/favorite.service';
@@ -23,12 +27,15 @@ import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 
 export default function FavoritesPage() {
+    const theme = useTheme();
     const [favorites, setFavorites] = useState<Favorite[]>([]);
     const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { addToCart, userType, favorites: storeFavorites, toggleFavorite, loadFavorites: loadStoreFavorites } = useStore();
     const router = useRouter();
+    const brandBlue = '#185FA5';
+    const brandDark = '#042C53';
 
     useEffect(() => {
         const loadFavorites = async () => {
@@ -37,10 +44,8 @@ export default function FavoritesPage() {
                 const favoritesData = await FavoriteService.getUserFavorites(0, 20);
                 setFavorites(favoritesData.items);
 
-                // Synchroniser le store avec les favoris
                 await loadStoreFavorites();
 
-                // Récupérer les détails complets des produits
                 const productPromises = favoritesData.items.map(async (favorite) => {
                     try {
                         const product = await productService.getProductById(favorite.product.id.toString());
@@ -67,14 +72,12 @@ export default function FavoritesPage() {
         loadFavorites();
     }, []);
 
-    // Recharger les favoris quand le store change (après toggleFavorite)
     useEffect(() => {
         const reloadFavorites = async () => {
             try {
                 const favoritesData = await FavoriteService.getUserFavorites(0, 20);
                 setFavorites(favoritesData.items);
 
-                // Récupérer les détails complets des produits
                 const productPromises = favoritesData.items.map(async (favorite) => {
                     try {
                         const product = await productService.getProductById(favorite.product.id.toString());
@@ -90,83 +93,187 @@ export default function FavoritesPage() {
                 setFavoriteProducts(validProducts);
             } catch (err) {
                 console.error("Error reloading favorites", err);
-                // En cas d'erreur, vider la liste
                 setFavoriteProducts([]);
             }
         };
 
-        // Ne recharger qu'après le chargement initial pour éviter les appels en double
         if (!loading) {
             reloadFavorites();
         }
     }, [storeFavorites, loading]);
 
+    const productCount = favoriteProducts?.length ?? 0;
+
     if (loading) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 12, mb: 8, display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress />
-            </Container>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Container maxWidth="lg" sx={{ pt: 14, pb: 8 }}>
+                    <Skeleton variant="rounded" width={280} height={40} sx={{ mb: 2, borderRadius: 2 }} />
+                    <Skeleton variant="rounded" width={180} height={24} sx={{ mb: 5, borderRadius: 2 }} />
+                    <Grid container spacing={3}>
+                        {[1, 2, 3, 4].map((i) => (
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
+                                <Skeleton variant="rounded" height={380} sx={{ borderRadius: 3 }} />
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Container>
+            </Box>
         );
     }
 
-    if (!Array.isArray(favoriteProducts) || favoriteProducts.length === 0) {
+    if (productCount === 0) {
         return (
-            <Container maxWidth="lg" sx={{ mt: 12, mb: 8 }}>
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 8,
-                        textAlign: 'center',
-                        bgcolor: 'background.default',
-                    }}
-                >
-                    <FavoriteBorder sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
-                    <Typography variant="h5" gutterBottom fontWeight={600}>
-                        Aucun favori pour le moment
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" paragraph>
-                        Commencez à ajouter des produits à vos favoris pour les retrouver facilement
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        component={Link}
-                        href="/shop"
-                        size="large"
-                        sx={{ mt: 2 }}
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Container maxWidth="lg" sx={{ pt: 14, pb: 8 }}>
+                    <Box
+                        sx={{
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: 4,
+                            background: `linear-gradient(135deg, ${alpha(brandBlue, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                            border: `1px solid ${alpha(brandBlue, 0.15)}`,
+                            backdropFilter: 'blur(8px)',
+                            textAlign: 'center',
+                            py: { xs: 10, md: 14 },
+                            px: 4,
+                        }}
                     >
-                        Découvrir nos produits
-                    </Button>
-                </Paper>
-            </Container>
+                        <Box
+                            sx={{
+                                width: 100,
+                                height: 100,
+                                borderRadius: '50%',
+                                mx: 'auto',
+                                mb: 3,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.15)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`,
+                                border: `2px solid ${alpha(brandBlue, 0.2)}`,
+                            }}
+                        >
+                            <FavoriteBorder sx={{ fontSize: 44, color: brandBlue }} />
+                        </Box>
+                        <Typography
+                            variant="h4"
+                            fontWeight={700}
+                            sx={{ mb: 1.5, color: 'text.primary' }}
+                        >
+                            Aucun favori pour le moment
+                        </Typography>
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            sx={{ maxWidth: 460, mx: 'auto', mb: 4, lineHeight: 1.7 }}
+                        >
+                            Parcourez notre catalogue et ajoutez vos coups de cœur à vos favoris
+                            pour les retrouver en un clic.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            component={Link}
+                            href="/shop"
+                            size="large"
+                            endIcon={<ArrowForward />}
+                            sx={{
+                                borderRadius: 3,
+                                px: 5,
+                                py: 1.5,
+                                fontWeight: 600,
+                                boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                            }}
+                        >
+                            Découvrir nos produits
+                        </Button>
+                    </Box>
+                </Container>
+            </Box>
         );
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 12, mb: 8 }}>
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" gutterBottom fontWeight={700}>
-                    Mes Favoris
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    {(favoriteProducts || []).length} produit{(favoriteProducts || []).length > 1 ? 's' : ''} dans vos favoris
-                </Typography>
-                {error && <Alert severity="warning" sx={{ mt: 2 }}>{error}</Alert>}
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            <Box
+                sx={{
+                    position: 'relative',
+                    background: `linear-gradient(135deg, ${alpha(brandBlue, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`,
+                    borderBottom: `1px solid ${alpha(brandBlue, 0.1)}`,
+                    pt: { xs: 12, md: 14 },
+                    pb: { xs: 4, md: 5 },
+                }}
+            >
+                <Container maxWidth="lg">
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                        }}
+                    >
+                        <Box>
+                            <Typography
+                                variant="h3"
+                                fontWeight={800}
+                                sx={{
+                                    fontSize: { xs: 28, md: 36 },
+                                    letterSpacing: '-0.02em',
+                                }}
+                            >
+                                Mes Favoris
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                color="text.secondary"
+                                sx={{ mt: 0.5, fontSize: 15 }}
+                            >
+                                {productCount} produit{productCount > 1 ? 's' : ''} dans votre collection
+                            </Typography>
+                        </Box>
+                        <Box
+                            sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                px: 3,
+                                py: 1.25,
+                                borderRadius: 3,
+                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
+                                border: `1px solid ${alpha(brandBlue, 0.18)}`,
+                            }}
+                        >
+                            <FavoriteRounded sx={{ fontSize: 20, color: brandBlue }} />
+                            <Typography fontWeight={700} fontSize={18} color={brandBlue}>
+                                {productCount}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    {error && (
+                        <Alert severity="warning" sx={{ mt: 3, borderRadius: 2 }}>
+                            {error}
+                        </Alert>
+                    )}
+                </Container>
             </Box>
 
-            <Grid container spacing={3}>
-                {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                        <ProductCard
-                            product={product}
-                            onAddToCart={addToCart}
-                            onViewDetails={(p) => router.push(`/product/${p.id}`)}
-                            userType={userType}
-                            isFavorite={true}
-                            onToggleFavorite={toggleFavorite}
-                        />
-                    </Grid>
-                ))}
-            </Grid>
-        </Container>
+            <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
+                <Grid container spacing={3}>
+                    {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                            <ProductCard
+                                product={product}
+                                onAddToCart={addToCart}
+                                onViewDetails={(p) => router.push(`/product/${p.id}`)}
+                                userType={userType}
+                                isFavorite={true}
+                                onToggleFavorite={toggleFavorite}
+                            />
+                        </Grid>
+                    ))}
+                </Grid>
+            </Container>
+        </Box>
     );
 }

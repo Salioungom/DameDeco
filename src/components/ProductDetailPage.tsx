@@ -613,7 +613,7 @@ export function ProductDetailPage({
         >
           <Tabs
             value={tabValue}
-            onChange={(_, v) => setTabValue(v)}
+            onChange={(_: React.SyntheticEvent, v: number) => setTabValue(v)}
             variant="scrollable"
             scrollButtons="auto"
             sx={{

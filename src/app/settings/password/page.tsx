@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { PasswordStrengthMeter } from '@/components/ui/PasswordStrengthMeter';
+import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 
 export default function PasswordPage() {
@@ -28,6 +29,7 @@ export default function PasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -128,6 +130,54 @@ export default function PasswordPage() {
 
       <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
         <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh' }}>
+          {/* Navigation Tabs */}
+          <Box
+            sx={{
+              display: 'inline-flex',
+              mb: 3,
+              p: 0.5,
+              borderRadius: '12px',
+              background: alpha('#fff', 0.1),
+              backdropFilter: 'blur(10px)',
+              mx: 'auto',
+            }}
+          >
+            <Box
+              onClick={() => router.push('/settings/profile')}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                color: '#fff',
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                transition: 'all 0.2s',
+                userSelect: 'none',
+                '&:hover': {
+                  background: alpha('#fff', 0.1),
+                },
+              }}
+            >
+              Profil
+            </Box>
+            <Box
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                background: alpha('#fff', 0.95),
+                color: '#042C53',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                transition: 'all 0.2s',
+                userSelect: 'none',
+              }}
+            >
+              Mot de passe
+            </Box>
+          </Box>
           <Box
             sx={{
               p: { xs: 3.5, sm: 5 },

@@ -300,7 +300,7 @@ export function Navigation() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { user, logout, loading: authLoading } = useAuth();
-  const { isAdmin, toggleAdmin, cart, toggleCart } = useStore();
+  const { isAdmin, toggleAdmin, cart, toggleCart, favorites } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -312,6 +312,8 @@ export function Navigation() {
     () => (cart || []).reduce((acc, item) => acc + item.quantity, 0),
     [cart],
   );
+
+  const favoriteCount = favorites?.length ?? 0;
 
   const profileMenuOpen = Boolean(profileAnchor);
 
@@ -649,7 +651,23 @@ export function Navigation() {
               />
 
               <NavActionButton ariaLabel="Mes favoris" href="/favorites" active={pathname === '/favorites'}>
-                <FavoriteBorder sx={{ fontSize: ICON_SIZE }} />
+                <Badge
+                  badgeContent={favoriteCount > 0 ? favoriteCount : undefined}
+                  color="primary"
+                  overlap="circular"
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      fontSize: 10,
+                      fontWeight: 700,
+                      height: 18,
+                      minWidth: 18,
+                      top: 4,
+                      right: 4,
+                    },
+                  }}
+                >
+                  <FavoriteBorder sx={{ fontSize: ICON_SIZE }} />
+                </Badge>
               </NavActionButton>
 
               <NavActionButton ariaLabel="Panier" onClick={() => toggleCart()} active={false}>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Box, Container, Typography, TextField, Button,
   Stack, Accordion, AccordionSummary, AccordionDetails,
-  Snackbar, Alert, CircularProgress,
+  Snackbar, Alert, CircularProgress, alpha,
 } from '@mui/material';
 import {
   Email, Phone, LocationOn, Send, WhatsApp,
@@ -13,13 +13,14 @@ import {
 
 const C = {
   primary:'#185FA5', dark:'#042C53', light:'#E6F1FB',
-  surface:'#F5F9FE', border:'#E6F1FB', muted:'#888780', text:'#5F5E5A',
+  surface:'#F5F9FE', border:'#E6F1FB', mid:'#85B7EB',
+  muted:'#888780', text:'#5F5E5A',
 } as const;
 
 const CONTACT_ITEMS = [
-  { icon:<Phone sx={{fontSize:17,color:C.primary}}/>, label:'Téléphone', value:'+221 77 XXX XX XX', sub:'Lun – Sam · 9h–18h' },
-  { icon:<Email sx={{fontSize:17,color:C.primary}}/>, label:'Email', value:'contact@damesarr.sn', sub:'Réponse sous 24h' },
-  { icon:<LocationOn sx={{fontSize:17,color:C.primary}}/>, label:'Adresse', value:'Dakar, Sénégal', sub:'Quartier des affaires' },
+  { icon:<Phone sx={{fontSize:17}}/>, label:'Téléphone', value:'+221 77 XXX XX XX', sub:'Lun – Sam · 9h–18h' },
+  { icon:<Email sx={{fontSize:17}}/>, label:'Email', value:'contact@damesarr.sn', sub:'Réponse sous 24h' },
+  { icon:<LocationOn sx={{fontSize:17}}/>, label:'Adresse', value:'Dakar, Sénégal', sub:'Quartier des affaires' },
 ];
 
 const SOCIALS = [
@@ -77,9 +78,10 @@ export default function ContactPage() {
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius:'8px', fontSize:13,
+      borderRadius:'10px', fontSize:13,
+      transition:'all 0.2s ease',
       '& fieldset': {borderColor:C.border},
-      '&:hover fieldset': {borderColor:'#85B7EB'},
+      '&:hover fieldset': {borderColor:C.mid},
       '&.Mui-focused fieldset': {borderColor:C.primary, borderWidth:1.5},
     },
     '& .MuiInputLabel-root': {fontSize:13, color:C.muted},
@@ -89,17 +91,96 @@ export default function ContactPage() {
   return (
     <Box sx={{minHeight:'100vh', bgcolor:'#fff'}}>
 
-      {/* ── HERO compact ── */}
-      <Box sx={{bgcolor:C.surface, borderBottom:`1px solid ${C.border}`, pt:{xs:10,md:13}, pb:{xs:6,md:8}}}>
-        <Container maxWidth="md" sx={{textAlign:'center'}}>
-          <Box sx={{display:'inline-flex',alignItems:'center',gap:0.75,bgcolor:C.light,border:`1px solid ${C.border}`,borderRadius:'20px',px:1.5,py:0.5,mb:3}}>
+      {/* ══════════════════════════════════════════
+          1. HERO — premium
+      ══════════════════════════════════════════ */}
+      <Box
+        sx={{
+          position:'relative',
+          overflow:'hidden',
+          bgcolor:C.surface,
+          borderBottom:`1px solid ${C.border}`,
+          pt:{xs:10,md:13},
+          pb:{xs:6,md:9},
+          '&::before': {
+            content:'""',
+            position:'absolute',
+            inset:0,
+            backgroundImage:`
+              radial-gradient(circle at 20px 20px, ${alpha(C.primary, 0.04)} 1px, transparent 1px)
+            `,
+            backgroundSize:'40px 40px',
+            pointerEvents:'none',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            position:'absolute',
+            top:'-100px', right:'-60px',
+            width:320, height:320,
+            borderRadius:'50%',
+            background:`radial-gradient(circle, ${alpha(C.primary, 0.07)} 0%, transparent 70%)`,
+            filter:'blur(60px)',
+            pointerEvents:'none',
+          }}
+        />
+        <Box
+          sx={{
+            position:'absolute',
+            bottom:'-80px', left:'-40px',
+            width:240, height:240,
+            borderRadius:'50%',
+            background:`radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
+            filter:'blur(50px)',
+            pointerEvents:'none',
+          }}
+        />
+
+        <Container maxWidth="md" sx={{textAlign:'center', position:'relative', zIndex:1}}>
+          <Box
+            sx={{
+              display:'inline-flex',alignItems:'center',gap:1,
+              bgcolor:alpha(C.primary, 0.08),
+              border:`1px solid ${alpha(C.primary, 0.15)}`,
+              borderRadius:'20px', px:1.5, py:0.5, mb:3,
+              backdropFilter:'blur(4px)',
+            }}
+          >
             <Box sx={{width:6,height:6,borderRadius:'50%',bgcolor:'#22c55e'}}/>
-            <Typography sx={{fontSize:11,fontWeight:600,color:'#0C447C',letterSpacing:'0.8px',textTransform:'uppercase'}}>
+            <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'0.8px',textTransform:'uppercase'}}>
               Contactez-nous
             </Typography>
           </Box>
-          <Typography component="h1" sx={{fontSize:{xs:'2rem',md:'2.75rem'},fontWeight:800,color:C.dark,letterSpacing:'-0.03em',lineHeight:1.1,mb:2}}>
-            Parlons de <Box component="span" sx={{color:C.primary}}>votre projet</Box>
+          <Typography
+            component="h1"
+            sx={{
+              fontSize:{xs:'2rem',md:'2.9rem'},
+              fontWeight:800,
+              color:C.dark,
+              letterSpacing:'-0.035em',
+              lineHeight:1.05,
+              mb:2,
+            }}
+          >
+            Parlons de{' '}
+            <Box
+              component="span"
+              sx={{
+                color:C.primary,
+                position:'relative',
+                '&::after': {
+                  content:'""',
+                  position:'absolute',
+                  bottom:2, left:0, right:0,
+                  height:4,
+                  bgcolor:alpha(C.primary, 0.15),
+                  borderRadius:'2px',
+                },
+              }}
+            >
+              votre projet
+            </Box>
           </Typography>
           <Typography sx={{fontSize:{xs:14,md:15},color:C.text,lineHeight:1.8,maxWidth:560,mx:'auto'}}>
             Une question ? Besoin d'un devis ? Notre équipe est disponible du lundi au samedi pour vous accompagner.
@@ -107,25 +188,43 @@ export default function ContactPage() {
         </Container>
       </Box>
 
-      <Container maxWidth="xl" sx={{px:{xs:2,md:6},py:{xs:6,md:8}}}>
+      <Container maxWidth="xl" sx={{px:{xs:2,md:6},py:{xs:6,md:9}}}>
 
-        {/* ── GRILLE principale ── */}
-        <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',md:'300px 1fr'},gap:{xs:4,md:6},mb:8}}>
+        {/* ══════════════════════════════════════════
+            2. GRILLE — infos + formulaire
+        ══════════════════════════════════════════ */}
+        <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',md:'300px 1fr'},gap:{xs:4,md:6},mb:8,alignItems:'start'}}>
 
-          {/* Coordonnées */}
+          {/* ─── Coordonnées ─── */}
           <Box sx={{display:'flex',flexDirection:'column',gap:1.5}}>
-            <Typography sx={{fontSize:11,fontWeight:600,color:C.muted,letterSpacing:'0.8px',textTransform:'uppercase',mb:1}}>
-              Nos coordonnées
-            </Typography>
+            <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:0.5}}>
+              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+                Coordonnées
+              </Typography>
+            </Box>
             {CONTACT_ITEMS.map(item => (
-              <Box key={item.label} sx={{display:'flex',alignItems:'center',gap:1.5,bgcolor:C.surface,border:`1px solid ${C.border}`,borderRadius:'10px',px:2,py:1.5}}>
-                <Box sx={{width:36,height:36,borderRadius:'9px',bgcolor:C.light,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Box
+                key={item.label}
+                sx={{
+                  display:'flex',alignItems:'center',gap:1.5,
+                  bgcolor:C.surface,border:`1px solid ${C.border}`,
+                  borderRadius:'12px', px:2.5, py:2,
+                  transition:'all 0.3s ease', cursor:'default',
+                  '&:hover': {
+                    borderColor:alpha(C.primary, 0.2),
+                    boxShadow:`0 4px 16px ${alpha(C.dark, 0.06)}`,
+                    transform:'translateX(3px)',
+                  },
+                }}
+              >
+                <Box sx={{width:38,height:38,borderRadius:'10px',bgcolor:alpha(C.primary,0.08),display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:C.primary}}>
                   {item.icon}
                 </Box>
                 <Box>
-                  <Typography sx={{fontSize:11,color:C.muted}}>{item.label}</Typography>
+                  <Typography sx={{fontSize:11,color:C.muted,mb:0.25}}>{item.label}</Typography>
                   <Typography sx={{fontSize:13,fontWeight:600,color:C.dark}}>{item.value}</Typography>
-                  <Typography sx={{fontSize:11,color:C.muted,display:'flex',alignItems:'center',gap:0.5}}>
+                  <Typography sx={{fontSize:11,color:C.muted,display:'flex',alignItems:'center',gap:0.5,mt:0.25}}>
                     <AccessTime sx={{fontSize:11}}/>{item.sub}
                   </Typography>
                 </Box>
@@ -134,12 +233,26 @@ export default function ContactPage() {
 
             {/* Réseaux sociaux */}
             <Box sx={{mt:1}}>
-              <Typography sx={{fontSize:11,fontWeight:600,color:C.muted,letterSpacing:'0.8px',textTransform:'uppercase',mb:1.5}}>
+              <Typography sx={{fontSize:11,fontWeight:600,color:C.muted,letterSpacing:'1px',textTransform:'uppercase',mb:1.5}}>
                 Réseaux sociaux
               </Typography>
               <Box sx={{display:'flex',flexWrap:'wrap',gap:0.75}}>
                 {SOCIALS.map(s => (
-                  <Box key={s.label} sx={{display:'flex',alignItems:'center',gap:0.625,border:`1px solid ${C.border}`,borderRadius:'7px',px:1.25,py:0.625,cursor:'pointer','&:hover':{borderColor:s.color,bgcolor:'rgba(0,0,0,0.02)'}}}>
+                  <Box
+                    key={s.label}
+                    sx={{
+                      display:'flex',alignItems:'center',gap:0.75,
+                      border:`1px solid ${C.border}`,borderRadius:'9px',
+                      px:1.5,py:0.75,cursor:'pointer',
+                      transition:'all 0.25s ease',
+                      '&:hover':{
+                        borderColor:s.color,
+                        bgcolor:alpha(s.color, 0.05),
+                        boxShadow:`0 2px 8px ${alpha(s.color, 0.12)}`,
+                        transform:'translateY(-1px)',
+                      },
+                    }}
+                  >
                     <Box sx={{color:s.color,display:'flex'}}>{s.icon}</Box>
                     <Typography sx={{fontSize:12,fontWeight:500,color:C.text}}>{s.label}</Typography>
                   </Box>
@@ -148,10 +261,23 @@ export default function ContactPage() {
             </Box>
           </Box>
 
-          {/* Formulaire */}
-          <Box sx={{bgcolor:'#fff',border:`1px solid ${C.border}`,borderRadius:'14px',p:{xs:3,md:4}}}>
-            <Typography sx={{fontSize:16,fontWeight:700,color:C.dark,mb:0.5}}>Envoyez-nous un message</Typography>
-            <Typography sx={{fontSize:13,color:C.muted,mb:3}}>Notre équipe vous répondra dans les plus brefs délais.</Typography>
+          {/* ─── Formulaire ─── */}
+          <Box
+            sx={{
+              bgcolor:'#fff',
+              border:`1px solid ${C.border}`,
+              borderRadius:'16px',
+              p:{xs:3,md:5},
+              boxShadow:`0 2px 16px ${alpha(C.dark, 0.04)}`,
+              transition:'all 0.3s ease',
+              '&:hover': {
+                boxShadow:`0 6px 28px ${alpha(C.dark, 0.06)}`,
+                borderColor:alpha(C.primary, 0.1),
+              },
+            }}
+          >
+            <Typography sx={{fontSize:18,fontWeight:700,color:C.dark,mb:0.5}}>Envoyez-nous un message</Typography>
+            <Typography sx={{fontSize:13,color:C.muted,mb:3.5}}>Notre équipe vous répondra dans les plus brefs délais.</Typography>
 
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2.5}>
@@ -165,10 +291,13 @@ export default function ContactPage() {
                   type="submit" variant="contained" disabled={loading}
                   endIcon={loading ? <CircularProgress size={16} color="inherit"/> : <Send sx={{fontSize:16}}/>}
                   sx={{
-                    alignSelf:'flex-start', bgcolor:C.primary, color:'#fff',
-                    borderRadius:'9px', px:3.5, py:1.375, fontSize:13,
-                    fontWeight:700, textTransform:'none', boxShadow:'none',
-                    '&:hover':{bgcolor:C.dark,boxShadow:'none'},
+                    alignSelf:'flex-start',
+                    bgcolor:C.primary, color:'#fff',
+                    borderRadius:'10px', px:4, py:1.5, fontSize:13,
+                    fontWeight:700, textTransform:'none',
+                    boxShadow:`0 4px 16px ${alpha(C.primary, 0.25)}`,
+                    transition:'all 0.3s ease',
+                    '&:hover':{bgcolor:C.dark, boxShadow:`0 6px 24px ${alpha(C.primary, 0.35)}`, transform:'translateY(-2px)'},
                     '&:disabled':{bgcolor:'#B5D4F4',color:'#fff'},
                   }}
                 >
@@ -179,21 +308,49 @@ export default function ContactPage() {
           </Box>
         </Box>
 
-        {/* ── FAQ ── */}
+        {/* ══════════════════════════════════════════
+            3. FAQ — premium accordion
+        ══════════════════════════════════════════ */}
         <Box sx={{maxWidth:760,mx:'auto',mb:8}}>
-          <Box sx={{mb:4}}>
-            <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase',mb:1}}>FAQ</Typography>
-            <Typography component="h2" sx={{fontSize:{xs:22,md:26},fontWeight:700,color:C.dark,letterSpacing:'-0.3px',mb:0.5}}>Questions fréquentes</Typography>
+          <Box sx={{mb:4.5}}>
+            <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:1}}>
+              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+                FAQ
+              </Typography>
+            </Box>
+            <Typography component="h2" sx={{fontSize:{xs:22,md:28},fontWeight:700,color:C.dark,letterSpacing:'-0.4px',mb:0.75}}>Questions fréquentes</Typography>
             <Typography sx={{fontSize:14,color:C.muted}}>Trouvez rapidement les réponses aux questions courantes.</Typography>
           </Box>
           <Stack spacing={1}>
             {FAQS.map((faq,i) => (
-              <Accordion key={i} elevation={0} disableGutters sx={{
-                border:`1px solid ${C.border}`,borderRadius:'10px !important',
-                overflow:'hidden','&:before':{display:'none'},
-                '&.Mui-expanded':{borderColor:'#85B7EB'},
-              }}>
-                <AccordionSummary expandIcon={<ExpandMore sx={{fontSize:18,color:C.primary}}/>} sx={{px:2.5,py:0,minHeight:52,'&.Mui-expanded':{minHeight:52},'& .MuiAccordionSummary-content':{my:1.75}}}>
+              <Accordion
+                key={i}
+                elevation={0}
+                disableGutters
+                sx={{
+                  border:`1px solid ${C.border}`,
+                  borderRadius:'12px !important',
+                  overflow:'hidden',
+                  transition:'all 0.25s ease',
+                  '&:before':{display:'none'},
+                  '&.Mui-expanded':{
+                    borderColor:alpha(C.primary, 0.2),
+                    boxShadow:`0 4px 20px ${alpha(C.dark, 0.05)}`,
+                  },
+                  '&:hover': {
+                    borderColor:alpha(C.primary, 0.12),
+                  },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMore sx={{fontSize:20,color:C.primary}}/>}
+                  sx={{
+                    px:2.5,py:0,minHeight:54,
+                    '&.Mui-expanded':{minHeight:54},
+                    '& .MuiAccordionSummary-content':{my:1.75},
+                  }}
+                >
                   <Typography sx={{fontSize:13,fontWeight:600,color:C.dark}}>{faq.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{px:2.5,pt:0,pb:2.5,borderTop:`1px solid ${C.border}`}}>
@@ -204,13 +361,33 @@ export default function ContactPage() {
           </Stack>
         </Box>
 
-        {/* ── Carte ── */}
+        {/* ══════════════════════════════════════════
+            4. CARTE — premium container
+        ══════════════════════════════════════════ */}
         <Box sx={{maxWidth:900,mx:'auto',mb:4}}>
           <Box sx={{mb:3}}>
-            <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase',mb:1}}>Localisation</Typography>
-            <Typography component="h2" sx={{fontSize:{xs:20,md:24},fontWeight:700,color:C.dark}}>Nous trouver à Dakar</Typography>
+            <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:1}}>
+              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+                Localisation
+              </Typography>
+            </Box>
+            <Typography component="h2" sx={{fontSize:{xs:20,md:24},fontWeight:700,color:C.dark,letterSpacing:'-0.3px'}}>Nous trouver à Dakar</Typography>
           </Box>
-          <Box sx={{border:`1px solid ${C.border}`,borderRadius:'14px',overflow:'hidden',height:{xs:280,md:380}}}>
+          <Box
+            sx={{
+              border:`1px solid ${C.border}`,
+              borderRadius:'16px',
+              overflow:'hidden',
+              height:{xs:280,md:380},
+              transition:'all 0.3s ease',
+              boxShadow:`0 2px 12px ${alpha(C.dark, 0.04)}`,
+              '&:hover': {
+                boxShadow:`0 8px 28px ${alpha(C.dark, 0.08)}`,
+                borderColor:alpha(C.primary, 0.12),
+              },
+            }}
+          >
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d61681.33063469812!2d-17.497849!3d14.7167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xec10d7f729c37d5%3A0x4c3f03b804b572d!2sDakar%2C%20Senegal!5e0!3m2!1sfr!2ssn!4v1234567890"
               width="100%" height="100%" style={{border:0,display:'block'}}
@@ -222,7 +399,7 @@ export default function ContactPage() {
       </Container>
 
       <Snackbar open={snack.open} autoHideDuration={6000} onClose={()=>setSnack(p=>({...p,open:false}))} anchorOrigin={{vertical:'bottom',horizontal:'right'}}>
-        <Alert severity={snack.ok?'success':'error'} variant="filled" onClose={()=>setSnack(p=>({...p,open:false}))} sx={{borderRadius:'10px',fontSize:13}}>
+        <Alert severity={snack.ok?'success':'error'} variant="filled" onClose={()=>setSnack(p=>({...p,open:false}))} sx={{borderRadius:'10px',fontSize:13,boxShadow:`0 4px 20px ${alpha('#000',0.15)}`}}>
           {snack.msg}
         </Alert>
       </Snackbar>
