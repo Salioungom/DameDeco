@@ -117,8 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Gestion des erreurs API
     const handleAuthError = (error: any, context: string): string => {
-        const errorMessage = apiUtils.getErrorMessage(error);
-        console.error(`❌ AuthContext - ${context}:`, {
+        const errorMessage = apiUtils.handleApiError(error);
+        console.warn(` AuthContext - ${context}:`, {
             error: errorMessage,
             status: error?.status,
             code: error?.code,

@@ -131,7 +131,8 @@ export default function RegisterPage() {
             
             if (Object.keys(errors).length > 0) {
                 setFieldErrors(errors);
-                throw new Error('Veuillez corriger les erreurs dans le formulaire');
+                setLoading(false);
+                return;
             }
 
             // Utiliser le format selon les spécifications backend FINALES

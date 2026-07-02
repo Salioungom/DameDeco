@@ -93,6 +93,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   const [phone, setPhone] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const subtotal = useMemo(() => orderData
     ? Number(orderData.subtotal || 0)
@@ -105,6 +106,56 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
   [orderData, items]);
 
   const total = subtotal + deliveryFee;
+
+  const validateField = (name: string, value: string) => {
+    let error = '';
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) {
+          error = 'Le prénom est obligatoire';
+        } else if (value.trim().length < 2) {
+          error = 'Le prénom doit comporter au moins 2 caractères';
+        } else if (value.trim().length > 50) {
+          error = 'Le prénom ne peut pas dépasser 50 caractères';
+        } else if (!/^[a-zA-ZÀ-ÿ\s-]+$/.test(value.trim())) {
+          error = 'Lettres, espaces et tirets uniquement';
+        }
+        break;
+      case 'lastName':
+        if (!value.trim()) {
+          error = 'Le nom est obligatoire';
+        } else if (value.trim().length < 2) {
+          error = 'Le nom doit comporter au moins 2 caractères';
+        } else if (value.trim().length > 50) {
+          error = 'Le nom ne peut pas dépasser 50 caractères';
+        } else if (!/^[a-zA-ZÀ-ÿ\s-]+$/.test(value.trim())) {
+          error = 'Lettres, espaces et tirets uniquement';
+        }
+        break;
+      case 'phone':
+        if (!value.trim()) {
+          error = 'Le téléphone est obligatoire';
+        } else if (!/^\+221\s?[7]\d\s?\d{3}\s?\d{4}$/.test(value.trim()) && !/^\+221\s?[3]\d\s?\d{3}\s?\d{4}$/.test(value.trim())) {
+          error = 'Format invalide: +221 7X XXXXXXX ou +221 3X XXXXXXX';
+        }
+        break;
+      case 'address':
+        if (!value.trim()) {
+          error = "L'adresse est obligatoire";
+        } else if (value.trim().length < 10) {
+          error = "L'adresse doit comporter au moins 10 caractères";
+        } else if (value.trim().length > 200) {
+          error = "L'adresse ne peut pas dépasser 200 caractères";
+        }
+        break;
+      case 'specialInstructions':
+        if (value.trim().length > 300) {
+          error = 'Les instructions ne peuvent pas dépasser 300 caractères';
+        }
+        break;
+    }
+    return error;
+  };
 
   const isDeliveryAddressValid = deliveryMethod === 'pickup' || (
     firstName.trim() !== '' &&
@@ -215,6 +266,7 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
     setLastName(addr.last_name || '');
     setPhone(addr.phone);
     setAddress(addr.address_line_1);
+    setErrors({});
   };
 
   const handleAddNewAddress = () => setShowAddressModal(true);
@@ -461,25 +513,84 @@ export function CheckoutPage({ items, onBack, onPlaceOrder, isProcessing = false
                       </Typography>
                       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
                         <ClientOnly>
-                          <TextField fullWidth label="Prénom" placeholder="Votre prénom" value={firstName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)} required
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} />
+                          <TextField 
+                            fullWidth 
+                            label="Prénom" 
+                            placeholder="Votre prénom" 
+                            value={firstName} 
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setFirstName(e.target.value);
+                              setErrors(prev => ({ ...prev, firstName: validateField('firstName', e.target.value) }));
+                            }}
+                            required
+                            error={!!errors.firstName}
+                            helperText={errors.firstName}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} 
+                          />
                         </ClientOnly>
                         <ClientOnly>
-                          <TextField fullWidth label="Nom" placeholder="Votre nom" value={lastName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)} required
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} />
+                          <TextField
+                            fullWidth
+                            label="Nom"
+                            placeholder="Votre nom"
+                            value={lastName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setLastName(e.target.value);
+                              setErrors(prev => ({ ...prev, lastName: validateField('lastName', e.target.value) }));
+                            }}
+                            required
+                            error={!!errors.lastName}
+                            helperText={errors.lastName}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }}
+                          />
                         </ClientOnly>
                         <ClientOnly>
-                          <TextField fullWidth label="Téléphone" placeholder="+221 XX XXX XX XX" value={phone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)} required
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} />
+                          <TextField 
+                            fullWidth 
+                            label="Téléphone" 
+                            placeholder="+221 XX XXX XX XX" 
+                            value={phone} 
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setPhone(e.target.value);
+                              setErrors(prev => ({ ...prev, phone: validateField('phone', e.target.value) }));
+                            }}
+                            required
+                            error={!!errors.phone}
+                            helperText={errors.phone}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} 
+                          />
                         </ClientOnly>
                         <ClientOnly>
-                          <TextField fullWidth label="Adresse complète" placeholder="Rue, quartier, ville" value={address} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)} required
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} />
+                          <TextField 
+                            fullWidth 
+                            label="Adresse complète" 
+                            placeholder="Rue, quartier, ville" 
+                            value={address} 
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setAddress(e.target.value);
+                              setErrors(prev => ({ ...prev, address: validateField('address', e.target.value) }));
+                            }}
+                            required
+                            error={!!errors.address}
+                            helperText={errors.address}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} 
+                          />
                         </ClientOnly>
                         <Box sx={{ gridColumn: '1 / -1' }}>
                           <ClientOnly>
-                            <TextField fullWidth label="Instructions spéciales (optionnel)" placeholder="Ex: Appeler en arrivant" value={specialInstructions} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialInstructions(e.target.value)}
-                              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} />
+                            <TextField 
+                              fullWidth 
+                              label="Instructions spéciales (optionnel)" 
+                              placeholder="Ex: Appeler en arrivant" 
+                              value={specialInstructions} 
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                setSpecialInstructions(e.target.value);
+                                setErrors(prev => ({ ...prev, specialInstructions: validateField('specialInstructions', e.target.value) }));
+                              }}
+                              error={!!errors.specialInstructions}
+                              helperText={errors.specialInstructions}
+                              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: alpha(theme.palette.common.black, 0.02) } }} 
+                            />
                           </ClientOnly>
                         </Box>
                       </Box>

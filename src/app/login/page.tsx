@@ -36,54 +36,53 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError('');
+        setFieldErrors({});
+
+        const errors: { email?: string; password?: string } = {};
+
+        if (!email.trim()) {
+            errors.email = 'L\'adresse email est obligatoire';
+        }
+
+        if (!password) {
+            errors.password = 'Le mot de passe est obligatoire';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
         setLoading(true);
 
         try {
-            console.log('Login - Tentative de connexion avec:', email);
-            
-            // Utiliser le contexte d'authentification
-            const result = await login(email, password);
-            
-            console.log('Login - Résultat de la connexion:', result);
-            
+            const result = await login(email.trim(), password);
+
             if (result.success) {
-                console.log('Login - Connexion réussie, vérification du token stocké...');
-                console.log('Login - localStorage après connexion:', Object.keys(localStorage));
-                
-                // Vérifier que le token est bien stocké
                 const storedToken = localStorage.getItem('accessToken');
-                console.log('Login - Token stocké:', storedToken ? '✅ Présent' : '❌ Absent');
                 
-                // Attendre un peu que le AuthContext se synchronise
                 setTimeout(() => {
-                    console.log('Login - Redirection vers la page appropriée...');
-                    
-                    // Redirection basée sur le rôle
                     const user = result.user;
-                    console.log('Login - Utilisateur:', user);
                     
                     if (user?.role === 'superadmin') {
-                        console.log('Login - Redirection vers /dashboards');
                         router.push('/dashboards');
                     } else if (user?.role === 'admin') {
-                        console.log('Login - Redirection vers /dashboard');
                         router.push('/dashboard');
                     } else {
-                        console.log('Login - Redirection vers /account');
                         router.push('/account');
                     }
                     router.refresh();
-                }, 200); // 200ms de délai pour la synchronisation
+                }, 200);
             } else {
-                setError(result.error || 'Erreur de connexion');
+                setError(result.error || 'Email ou mot de passe incorrect');
             }
-        } catch (err: any) {
-            console.error('Erreur login:', err);
-            setError(err.message || 'Erreur de connexion');
+        } catch {
+            setError('Erreur de connexion. Veuillez réessayer.');
         } finally {
             setLoading(false);
         }
@@ -252,7 +251,12 @@ export default function LoginPage() {
                                     autoComplete="email"
                                     autoFocus
                                     value={email}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        setEmail(e.target.value);
+                                        if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' }));
+                                    }}
+                                    error={!!fieldErrors.email}
+                                    helperText={fieldErrors.email}
                                     sx={{
                                         mb: 2.5,
                                         '& .MuiOutlinedInput-root': {
@@ -284,7 +288,12 @@ export default function LoginPage() {
                                 id="password"
                                 autoComplete="current-password"
                                 value={password}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    setPassword(e.target.value);
+                                    if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: '' }));
+                                }}
+                                error={!!fieldErrors.password}
+                                helperText={fieldErrors.password}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">

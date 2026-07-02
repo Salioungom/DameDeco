@@ -5,8 +5,6 @@ import {
     Box,
     Container,
     Typography,
-    Grid,
-    Paper,
     Skeleton,
     Alert,
     Button,
@@ -70,7 +68,7 @@ export default function FavoritesPage() {
         };
 
         loadFavorites();
-    }, []);
+    }, [loadStoreFavorites]);
 
     useEffect(() => {
         const reloadFavorites = async () => {
@@ -110,13 +108,23 @@ export default function FavoritesPage() {
                 <Container maxWidth="lg" sx={{ pt: 14, pb: 8 }}>
                     <Skeleton variant="rounded" width={280} height={40} sx={{ mb: 2, borderRadius: 2 }} />
                     <Skeleton variant="rounded" width={180} height={24} sx={{ mb: 5, borderRadius: 2 }} />
-                    <Grid container spacing={3}>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                                xs: '1fr',
+                                sm: 'repeat(2, 1fr)',
+                                md: 'repeat(2, 1fr)',
+                                lg: 'repeat(3, 1fr)',
+                                xl: 'repeat(4, 1fr)',
+                            },
+                            gap: { xs: 2, md: 2.5 },
+                        }}
+                    >
                         {[1, 2, 3, 4].map((i) => (
-                            <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
-                                <Skeleton variant="rounded" height={380} sx={{ borderRadius: 3 }} />
-                            </Grid>
+                            <Skeleton key={i} variant="rounded" height={380} sx={{ borderRadius: 3 }} />
                         ))}
-                    </Grid>
+                    </Box>
                 </Container>
             </Box>
         );
@@ -259,20 +267,31 @@ export default function FavoritesPage() {
             </Box>
 
             <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-                <Grid container spacing={3}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            sm: 'repeat(2, 1fr)',
+                            md: 'repeat(2, 1fr)',
+                            lg: 'repeat(3, 1fr)',
+                            xl: 'repeat(4, 1fr)',
+                        },
+                        gap: { xs: 2, md: 2.5 },
+                    }}
+                >
                     {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                            <ProductCard
-                                product={product}
-                                onAddToCart={addToCart}
-                                onViewDetails={(p) => router.push(`/product/${p.id}`)}
-                                userType={userType}
-                                isFavorite={true}
-                                onToggleFavorite={toggleFavorite}
-                            />
-                        </Grid>
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onAddToCart={addToCart}
+                            onViewDetails={(p) => router.push(`/product/${p.id}`)}
+                            userType={userType}
+                            isFavorite={true}
+                            onToggleFavorite={toggleFavorite}
+                        />
                     ))}
-                </Grid>
+                </Box>
             </Container>
         </Box>
     );

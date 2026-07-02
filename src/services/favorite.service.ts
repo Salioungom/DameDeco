@@ -66,8 +66,11 @@ export class FavoriteService {
       return response.data;
     } catch (error: any) {
       console.error('Erreur ajout favori:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Veuillez vous connecter pour ajouter aux favoris');
+      }
       if (error.response?.data?.detail === "Produit déjà dans les favoris") {
-        throw new Error("Ce produit est déjà dans vos favoris");
+        throw new Error('Ce produit est déjà dans vos favoris');
       }
       throw new Error('Impossible d\'ajouter aux favoris');
     }

@@ -23,17 +23,13 @@ import {
     useTheme,
 } from '@mui/material';
 import {
-    AccountCircle,
-    FolderOpen,
     ShoppingBag,
-    Settings,
     TrendingUp,
     Pending,
     Star,
     ChevronRight,
     HeadsetMic,
-    Inventory2,
-    LocationOn
+    Inventory2
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -133,12 +129,6 @@ function AccountPageContent() {
         },
     ];
 
-    const quickActions = [
-        { title: 'Mon Profil', icon: <AccountCircle />, path: '/account/profile', color: '#3b82f6' },
-        { title: 'Mes Adresses', icon: <LocationOn />, path: '/account/addresses', color: '#8b5cf6' },
-        { title: 'Mes Commandes', icon: <Inventory2 />, path: '/account/orders', color: '#10b981' },
-        { title: 'Mes Favoris', icon: <FolderOpen />, path: '/favorites', color: '#f43f5e' },
-    ];
 
     if (loading) {
         return (
@@ -418,72 +408,6 @@ function AccountPageContent() {
                 {/* Actions Rapides & Aide */}
                 <Grid size={{ xs: 12, lg: 4 }}>
                     <Stack spacing={4} sx={{ height: '100%' }}>
-                        {/* Tuiles d'actions rapides */}
-                        <Paper 
-                            elevation={0} 
-                            sx={{ 
-                                p: 3, 
-                                borderRadius: 4, 
-                                border: '1px solid', 
-                                borderColor: alpha(theme.palette.divider, 0.4),
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1.5 }}>
-                                <Avatar sx={{ width: 32, height: 32, bgcolor: alpha(theme.palette.secondary.main, 0.1), color: 'secondary.main' }}>
-                                    <Settings sx={{ fontSize: 18 }} />
-                                </Avatar>
-                                <Typography variant="h6" fontWeight={700}>
-                                    Gérer mon Cpte
-                                </Typography>
-                            </Box>
-                            
-                            <Grid container spacing={2}>
-                                {quickActions.map((action, index) => (
-                                    <Grid size={{ xs: 6 }} key={index}>
-                                        <Paper
-                                            component={Link}
-                                            href={action.path}
-                                            elevation={0}
-                                            sx={{
-                                                p: 2.5,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: 2,
-                                                height: '100%',
-                                                borderRadius: 3,
-                                                textDecoration: 'none',
-                                                color: 'text.primary',
-                                                bgcolor: alpha(action.color, 0.04),
-                                                border: '1px solid transparent',
-                                                transition: 'all 0.3s ease',
-                                                '&:hover': {
-                                                    bgcolor: alpha(action.color, 0.08),
-                                                    borderColor: alpha(action.color, 0.2),
-                                                    transform: 'translateY(-4px)',
-                                                    boxShadow: `0 8px 24px ${alpha(action.color, 0.12)}`,
-                                                }
-                                            }}
-                                        >
-                                            <Avatar sx={{ 
-                                                bgcolor: action.color, 
-                                                color: 'white', 
-                                                width: 50, 
-                                                height: 50, 
-                                                boxShadow: `0 4px 12px ${alpha(action.color, 0.3)}` 
-                                            }}>
-                                                {action.icon}
-                                            </Avatar>
-                                            <Typography variant="body2" fontWeight={600} textAlign="center">
-                                                {action.title}
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Paper>
-
                         {/* Box D'assistance */}
                         <Paper 
                             elevation={0} 

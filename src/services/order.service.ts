@@ -137,6 +137,7 @@ export class OrderService {
 
   /**
    * Créer une nouvelle commande à partir du panier
+   * Note: La validation des données doit être faite avant l'appel à cette méthode
    */
   static async createOrderFromCart(
     cartItems: CartItemWithProduct[],

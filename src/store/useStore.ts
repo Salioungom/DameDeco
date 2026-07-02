@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product, User, Review } from '@/lib/types';
 import { cartService, CartItem } from '@/services/cart.service';
 import { FavoriteService } from '@/services/favorite.service';
+import { toast } from 'sonner';
 
 interface StoreState {
     cart: CartItem[];
@@ -236,24 +237,18 @@ export const useStore = create<StoreState>()(
 
             setUser: (user) => {
                 set({ user });
-                // Si l'utilisateur se connecte, fusionner le panier invité et charger les favoris
                 if (user) {
-                    const sessionId = get().sessionId;
-                    if (sessionId) {
-                        cartService.mergeGuestCart(sessionId).then(() => {
-                            // Recharger le panier après la fusion
-                            get().loadCart();
-                            // Régénérer le session_id pour éviter les conflits
-                            get().regenerateSessionId();
-                        });
-                    }
-                    // Charger les favoris depuis l'API
                     get().loadFavorites();
                 }
             },
 
             toggleFavorite: async (productId) => {
                 try {
+                    const user = get().user;
+                    if (!user) {
+                        toast.error('Connectez-vous pour gérer vos favoris');
+                        return;
+                    }
                     const productIdStr = productId.toString();
                     const isFavorite = get().favorites.includes(productIdStr);
                     if (isFavorite) {

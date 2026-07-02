@@ -64,7 +64,11 @@ const createApiInstance = (): AxiosInstance => {
       );
       
       if (error) {
-        console.error(`   Error:`, error);
+        if (!status || status >= 500) {
+          console.error(`   Error:`, error);
+        } else {
+          console.warn(`   Warning:`, error);
+        }
       }
     }
   };
@@ -351,6 +355,9 @@ export const createOrder = async (orderData: {
         unit_price: number;
     }[];
     shipping_address: {
+        first_name: string;
+        last_name: string;
+        address: string;
         street: string;
         city: string;
         country: string;
@@ -359,6 +366,7 @@ export const createOrder = async (orderData: {
     currency?: string;
     payment_method: string;
     order_type?: string;
+    mode?: string;
 }): Promise<Order> => {
     const response = await api.post<Order>('/api/v1/orders/', orderData);
     return response.data;
