@@ -22,8 +22,6 @@ import {
   Place as PlaceIcon,
   Star as StarIcon,
   CheckCircle,
-  VerifiedUser,
-  SupportAgent,
 } from '@mui/icons-material';
 import { NAVBAR_HEIGHT } from './Navigation';
 
@@ -270,13 +268,6 @@ export function HomePage({
       : null;
 
   const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px)`;
-
-  const trustItems = [
-    { icon: <VerifiedUser sx={{ fontSize: 18 }} />, label: 'Fournisseurs certifiés' },
-    { icon: <Truck sx={{ fontSize: 18 }} />, label: 'Livraison 24–48h Dakar' },
-    { icon: <Shield sx={{ fontSize: 18 }} />, label: 'Paiement sécurisé' },
-    { icon: <SupportAgent sx={{ fontSize: 18 }} />, label: 'Support 6j/7' },
-  ];
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
@@ -645,66 +636,6 @@ export function HomePage({
           </Grid>
         </Container>
 
-        <Box
-          sx={{
-            position: 'relative',
-            zIndex: 1,
-            borderTop: `1px solid ${C.border}`,
-            bgcolor: '#fff',
-          }}
-        >
-          <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-                gap: { xs: 1.5, md: 0 },
-                py: { xs: 2.5, md: 0 },
-              }}
-            >
-              {trustItems.map((item, index) => (
-                <Stack
-                  key={item.label}
-                  direction="row"
-                  spacing={1.25}
-                  alignItems="center"
-                  justifyContent={{ xs: 'flex-start', md: 'center' }}
-                  sx={{
-                    py: { md: 2.75 },
-                    px: { md: 2 },
-                    borderRight: {
-                      md: index < trustItems.length - 1 ? `1px solid ${C.border}` : 'none',
-                    },
-                    borderBottom: {
-                      xs: index < 2 ? `1px solid ${C.border}` : 'none',
-                      md: 'none',
-                    },
-                    pb: { xs: index < 2 ? 2 : 0, md: 0 },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: '10px',
-                      bgcolor: C.light,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: C.primary,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {item.icon}
-                  </Box>
-                  <Typography sx={{ fontSize: { xs: 11.5, md: 13 }, fontWeight: 700, color: C.dark, lineHeight: 1.3 }}>
-                    {item.label}
-                  </Typography>
-                </Stack>
-              ))}
-            </Box>
-          </Container>
-        </Box>
       </Box>
 
       {/* Avantages */}
