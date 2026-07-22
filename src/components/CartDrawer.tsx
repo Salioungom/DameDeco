@@ -62,7 +62,7 @@ export function CartDrawer() {
     (cartWithProducts || []).reduce((sum: number, item) => {
       const price = item.product 
         ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
-        : (item.unit_price || 0);
+        : (Number(item.unit_price) || 0);
       return sum + price * item.quantity;
     }, 0),
   [cartWithProducts]);
@@ -151,7 +151,7 @@ export function CartDrawer() {
                 {cartWithProducts.map((item) => {
                   const price = item.product 
                     ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
-                    : (item.unit_price || 0);
+                    : (Number(item.unit_price) || 0);
 
                   return (
                     <Box

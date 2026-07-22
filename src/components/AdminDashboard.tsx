@@ -339,7 +339,7 @@ export function AdminDashboard() {
         >
           <Tabs
             value={activeTab}
-            onChange={(_e, v) => setActiveTab(v)}
+            onChange={(_e: any, v: number) => setActiveTab(v)}
             variant="scrollable"
             scrollButtons="auto"
             sx={{

@@ -1,32 +1,33 @@
 import { useState, useCallback } from 'react';
-import { checkoutService, CartItemsResponse, CartSummaryResponse, CreateOrderRequest } from '@/services/checkout.service';
+import { checkoutService, CartSummaryResponse, CreateOrderRequest } from '@/services/checkout.service';
+import { cartService, CartResponse } from '@/services/cart.service';
 import { ApiError, ApiErrorHandler } from '@/lib/error-handler';
 import { Order, DeliveryOption } from '@/lib/types';
 
 export function useCheckout() {
-  const [cartItems, setCartItems] = useState<CartItemsResponse | null>(null);
+  const [cartItems, setCartItems] = useState<CartResponse | null>(null);
   const [cartSummary, setCartSummary] = useState<CartSummaryResponse | null>(null);
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [payments, setPayments] = useState<any[]>([]);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const fetchCartItems = useCallback(async (sessionId?: string) => {
+  const fetchCartItems = useCallback(async (isGuest: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const result = await checkoutService.getCartItems(sessionId);
-      
+
+      const result = await checkoutService.getCartItems(isGuest);
+
       if (result.error) {
         setError(result.error);
         setCartItems(null);
       } else {
         setCartItems(result.data);
       }
-      
+
       return result.data;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -38,20 +39,20 @@ export function useCheckout() {
     }
   }, []);
 
-  const fetchCartSummary = useCallback(async (sessionId?: string) => {
+  const fetchCartSummary = useCallback(async (isGuest: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const result = await checkoutService.getCartSummary(sessionId);
-      
+
+      const result = await checkoutService.getCartSummary(isGuest);
+
       if (result.error) {
         setError(result.error);
         setCartSummary(null);
       } else {
         setCartSummary(result.data);
       }
-      
+
       return result.data;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -67,16 +68,16 @@ export function useCheckout() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await checkoutService.getDeliveryOptions();
-      
+
       if (result.error) {
         setError(result.error);
         setDeliveryOptions([]);
       } else {
         setDeliveryOptions(result.data || []);
       }
-      
+
       return result.data;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -92,13 +93,13 @@ export function useCheckout() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await checkoutService.validatePromoCode(code, totalAmount);
-      
+
       if (result.error) {
         setError(result.error);
       }
-      
+
       return result;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -113,16 +114,16 @@ export function useCheckout() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await checkoutService.createOrder(orderData);
-      
+
       if (result.error) {
         setError(result.error);
         setOrder(null);
       } else {
         setOrder(result.data);
       }
-      
+
       return result;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -138,16 +139,16 @@ export function useCheckout() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await checkoutService.getOrderById(orderId);
-      
+
       if (result.error) {
         setError(result.error);
         setOrder(null);
       } else {
         setOrder(result.data);
       }
-      
+
       return result.data;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -163,16 +164,16 @@ export function useCheckout() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await checkoutService.getOrderPayments(orderId);
-      
+
       if (result.error) {
         setError(result.error);
         setPayments([]);
       } else {
         setPayments(result.data || []);
       }
-      
+
       return result.data;
     } catch (err) {
       const apiError = ApiErrorHandler.classifyError(err);
@@ -194,7 +195,6 @@ export function useCheckout() {
   }, []);
 
   return {
-    // State
     cartItems,
     cartSummary,
     deliveryOptions,
@@ -202,8 +202,6 @@ export function useCheckout() {
     payments,
     loading,
     error,
-    
-    // Actions
     fetchCartItems,
     fetchCartSummary,
     fetchDeliveryOptions,

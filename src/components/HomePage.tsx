@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -28,6 +28,14 @@ import { NAVBAR_HEIGHT } from './Navigation';
 import { homeService } from '../services/home.service';
 import { productService } from '../services/product.service';
 import ProductCard from './ProductCard';
+import Autoplay from 'embla-carousel-autoplay';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from './ui/carousel';
 import { Product, Category } from '../lib/types';
 import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
@@ -182,6 +190,7 @@ export function HomePage({
   onToggleFavorite,
 }: HomePageProps) {
   const router = useRouter();
+  const autoplayPlugin = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -768,11 +777,18 @@ export function HomePage({
           />
 
           {loading ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} variant="rounded" sx={{ borderRadius: '18px', aspectRatio: '16/10' }} />
-              ))}
-            </Box>
+            <Carousel
+              opts={{ align: 'start', loop: false }}
+              sx={{ position: 'relative' }}
+            >
+              <CarouselContent>
+                {[1, 2, 3, 4].map((i) => (
+                  <CarouselItem key={i} sx={{ flex: { xs: '0 0 100%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' } }}>
+                    <Skeleton variant="rounded" sx={{ borderRadius: '18px', aspectRatio: '16/10' }} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           ) : categories.length === 0 ? (
             <Paper
               elevation={0}
@@ -788,115 +804,153 @@ export function HomePage({
             </Paper>
           ) : (
             <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
-                gap: 2.5,
-              }}
+              sx={{ position: 'relative' }}
+              onMouseEnter={() => autoplayPlugin.current?.stop()}
+              onMouseLeave={() => autoplayPlugin.current?.play()}
             >
-              {categories.map((category: Category) => (
-                <Box
-                  key={category.id}
-                  onClick={() => (onViewCategory ? onViewCategory(category.id) : handleNavigate('shop'))}
-                  sx={{
-                    position: 'relative',
-                    borderRadius: '18px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    aspectRatio: '16/10',
-                    bgcolor: C.dark,
-                    border: `1px solid ${alpha(C.dark, 0.08)}`,
-                    boxShadow: `0 8px 32px ${alpha(C.dark, 0.1)}`,
-                    '&:hover .cat-img': { transform: 'scale(1.06)' },
-                    '&:hover .cat-cta': { opacity: 1, transform: 'translateX(0)' },
-                    '&:hover .cat-overlay': {
-                      background: `linear-gradient(to top, ${alpha(C.dark, 0.88)} 0%, ${alpha(C.dark, 0.25)} 55%, transparent 100%)`,
-                    },
-                  }}
-                >
-                  {category.image ? (
-                    <Box
-                      component="img"
-                      src={category.image}
-                      alt={category.name}
-                      className="cat-img"
-                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
+              <Carousel
+                opts={{ align: 'start', loop: true }}
+                plugins={[autoplayPlugin.current]}
+                sx={{ position: 'relative' }}
+              >
+                <CarouselContent>
+                  {categories.map((category: Category) => (
+                    <CarouselItem
+                      key={category.id}
                       sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                        transition: 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        display: 'block',
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: `linear-gradient(135deg, ${C.dark} 0%, ${C.primary} 100%)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        flex: { xs: '0 0 100%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' },
                       }}
                     >
-                      <Typography sx={{ fontSize: '3rem' }}>{category.icon}</Typography>
-                    </Box>
-                  )}
-
-                  <Box
-                    className="cat-overlay"
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: `linear-gradient(to top, ${alpha(C.dark, 0.75)} 0%, ${alpha(C.dark, 0.1)} 55%, transparent 100%)`,
-                      transition: 'background 0.35s ease',
-                    }}
-                  />
-
-                  <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2.5, zIndex: 2 }}>
-                    <Stack direction="row" alignItems="flex-end" justifyContent="space-between" spacing={1}>
-                      <Box>
-                        <Typography
-                          sx={{
-                            color: '#fff',
-                            fontWeight: 800,
-                            fontSize: { xs: 16, md: 18 },
-                            letterSpacing: '-0.02em',
-                            lineHeight: 1.25,
-                          }}
-                        >
-                          {category.name}
-                        </Typography>
-                        {category.product_count !== undefined && (
-                          <Typography sx={{ color: alpha('#fff', 0.72), fontSize: 12, mt: 0.5 }}>
-                            {category.product_count} produit{category.product_count > 1 ? 's' : ''}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Typography
-                        className="cat-cta"
+                      <Box
+                        onClick={() => (onViewCategory ? onViewCategory(category.id) : handleNavigate('shop'))}
                         sx={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: '#fff',
-                          opacity: 0,
-                          transform: 'translateX(-8px)',
-                          transition: 'all 0.3s ease',
-                          whiteSpace: 'nowrap',
+                          position: 'relative',
+                          borderRadius: '18px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          aspectRatio: '16/10',
+                          bgcolor: C.dark,
+                          border: `1px solid ${alpha(C.dark, 0.08)}`,
+                          boxShadow: `0 8px 32px ${alpha(C.dark, 0.1)}`,
+                          '&:hover .cat-img': { transform: 'scale(1.06)' },
+                          '&:hover .cat-cta': { opacity: 1, transform: 'translateX(0)' },
+                          '&:hover .cat-overlay': {
+                            background: `linear-gradient(to top, ${alpha(C.dark, 0.88)} 0%, ${alpha(C.dark, 0.25)} 55%, transparent 100%)`,
+                          },
                         }}
                       >
-                        Explorer →
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Box>
-              ))}
+                        {category.image ? (
+                          <Box
+                            component="img"
+                            src={category.image}
+                            alt={category.name}
+                            className="cat-img"
+                            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              transition: 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                              display: 'block',
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              background: `linear-gradient(135deg, ${C.dark} 0%, ${C.primary} 100%)`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '3rem' }}>{category.icon}</Typography>
+                          </Box>
+                        )}
+
+                        <Box
+                          className="cat-overlay"
+                          sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: `linear-gradient(to top, ${alpha(C.dark, 0.75)} 0%, ${alpha(C.dark, 0.1)} 55%, transparent 100%)`,
+                            transition: 'background 0.35s ease',
+                          }}
+                        />
+
+                        <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2.5, zIndex: 2 }}>
+                          <Stack direction="row" alignItems="flex-end" justifyContent="space-between" spacing={1}>
+                            <Box>
+                              <Typography
+                                sx={{
+                                  color: '#fff',
+                                  fontWeight: 800,
+                                  fontSize: { xs: 16, md: 18 },
+                                  letterSpacing: '-0.02em',
+                                  lineHeight: 1.25,
+                                }}
+                              >
+                                {category.name}
+                              </Typography>
+                              {category.product_count !== undefined && (
+                                <Typography sx={{ color: alpha('#fff', 0.72), fontSize: 12, mt: 0.5 }}>
+                                  {category.product_count} produit{category.product_count > 1 ? 's' : ''}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Typography
+                              className="cat-cta"
+                              sx={{
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: '#fff',
+                                opacity: 0,
+                                transform: 'translateX(-8px)',
+                                transition: 'all 0.3s ease',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              Explorer →
+                            </Typography>
+                          </Stack>
+                        </Box>
+                      </Box>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious
+                  sx={{
+                    left: { xs: -12, md: -20 },
+                    bgcolor: '#fff',
+                    border: `1px solid ${C.border}`,
+                    color: C.dark,
+                    boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
+                    width: { xs: 36, md: 42 },
+                    height: { xs: 36, md: 42 },
+                    '&:hover': { bgcolor: C.light },
+                    '&.Mui-disabled': { opacity: 0.3 },
+                  }}
+                />
+                <CarouselNext
+                  sx={{
+                    right: { xs: -12, md: -20 },
+                    bgcolor: '#fff',
+                    border: `1px solid ${C.border}`,
+                    color: C.dark,
+                    boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
+                    width: { xs: 36, md: 42 },
+                    height: { xs: 36, md: 42 },
+                    '&:hover': { bgcolor: C.light },
+                    '&.Mui-disabled': { opacity: 0.3 },
+                  }}
+                />
+              </Carousel>
             </Box>
           )}
         </Container>

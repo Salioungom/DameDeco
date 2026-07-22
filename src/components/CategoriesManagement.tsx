@@ -732,12 +732,9 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   }))}
                   size="small"
                   sx={{
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 600,
                     ...(state.filters.is_active === null
                       ? primaryBtnSx
-                      : { borderColor: BRAND.border, color: BRAND.dark }),
+                      : { borderColor: BRAND.border, color: BRAND.dark, borderRadius: '8px', textTransform: 'none', fontWeight: 600 }),
                   }}
                 >
                   Toutes

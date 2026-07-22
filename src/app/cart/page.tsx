@@ -30,7 +30,7 @@ import { getImageUrl } from '@/lib/imageUtils';
 export default function CartPage() {
     const theme = useTheme();
     const router = useRouter();
-    const { removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError, getSessionId } = useStore();
+    const { removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
     const { cart: cartWithProducts, loading: productsLoading } = useCartWithProducts();
     const brandBlue = '#185FA5';
 
@@ -42,7 +42,7 @@ export default function CartPage() {
         (cartWithProducts || []).reduce((sum, item) => {
             const price = item.product
                 ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
-                : (item.unit_price || 0);
+                : (Number(item.unit_price) || 0);
             return sum + price * item.quantity;
         }, 0),
     [cartWithProducts]);
@@ -179,7 +179,7 @@ export default function CartPage() {
                     {cartWithProducts.map((item) => {
                         const price = item.product
                             ? (item.price_type === 'wholesale' ? (item.product.wholesale_price || 0) : (item.product.price || 0))
-                            : (item.unit_price || 0);
+                            : (Number(item.unit_price) || 0);
                         const itemTotal = price * item.quantity;
 
                         return (
@@ -303,7 +303,7 @@ export default function CartPage() {
                             <Button
                                 variant="outlined"
                                 color="error"
-                                onClick={() => clearCart(getSessionId())}
+                                onClick={() => clearCart()}
                                 startIcon={<DeleteIcon />}
                                 sx={{ borderRadius: 2, fontWeight: 500 }}
                             >

@@ -9,27 +9,43 @@ import { Toaster } from 'sonner';
 import { useStore } from '@/store/useStore';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-
 import { usePathname } from 'next/navigation';
+import { cartLog } from '@/lib/cart-logger';
 
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
 function CartInitializer() {
-  const { loadCart, syncCartWithAPI } = useStore();
+  const { loadCart, initGuestSession, flushOfflineQueue } = useStore();
 
   useEffect(() => {
-    // Initialiser le panier au chargement de l'application
-    loadCart();
-    
-    // Synchroniser périodiquement le panier (toutes les 30 secondes)
-    const interval = setInterval(() => {
-      syncCartWithAPI();
-    }, 30000);
+    const init = async () => {
+      await initGuestSession();
+      await loadCart();
+    };
+    init();
 
-    return () => clearInterval(interval);
-  }, [loadCart, syncCartWithAPI]);
+    // ─── Sync on window focus ─────────────────────────────────────────
+    const onFocus = () => {
+      cartLog('Window focused — syncing cart');
+      loadCart(true);
+    };
+
+    // ─── Sync on back online ──────────────────────────────────────────
+    const onOnline = () => {
+      cartLog('Network restored — flushing offline queue');
+      flushOfflineQueue();
+    };
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onOnline);
+    };
+  }, [loadCart, initGuestSession, flushOfflineQueue]);
 
   return null;
 }
@@ -39,9 +55,7 @@ function FavoritesInitializer() {
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Synchroniser l'utilisateur du store avec AuthContext
     if (isAuthenticated && user) {
-      // Mapper le User d'AuthContext vers le User du store
       const storeUser = {
         id: user.id,
         name: user.full_name,
@@ -52,7 +66,6 @@ function FavoritesInitializer() {
         phone: user.phone,
       };
       setUser(storeUser);
-      // Charger les favoris quand l'utilisateur est connecté
       loadFavorites();
     } else if (!isAuthenticated) {
       setUser(null);
@@ -103,4 +116,3 @@ export function Providers({ children }: ProvidersProps) {
     </SnackbarProvider>
   );
 }
-

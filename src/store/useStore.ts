@@ -4,6 +4,70 @@ import { Product, User, Review } from '@/lib/types';
 import { cartService, CartItem } from '@/services/cart.service';
 import { FavoriteService } from '@/services/favorite.service';
 import { toast } from 'sonner';
+import { withRetry } from '@/lib/retry';
+import { cartLog, cartWarn, cartError } from '@/lib/cart-logger';
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const CART_CACHE_MAX_AGE_MS = 15_000;       // 15s — cache validity for loadCart
+const DEBOUNCE_MS = 500;                     // debounce for updateQuantity
+const OFFLINE_QUEUE_KEY = 'cart_pending_actions';
+const MAX_QTY = 999;
+const MIN_QTY = 1;
+
+// ─── Offline queue helpers ───────────────────────────────────────────────────
+
+interface PendingAction {
+  id: string;
+  type: 'add' | 'update' | 'remove' | 'clear';
+  productId?: number;
+  itemId?: number;
+  quantity?: number;
+  priceType?: string;
+  timestamp: number;
+}
+
+function getOfflineQueue(): PendingAction[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function setOfflineQueue(queue: PendingAction[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (queue.length === 0) {
+      localStorage.removeItem(OFFLINE_QUEUE_KEY);
+    } else {
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+    }
+  } catch { /* noop */ }
+}
+
+function enqueueOffline(action: Omit<PendingAction, 'id' | 'timestamp'>) {
+  const queue = getOfflineQueue();
+  queue.push({
+    ...action,
+    id: `offline_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    timestamp: Date.now(),
+  });
+  setOfflineQueue(queue);
+  cartLog('Offline action queued', action.type);
+}
+
+// ─── Debounce maps (module-level) ───────────────────────────────────────────
+
+const qtyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+// ─── Dedup lock ──────────────────────────────────────────────────────────────
+
+let loadCartPromise: Promise<void> | null = null;
+
+// ─── Store ───────────────────────────────────────────────────────────────────
 
 interface StoreState {
     cart: CartItem[];
@@ -17,14 +81,15 @@ interface StoreState {
     cartLoading: boolean;
     cartError: string | null;
     sessionId: string;
+    lastLoadedAt: number;
+    isLoaded: boolean;
 
-    // Actions
-    loadCart: () => Promise<void>;
+    loadCart: (silent?: boolean) => Promise<void>;
     loadFavorites: () => Promise<void>;
     addToCart: (product: Product, quantity?: number) => Promise<void>;
     removeFromCart: (productId: string) => Promise<void>;
     updateQuantity: (productId: string, quantity: number) => Promise<void>;
-    clearCart: (sessionId?: string) => Promise<void>;
+    clearCart: () => Promise<void>;
     toggleCart: (isOpen?: boolean) => void;
     setUser: (user: User | null) => void;
     toggleFavorite: (productId: string) => Promise<void>;
@@ -34,7 +99,22 @@ interface StoreState {
     addReview: (productId: string, review: Omit<Review, 'id' | 'productId' | 'date'>) => void;
     syncCartWithAPI: () => Promise<void>;
     getSessionId: () => string;
-    regenerateSessionId: () => void;
+    initGuestSession: () => Promise<void>;
+    flushOfflineQueue: () => Promise<void>;
+}
+
+function isGuest(state: { user: User | null }): boolean {
+    return !state.user;
+}
+
+function isOnline(): boolean {
+    if (typeof navigator === 'undefined') return true;
+    return navigator.onLine;
+}
+
+function cartIsCacheValid(state: { lastLoadedAt: number; isLoaded: boolean }): boolean {
+    if (!state.isLoaded) return false;
+    return Date.now() - state.lastLoadedAt < CART_CACHE_MAX_AGE_MS;
 }
 
 export const useStore = create<StoreState>()(
@@ -50,60 +130,138 @@ export const useStore = create<StoreState>()(
             reviews: {},
             cartLoading: false,
             cartError: null,
-            sessionId: typeof window !== 'undefined' 
-                ? localStorage.getItem('guest_session_id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                : `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            sessionId: '',
+            lastLoadedAt: 0,
+            isLoaded: false,
 
-            // Générer ou récupérer le session_id
-            getSessionId: () => {
-                let sessionId = get().sessionId;
-                if (!sessionId) {
-                    sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    set({ sessionId });
-                    // Sauvegarder dans localStorage pour la persistance
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem('guest_session_id', sessionId);
-                    }
+            // ─── Session Management ────────────────────────────────────────
+
+            getSessionId: () => get().sessionId,
+
+            initGuestSession: async () => {
+                if (get().user) return;
+                if (get().sessionId) return;
+
+                const stored = typeof window !== 'undefined'
+                    ? localStorage.getItem('guest_session_id')
+                    : null;
+
+                if (stored) {
+                    set({ sessionId: stored });
+                    cartLog('Guest session restored', stored.slice(0, 8) + '...');
+                    return;
                 }
-                return sessionId;
-            },
 
-            // Régénérer le session_id (utile après connexion)
-            regenerateSessionId: () => {
-                const newSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                set({ sessionId: newSessionId });
-                // Sauvegarder dans localStorage
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('guest_session_id', newSessionId);
-                }
-            },
-
-            // Charger le panier depuis l'API
-            loadCart: async () => {
-                set({ cartLoading: true, cartError: null });
                 try {
-                    const sessionId = get().getSessionId();
-                    const result = await cartService.getCart(sessionId);
-                    
-                    if (result.error) {
-                        set({ cartError: 'Impossible de charger le panier', cartLoading: false });
-                        return;
-                    }
-                    
-                    if (result.data) {
-                        // Utiliser directement la structure du backend
-                        const cartItems: CartItem[] = result.data.items || [];
-                        set({ cart: cartItems, cartLoading: false });
+                    const { data, error } = await cartService.initGuestSession();
+                    if (data && !error) {
+                        const sid = data.session_id;
+                        set({ sessionId: sid });
+                        if (typeof window !== 'undefined') {
+                            localStorage.setItem('guest_session_id', sid);
+                        }
+                        cartLog('Guest session initialized', sid.slice(0, 8) + '...');
                     } else {
-                        set({ cart: [], cartLoading: false });
+                        cartError('Guest session init failed', String(error));
                     }
-                } catch (error) {
-                    console.error('Erreur lors du chargement du panier:', error);
-                    set({ cartError: 'Erreur lors du chargement du panier', cartLoading: false });
+                } catch (err) {
+                    cartError('Guest session init error', String(err));
                 }
             },
 
-            // Charger les favoris depuis l'API
+            // ─── Cart Load (with dedup + cache) ───────────────────────────
+
+            loadCart: async (silent = false) => {
+                // Dedup: if a load is already in-flight, reuse it
+                if (loadCartPromise && !silent) {
+                    cartLog('Load deduped — reusing existing request');
+                    return loadCartPromise;
+                }
+
+                // Cache: skip if data is recent
+                if (silent && cartIsCacheValid(get())) {
+                    return;
+                }
+
+                const doLoad = async () => {
+                    if (!silent) set({ cartLoading: true, cartError: null });
+
+                    try {
+                        let result;
+                        if (isGuest(get())) {
+                            let sid = get().getSessionId();
+                            if (!sid) await get().initGuestSession();
+                            const sid2 = get().getSessionId();
+                            if (!sid2) {
+                                set({ cart: [], cartLoading: false, isLoaded: true, lastLoadedAt: Date.now() });
+                                return;
+                            }
+                            result = await cartService.getGuestCart();
+                        } else {
+                            result = await cartService.getCart();
+                        }
+
+                        if (result.error) {
+                            set({ cartError: 'Impossible de charger le panier', cartLoading: false });
+                            cartWarn('Load failed', String(result.error));
+                            return;
+                        }
+
+                        if (result.data) {
+                            let cartItems: CartItem[] = result.data.items || [];
+
+                            // Preserve order on silent sync
+                            if (silent) {
+                                const previousCart = get().cart;
+                                if (previousCart.length > 0) {
+                                    const orderMap = new Map(previousCart.map((item, idx) => [item.product_id, idx]));
+                                    cartItems = [...cartItems].sort((a, b) => {
+                                        const ia = orderMap.get(a.product_id);
+                                        const ib = orderMap.get(b.product_id);
+                                        if (ia === undefined) return 1;
+                                        if (ib === undefined) return -1;
+                                        return ia - ib;
+                                    });
+                                }
+                            }
+
+                            set({
+                                cart: cartItems,
+                                cartLoading: false,
+                                isLoaded: true,
+                                lastLoadedAt: Date.now(),
+                            });
+
+                            if (!silent) {
+                                cartLog('Cart loaded', `${cartItems.length} item(s)`);
+                            }
+                        } else {
+                            set({
+                                cart: [],
+                                cartLoading: false,
+                                isLoaded: true,
+                                lastLoadedAt: Date.now(),
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors du chargement du panier:', error);
+                        set({ cartError: 'Erreur lors du chargement du panier', cartLoading: false });
+                        cartError('Load exception', String(error));
+                    }
+                };
+
+                if (!silent) {
+                    loadCartPromise = doLoad().finally(() => {
+                        loadCartPromise = null;
+                    });
+                    return loadCartPromise;
+                }
+
+                return doLoad();
+            },
+
+            // ─── Favorites ─────────────────────────────────────────────────
+
             loadFavorites: async () => {
                 try {
                     const favoritesData = await FavoriteService.getUserFavorites(0, 100);
@@ -111,136 +269,318 @@ export const useStore = create<StoreState>()(
                     set({ favorites: favoriteIds });
                 } catch (error) {
                     console.error('Erreur lors du chargement des favoris:', error);
-                    // En cas d'erreur d'authentification, vider les favoris
                     set({ favorites: [] });
                 }
             },
 
-            // Ajouter au panier via l'API
+            // ─── Add to Cart ──────────────────────────────────────────────
+
             addToCart: async (product, quantity = 1) => {
-                set({ cartLoading: true, cartError: null });
+                set({ cartError: null });
+
+                if (!isOnline()) {
+                    enqueueOffline({ type: 'add', productId: product.id, quantity, priceType: get().userType });
+                    toast.info('Action enregistrée. Synchronisation dès la reconnexion.');
+                    return;
+                }
+
                 try {
-                    const sessionId = get().getSessionId();
-                    const result = await cartService.addToCart(
-                        product.id.toString(),
-                        quantity,
-                        get().userType,
-                        sessionId
-                    );
-                    
+                    let result;
+                    if (isGuest(get())) {
+                        let sid = get().getSessionId();
+                        if (!sid) { await get().initGuestSession(); sid = get().getSessionId(); }
+                        if (!sid) {
+                            set({ cartError: 'Impossible d\'initialiser la session invité' });
+                            return;
+                        }
+                        result = await withRetry(() =>
+                            cartService.addToGuestCart(product.id, quantity, get().userType),
+                            { label: 'addToCart' },
+                        );
+                    } else {
+                        result = await withRetry(() =>
+                            cartService.addToCart(product.id, quantity, get().userType),
+                            { label: 'addToCart' },
+                        );
+                    }
+
                     if (result.error) {
-                        set({ cartError: 'Impossible d\'ajouter au panier', cartLoading: false });
+                        set({ cartError: 'Impossible d\'ajouter au panier' });
+                        cartWarn('Add to cart failed', String(result.error));
                         return;
                     }
-                    
-                    // Recharger le panier après l'ajout
-                    await get().loadCart();
-                    set({ isCartOpen: true, cartLoading: false });
+
+                    set({ lastLoadedAt: 0 }); // invalidate cache
+                    await get().loadCart(true);
+                    set({ isCartOpen: true });
+                    cartLog('Added to cart', `product ${product.id} x${quantity}`);
                 } catch (error) {
                     console.error('Erreur lors de l\'ajout au panier:', error);
-                    set({ cartError: 'Impossible d\'ajouter au panier', cartLoading: false });
+                    set({ cartError: 'Impossible d\'ajouter au panier' });
+                    cartError('Add to cart exception', String(error));
                 }
             },
 
-            // Mettre à jour la quantité via l'API
+            // ─── Update Quantity (optimistic + debounce + rollback) ────────
+
             updateQuantity: async (productId, quantity) => {
                 if (quantity === 0) {
                     await get().removeFromCart(productId);
                     return;
                 }
-                
-                set({ cartLoading: true, cartError: null });
-                try {
-                    const currentCart = get().cart;
-                    const cartItem = currentCart.find(item => item.product_id.toString() === productId);
-                    
-                    if (!cartItem) {
-                        set({ cartError: 'Article non trouvé dans le panier', cartLoading: false });
-                        return;
-                    }
-                    
-                    console.log('Mise à jour item - ID:', cartItem.id, 'product_id:', cartItem.product_id, 'nouvelle quantité:', quantity);
-                    const result = await cartService.updateCartItem(
-                        cartItem.id.toString(),
-                        quantity
-                    );
-                    
-                    if (result.error) {
-                        set({ cartError: 'Erreur lors de la mise à jour du panier', cartLoading: false });
-                        return;
-                    }
-                    
-                    // Recharger le panier après la mise à jour
-                    await get().loadCart();
-                    set({ cartLoading: false });
-                } catch (error) {
-                    console.error('Erreur lors de la mise à jour du panier:', error);
-                    set({ cartError: 'Erreur lors de la mise à jour du panier', cartLoading: false });
+
+                // Validation
+                const clampedQty = Math.max(MIN_QTY, Math.min(MAX_QTY, Math.floor(quantity)));
+                if (clampedQty !== quantity) {
+                    cartWarn('Qty clamped', `${quantity} → ${clampedQty}`);
                 }
+
+                const currentCart = get().cart;
+                const productIdNum = Number(productId);
+                const cartItem = currentCart.find(item => item.product_id === productIdNum);
+
+                if (!cartItem) {
+                    set({ cartError: 'Article non trouvé dans le panier' });
+                    return;
+                }
+
+                const previousCart = currentCart;
+
+                // Optimistic update
+                set({
+                    cart: currentCart.map(item =>
+                        item.product_id === productIdNum ? { ...item, quantity: clampedQty } : item
+                    ),
+                });
+
+                // Debounce: clear previous timer for this product
+                const existing = qtyDebounceTimers.get(productId);
+                if (existing) clearTimeout(existing);
+
+                const p = new Promise<void>((resolve) => {
+                    const timer = setTimeout(async () => {
+                        qtyDebounceTimers.delete(productId);
+
+                        if (!isOnline()) {
+                            enqueueOffline({ type: 'update', itemId: cartItem.id, productId: productIdNum, quantity: clampedQty });
+                            toast.info('Action enregistrée. Synchronisation dès la reconnexion.');
+                            resolve();
+                            return;
+                        }
+
+                        try {
+                            let result;
+                            if (isGuest(get())) {
+                                result = await withRetry(() =>
+                                    cartService.updateGuestCartItem(cartItem.id, clampedQty),
+                                    { label: `updateQty(${productId})` },
+                                );
+                            } else {
+                                result = await withRetry(() =>
+                                    cartService.updateCartItem(cartItem.id, clampedQty),
+                                    { label: `updateQty(${productId})` },
+                                );
+                            }
+
+                            if (result.error) {
+                                set({ cart: previousCart });
+                                set({ cartError: 'Erreur lors de la mise à jour du panier' });
+                                cartWarn('Update qty failed — rollback', String(result.error));
+                                resolve();
+                                return;
+                            }
+
+                            set({ lastLoadedAt: 0 });
+                            await get().loadCart(true);
+                            cartLog('Qty updated', `product ${productId} → ${clampedQty}`);
+                            resolve();
+                        } catch (error) {
+                            console.error('Erreur lors de la mise à jour du panier:', error);
+                            set({ cart: previousCart });
+                            set({ cartError: 'Erreur lors de la mise à jour du panier' });
+                            cartError('Update qty exception — rollback', String(error));
+                            resolve();
+                        }
+                    }, DEBOUNCE_MS);
+
+                    qtyDebounceTimers.set(productId, timer);
+                });
+
+                return p;
             },
 
-            // Supprimer du panier via l'API
+            // ─── Remove from Cart (optimistic + rollback) ─────────────────
+
             removeFromCart: async (productId: string) => {
-                set({ cartLoading: true, cartError: null });
+                const currentCart = get().cart;
+                const productIdNum = Number(productId);
+                const cartItem = currentCart.find(item => item.product_id === productIdNum);
+
+                if (!cartItem) {
+                    set({ cartError: 'Article non trouvé dans le panier' });
+                    return;
+                }
+
+                const previousCart = currentCart;
+
+                set({
+                    cart: currentCart.filter(item => item.product_id !== productIdNum),
+                });
+
+                if (!isOnline()) {
+                    enqueueOffline({ type: 'remove', itemId: cartItem.id, productId: productIdNum });
+                    toast.info('Action enregistrée. Synchronisation dès la reconnexion.');
+                    return;
+                }
+
                 try {
-                    const currentCart = get().cart;
-                    const cartItem = currentCart.find(item => item.product_id.toString() === productId);
-                    
-                    if (!cartItem) {
-                        set({ cartError: 'Article non trouvé dans le panier', cartLoading: false });
-                        return;
+                    let result;
+                    if (isGuest(get())) {
+                        result = await withRetry(() =>
+                            cartService.removeGuestCartItem(cartItem.id),
+                            { label: `removeItem(${productId})` },
+                        );
+                    } else {
+                        result = await withRetry(() =>
+                            cartService.removeFromCart(cartItem.id),
+                            { label: `removeItem(${productId})` },
+                        );
                     }
-                    
-                    const result = await cartService.removeFromCart(cartItem.id.toString());
-                    
+
                     if (result.error) {
-                        set({ cartError: 'Erreur lors de la suppression du panier', cartLoading: false });
+                        set({ cart: previousCart });
+                        set({ cartError: 'Erreur lors de la suppression du panier' });
+                        cartWarn('Remove failed — rollback', String(result.error));
                         return;
                     }
-                    
-                    // Recharger le panier après la suppression
-                    await get().loadCart();
-                    set({ cartLoading: false });
+
+                    set({ lastLoadedAt: 0 });
+                    await get().loadCart(true);
+                    cartLog('Item removed', `product ${productId}`);
                 } catch (error) {
                     console.error('Erreur lors de la suppression du panier:', error);
-                    set({ cartError: 'Erreur lors de la suppression du panier', cartLoading: false });
+                    set({ cart: previousCart });
+                    set({ cartError: 'Erreur lors de la suppression du panier' });
+                    cartError('Remove exception — rollback', String(error));
                 }
             },
 
-            // Vider le panier via l'API
-            clearCart: async (sessionId?: string) => {
-                set({ cartLoading: true, cartError: null });
+            // ─── Clear Cart (optimistic + rollback) ───────────────────────
+
+            clearCart: async () => {
+                const previousCart = get().cart;
+                set({ cart: [], cartError: null });
+
+                if (!isOnline()) {
+                    enqueueOffline({ type: 'clear' });
+                    toast.info('Action enregistrée. Synchronisation dès la reconnexion.');
+                    return;
+                }
+
                 try {
-                    const result = await cartService.clearCart(sessionId);
-                    
+                    let result;
+                    if (isGuest(get())) {
+                        result = await withRetry(() => cartService.clearGuestCart(), { label: 'clearCart' });
+                    } else {
+                        result = await withRetry(() => cartService.clearCart(), { label: 'clearCart' });
+                    }
+
                     if (result.error) {
-                        set({ cartError: 'Impossible de vider le panier', cartLoading: false });
+                        set({ cart: previousCart });
+                        set({ cartError: 'Impossible de vider le panier' });
+                        cartWarn('Clear cart failed — rollback', String(result.error));
                         return;
                     }
-                    
-                    set({ cart: [], cartLoading: false });
+
+                    cartLog('Cart cleared');
                 } catch (error) {
                     console.error('Erreur lors du vidage du panier:', error);
-                    set({ cartError: 'Impossible de vider le panier', cartLoading: false });
+                    set({ cart: previousCart });
+                    set({ cartError: 'Impossible de vider le panier' });
+                    cartError('Clear cart exception — rollback', String(error));
                 }
             },
 
-            // Synchroniser le panier local avec l'API
+            // ─── Flush offline queue ───────────────────────────────────────
+
+            flushOfflineQueue: async () => {
+                const queue = getOfflineQueue();
+                if (queue.length === 0) return;
+
+                cartLog('Flushing offline queue', `${queue.length} action(s)`);
+                const remaining: PendingAction[] = [];
+
+                for (const action of queue) {
+                    try {
+                        if (action.type === 'add' && action.productId != null) {
+                            const sid = get().getSessionId();
+                            if (!sid) { remaining.push(action); continue; }
+                            const result = await cartService.addToGuestCart(action.productId, action.quantity ?? 1, (action.priceType as any) ?? 'retail');
+                            if (result.error) remaining.push(action);
+                        } else if (action.type === 'update' && action.itemId != null && action.quantity != null) {
+                            const sid = get().getSessionId();
+                            if (!sid) { remaining.push(action); continue; }
+                            const result = await cartService.updateGuestCartItem(action.itemId, action.quantity);
+                            if (result.error) remaining.push(action);
+                        } else if (action.type === 'remove' && action.itemId != null) {
+                            const sid = get().getSessionId();
+                            if (!sid) { remaining.push(action); continue; }
+                            const result = await cartService.removeGuestCartItem(action.itemId);
+                            if (result.error) remaining.push(action);
+                        } else if (action.type === 'clear') {
+                            const sid = get().getSessionId();
+                            if (!sid) { remaining.push(action); continue; }
+                            const result = await cartService.clearGuestCart();
+                            if (result.error) remaining.push(action);
+                        }
+                    } catch {
+                        remaining.push(action);
+                    }
+                }
+
+                setOfflineQueue(remaining);
+
+                if (remaining.length < queue.length) {
+                    set({ lastLoadedAt: 0 });
+                    await get().loadCart(true);
+                    cartLog('Offline queue synced', `${queue.length - remaining.length} action(s) applied`);
+                }
+            },
+
+            // ─── Sync ─────────────────────────────────────────────────────
+
             syncCartWithAPI: async () => {
                 await get().loadCart();
             },
+
+            // ─── UI ───────────────────────────────────────────────────────
 
             toggleCart: (isOpen) =>
                 set((state) => ({
                     isCartOpen: typeof isOpen === 'boolean' ? isOpen : !state.isCartOpen,
                 })),
 
+            // ─── User Changes ─────────────────────────────────────────────
+
             setUser: (user) => {
+                const previousUser = get().user;
                 set({ user });
                 if (user) {
+                    if (previousUser && previousUser.id !== user.id) {
+                        set({ cart: [], isLoaded: false, lastLoadedAt: 0 });
+                    }
                     get().loadFavorites();
+                } else if (previousUser && !user) {
+                    set({ cart: [], cartError: null, sessionId: '', isLoaded: false, lastLoadedAt: 0 });
+                    if (typeof window !== 'undefined') {
+                        localStorage.removeItem('guest_session_id');
+                    }
+                    get().initGuestSession();
+                    cartLog('User logged out — guest session reset');
                 }
             },
+
+            // ─── Favorites ─────────────────────────────────────────────────
 
             toggleFavorite: async (productId) => {
                 try {
@@ -256,7 +596,6 @@ export const useStore = create<StoreState>()(
                     } else {
                         await FavoriteService.addFavorite(Number(productId));
                     }
-                    // Recharger les favoris depuis l'API pour synchroniser l'état partout
                     await get().loadFavorites();
                 } catch (error) {
                     console.error('Erreur lors du basculement du favori:', error);
@@ -264,9 +603,7 @@ export const useStore = create<StoreState>()(
             },
 
             toggleAdmin: () => set((state) => ({ isAdmin: !state.isAdmin })),
-
             setUserType: (type) => set({ userType: type }),
-
             toggleTheme: () => set((state) => ({ isDark: !state.isDark })),
 
             addReview: (productId, review) =>
@@ -277,7 +614,6 @@ export const useStore = create<StoreState>()(
                         productId,
                         date: new Date().toISOString(),
                     };
-
                     return {
                         reviews: {
                             ...state.reviews,
@@ -289,16 +625,13 @@ export const useStore = create<StoreState>()(
         {
             name: 'ecommerce-store',
             storage: createJSONStorage(() => localStorage),
-            // Ne pas persister le panier car il vient de l'API
-            // Ne pas persister favorites car ils viennent de l'API
-            // sessionId est géré manuellement avec localStorage
             partialize: (state) => ({
                 user: state.user,
                 isAdmin: state.isAdmin,
                 userType: state.userType,
                 isDark: state.isDark,
-                reviews: state.reviews
-            })
+                reviews: state.reviews,
+            }),
         }
     )
 );

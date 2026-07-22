@@ -1,31 +1,20 @@
 /**
  * @file /services/checkout.service.ts
  * @description Service dédié au flux de commande avec API v1
- * @version 1.0.0
+ * @version 3.0.0
  * @author DameDéco Team
  */
 
 import { safeApiCall } from '@/lib/error-handler';
 import { api } from '@/lib/api';
+import { cartService } from '@/services/cart.service';
 import { DeliveryOption, PromoCodeValidation, PromoCodeRequest, Order } from '@/lib/types';
-
-export interface CartItemsResponse {
-  items: {
-    product: any;
-    quantity: number;
-    priceType: 'retail' | 'wholesale';
-  }[];
-  total: number;
-  itemCount: number;
-}
 
 export interface CartSummaryResponse {
   total_items: number;
-  total_amount: number;
+  total_unique_products: number;
   subtotal: number;
-  tax: number;
-  shipping: number;
-  currency: string;
+  total: number;
 }
 
 export interface CreateOrderRequest {
@@ -48,34 +37,20 @@ export interface CreateOrderRequest {
 }
 
 export const checkoutService = {
-  /**
-   * Récupérer les articles du panier
-   * GET /api/v1/cartitems/cart
-   */
-  async getCartItems(sessionId?: string): Promise<{ data: CartItemsResponse | null; error: any }> {
-    return safeApiCall(async () => {
-      const params = sessionId ? { session_id: sessionId } : {};
-      const response = await api.get('/api/v1/cartitems/cart', { params });
-      return response.data;
-    });
+  async getCartItems(isGuest: boolean = false) {
+    if (isGuest) {
+      return cartService.getGuestCart();
+    }
+    return cartService.getCart();
   },
 
-  /**
-   * Obtenir le résumé du panier (sous-total)
-   * GET /api/v1/cartitems/cart/summary
-   */
-  async getCartSummary(sessionId?: string): Promise<{ data: CartSummaryResponse | null; error: any }> {
-    return safeApiCall(async () => {
-      const params = sessionId ? { session_id: sessionId } : {};
-      const response = await api.get('/api/v1/cartitems/cart/summary', { params });
-      return response.data;
-    });
+  async getCartSummary(isGuest: boolean = false) {
+    if (isGuest) {
+      return cartService.getGuestCartSummary();
+    }
+    return cartService.getCartSummary();
   },
 
-  /**
-   * Récupérer les options de livraison disponibles
-   * GET /api/v1/delivery-rules/delivery-options/
-   */
   async getDeliveryOptions(): Promise<{ data: DeliveryOption[] | null; error: any }> {
     return safeApiCall(async () => {
       const response = await api.get('/api/v1/delivery-rules/delivery-options/');
@@ -83,10 +58,6 @@ export const checkoutService = {
     });
   },
 
-  /**
-   * Valider un code promo
-   * POST /api/v1/promo-codes/validate
-   */
   async validatePromoCode(
     code: string,
     totalAmount: number
@@ -101,10 +72,6 @@ export const checkoutService = {
     });
   },
 
-  /**
-   * Finaliser la commande
-   * POST /api/v1/orders/
-   */
   async createOrder(orderData: CreateOrderRequest): Promise<{ data: Order | null; error: any }> {
     return safeApiCall(async () => {
       const response = await api.post<Order>('/api/v1/orders/', orderData);
@@ -112,10 +79,6 @@ export const checkoutService = {
     });
   },
 
-  /**
-   * Suivre une commande
-   * GET /api/v1/orders/{order_id}
-   */
   async getOrderById(orderId: string | number): Promise<{ data: Order | null; error: any }> {
     return safeApiCall(async () => {
       const response = await api.get<Order>(`/api/v1/orders/${orderId}`);
@@ -123,10 +86,6 @@ export const checkoutService = {
     });
   },
 
-  /**
-   * Vérifier le statut de paiement
-   * GET /api/v1/orders/{order_id}/payments
-   */
   async getOrderPayments(orderId: string | number): Promise<{ data: any[] | null; error: any }> {
     return safeApiCall(async () => {
       const response = await api.get<any[]>(`/api/v1/orders/${orderId}/payments`);

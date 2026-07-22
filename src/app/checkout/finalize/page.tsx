@@ -12,8 +12,8 @@ import OrderService from '@/services/order.service';
 
 export default function CheckoutFinalizePage() {
   const router = useRouter();
-  const { cart: storeCart, clearCart, getSessionId } = useStore();
-  const { cart: cartWithProducts, loading } = useCartWithProducts();
+  const { cart: storeCart, clearCart } = useStore();
+  const { cart: cartWithProducts, loading, invalidateProductsCache } = useCartWithProducts();
   const { resetCheckout } = useCheckoutStore();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -98,7 +98,8 @@ export default function CheckoutFinalizePage() {
       );
 
       redirectRef.current = true;
-      clearCart(getSessionId());
+      clearCart();
+      invalidateProductsCache();
       resetCheckout();
       router.push('/checkout/success');
     } catch (err: any) {

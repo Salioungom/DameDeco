@@ -96,6 +96,16 @@ const createApiInstance = (): AxiosInstance => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
+      // Injection automatique du header X-Session-Id pour les routes guest
+      if (config.url?.includes('/cartitems/guest')) {
+        try {
+          const sessionId = localStorage.getItem('guest_session_id');
+          if (sessionId && config.headers) {
+            config.headers['X-Session-Id'] = sessionId;
+          }
+        } catch { /* noop */ }
+      }
+
       // Log de la requête
       log({
         timestamp: new Date().toISOString(),
@@ -382,65 +392,7 @@ export const getOrderPayments = async (id: string | number): Promise<any[]> => {
     return response.data;
 };
 
-// Cart API - Correction vers endpoints API v1
-export const getCart = async (sessionId?: string): Promise<{
-    items: { product: Product; quantity: number; priceType: 'retail' | 'wholesale' }[];
-    total: number;
-    itemCount: number;
-}> => {
-    const params = sessionId ? { session_id: sessionId } : {};
-    const response = await api.get('/api/v1/cartitems/cart', { params });
-    return response.data;
-};
-
-export const addToCart = async (productId: string, quantity: number, priceType: 'retail' | 'wholesale' = 'retail', sessionId?: string) => {
-    const data: any = {
-        product_id: productId,
-        quantity,
-        price_type: priceType
-    };
-    const params = sessionId ? { session_id: sessionId } : {};
-    const response = await api.post('/api/v1/cartitems/items', data, { params });
-    return response.data;
-};
-
-export const updateCartItem = async (itemId: string, quantity: number) => {
-    const response = await api.put(`/api/v1/cartitems/items/${itemId}`, { quantity });
-    return response.data;
-};
-
-export const removeFromCart = async (itemId: string) => {
-    const response = await api.delete(`/api/v1/cartitems/items/${itemId}`);
-    return response.data;
-};
-
-export const clearCart = async () => {
-    const response = await api.delete('/api/v1/cartitems/cart');
-    return response.data;
-};
-
-export const mergeGuestCart = async (sessionId: string): Promise<void> => {
-    const response = await api.post('/api/v1/cartitems/merge-guest-cart', {
-        session_id: sessionId
-    });
-    return response.data;
-};
-
-// Cart API - Endpoints exacts selon spécification
-// getCartItems utilise maintenant le même endpoint que getCart
-
-export const getCartSummary = async (sessionId?: string): Promise<{
-    total_items: number;
-    total_amount: number;
-    subtotal: number;
-    tax: number;
-    shipping: number;
-    currency: string;
-}> => {
-    const params = sessionId ? { session_id: sessionId } : {};
-    const response = await api.get('/api/v1/cartitems/cart/summary', { params });
-    return response.data;
-};
+// Cart API — see @/services/cart.service.ts for guest/authenticated cart operations
 
 // Delivery Options API
 export const getDeliveryOptions = async (): Promise<DeliveryOption[]> => {
