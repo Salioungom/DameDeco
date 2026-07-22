@@ -26,6 +26,7 @@ import { useCartWithProducts } from '@/hooks/useCartWithProducts';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useAuth } from '@/contexts/AuthContext';
+import { getImageUrl } from '@/lib/imageUtils';
 
 
 export function CartDrawer() {
@@ -71,7 +72,7 @@ export function CartDrawer() {
   const handleCheckout = () => {
     if (itemCount === 0) return;
     toggleCart(false);
-    router.push(isAuthenticated && user ? '/checkout' : '/login');
+    router.push('/checkout');
   };
 
   return (
@@ -179,7 +180,7 @@ export function CartDrawer() {
                       >
                         {item.product ? (
                           <ImageWithFallback
-                            src={item.product.cover_image_url || ''}
+                            src={getImageUrl(item.product.cover_image_url)}
                             alt={item.product.name}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />

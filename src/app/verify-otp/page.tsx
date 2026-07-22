@@ -34,6 +34,7 @@ export default function VerifyOTPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
+  const redirectTo = searchParams.get('redirect');
   const theme = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,12 +89,14 @@ export default function VerifyOTPPage() {
         
         // Redirection selon le rôle de l'utilisateur
         setTimeout(() => {
-          if (data.user?.role === 'superadmin') {
-            router.push('/dashboards');  // ✅ Dashboard SuperAdmin dans /(superadmin)/dashboards
+          if (redirectTo) {
+            router.push(redirectTo);
+          } else if (data.user?.role === 'superadmin') {
+            router.push('/dashboards');
           } else if (data.user?.role === 'admin') {
-            router.push('/dashboard');     // ✅ Dashboard Admin dans /(admin)/dashboard
+            router.push('/dashboard');
           } else if (data.user?.role === 'client') {
-            router.push('/dashboard');     // ✅ Dashboard client
+            router.push('/account');
           } else {
             router.push('/');
           }

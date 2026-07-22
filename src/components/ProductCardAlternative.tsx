@@ -2,6 +2,7 @@ import React from 'react';
 import { Avatar, Box, Typography, Chip } from '@mui/material';
 import { Product } from '../types/product';
 import { Inventory as Package } from '@mui/icons-material';
+import { getImageUrl } from '@/lib/imageUtils';
 
 interface ProductCardAlternativeProps {
   product: Product;
@@ -12,7 +13,7 @@ export function ProductCardAlternative({ product }: ProductCardAlternativeProps)
     <Box sx={{ position: 'relative', pt: '100%', bgcolor: 'action.hover' }}>
       {/* Utiliser Avatar comme les catégories - APPROCHE FONCTIONNELLE */}
       <Avatar
-        src={product.cover_image_url || undefined}
+        src={getImageUrl(product.cover_image_url)}
         alt={product.name}
         variant="rounded"
         sx={{

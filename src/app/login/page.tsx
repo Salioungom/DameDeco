@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Box,
     TextField,
@@ -29,8 +29,10 @@ import { ClientOnly } from '@/components/ClientOnly';
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useTheme();
     const { login } = useAuth();
+    const redirectTo = searchParams.get('redirect');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -69,7 +71,9 @@ export default function LoginPage() {
                 setTimeout(() => {
                     const user = result.user;
                     
-                    if (user?.role === 'superadmin') {
+                    if (redirectTo) {
+                        router.push(redirectTo);
+                    } else if (user?.role === 'superadmin') {
                         router.push('/dashboards');
                     } else if (user?.role === 'admin') {
                         router.push('/dashboard');
@@ -395,7 +399,7 @@ export default function LoginPage() {
 
                         <Button
                             component={NextLink}
-                            href="/register"
+                            href={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
                             fullWidth
                             variant="outlined"
                             startIcon={<PersonAdd sx={{ fontSize: 18 }} />}

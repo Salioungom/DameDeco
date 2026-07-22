@@ -24,6 +24,7 @@ import { useCategories } from '../hooks/useCategories';
 import { LoadingSpinner } from './common/LoadingSpinner';
 import type { Product } from '../lib/types';
 import { productService } from '../services/product.service';
+import { getImageUrl } from '@/lib/imageUtils';
 
 interface CategoryPageProps {
     onAddToCart: (product: Product) => void;
@@ -153,7 +154,7 @@ export function CategoryPage({
                 {hasCover && (
                     <Box
                         component="img"
-                        src={coverImage}
+                        src={getImageUrl(coverImage)}
                         alt={currentCategory.name}
                         onError={() => setCoverError(true)}
                         sx={{

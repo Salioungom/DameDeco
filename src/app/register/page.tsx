@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI } from '@/lib/auth';
 import {
     Box,
@@ -42,7 +42,9 @@ const ClientOnly = ({ children }: { children: React.ReactNode }) => {
 
 export default function RegisterPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useTheme();
+    const redirectTo = searchParams.get('redirect');
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -140,9 +142,10 @@ export default function RegisterPage() {
 
             // Si la promesse est résolue, l'inscription est réussie
             setSuccess('Compte créé avec succès ! Veuillez vérifier votre email.');
-            // Rediriger vers verify-otp après 2 secondes avec l'email
             setTimeout(() => {
-                router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+                const otpUrl = `/verify-otp?email=${encodeURIComponent(formData.email)}`;
+                const finalUrl = redirectTo ? `${otpUrl}&redirect=${encodeURIComponent(redirectTo)}` : otpUrl;
+                router.push(finalUrl);
             }, 2000);
 
         } catch (err: any) {
@@ -701,7 +704,7 @@ export default function RegisterPage() {
 
                             <Button
                                 component={NextLink}
-                                href="/login"
+                                href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'}
                                 fullWidth
                                 variant="outlined"
                                 startIcon={<LoginIcon sx={{ fontSize: 18 }} />}

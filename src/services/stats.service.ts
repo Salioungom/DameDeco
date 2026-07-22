@@ -81,7 +81,12 @@ export class StatsService {
         const productImages = order.items?.map((item: any) => {
           const product = item.product;
           if (!product) return null;
-          return product.cover_image_url || (product.images && product.images[0]?.image_url) || null;
+          const rawUrl = product.cover_image_url || (product.images && product.images[0]?.image_url) || null;
+          if (!rawUrl) return null;
+          if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+          const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+          if (cleanPath.startsWith('/media/')) return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${cleanPath}`;
+          return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/media${cleanPath}`;
         }).filter(Boolean).slice(0, 4) || [];
         
         return {

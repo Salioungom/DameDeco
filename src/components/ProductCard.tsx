@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { Product } from '../types/product';
 import { orderViaWhatsApp } from '../lib/whatsapp';
+import { getImageUrl } from '@/lib/imageUtils';
 
 // ─── Styled components ───────────────────────────────────────────────────────
 
@@ -275,7 +276,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {hasImage ? (
             <Box
               component="img"
-              src={product.cover_image_url}
+              src={getImageUrl(product.cover_image_url)}
               alt={product.name}
               onLoad={() => setImageLoading(false)}
               onError={() => { setImageLoading(false); setImageError(true); }}

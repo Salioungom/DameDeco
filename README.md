@@ -400,7 +400,6 @@ pnpm lint            # ESLint avec --max-warnings=0
 Pour toute question :
 - **WhatsApp Business** : +221 78 595 06 01
 - **Contact** : Dame Sarr Import & Commerce
-
 ---
 
 **Version** : 2.0  

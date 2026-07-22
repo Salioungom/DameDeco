@@ -167,7 +167,9 @@ export function ProductDetailPage({
   const getFullImageUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `${API_BASE_URL}/${url.startsWith('/') ? url.slice(1) : url}`;
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    if (cleanPath.startsWith('/media/')) return `${API_BASE_URL}${cleanPath}`;
+    return `${API_BASE_URL}/media${cleanPath}`;
   };
 
   const allImages = useMemo(() => {
