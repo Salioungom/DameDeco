@@ -145,7 +145,7 @@ export function CategoryPage({
                 sx={{
                     position: 'relative',
                     width: '100%',
-                    height: { xs: 220, sm: 300, md: 380 },
+                    height: { xs: 275, sm: 375, md: 475 },
                     overflow: 'hidden',
                     bgcolor: '#0f1923', // fallback sombre si pas d'image
                 }}
@@ -209,14 +209,14 @@ export function CategoryPage({
                             sx={{
                                 color: 'rgba(255,255,255,0.7)',
                                 textDecoration: 'none',
-                                fontSize: 13,
+                                fontSize: 16.25,
                                 cursor: 'pointer',
                                 '&:hover': { color: '#fff' },
                             }}
                         >
                             Boutique
                         </Link>
-                        <Typography sx={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
+                        <Typography sx={{ color: '#fff', fontSize: 16.25, fontWeight: 500 }}>
                             {currentCategory.name}
                         </Typography>
                     </Breadcrumbs>
@@ -225,11 +225,11 @@ export function CategoryPage({
                     <Typography
                         component="h1"
                         sx={{
-                            fontSize: { xs: 26, sm: 34, md: 42 },
+                            fontSize: { xs: 32.5, sm: 42.5, md: 52.5 },
                             fontWeight: 700,
                             color: '#fff',
                             lineHeight: 1.15,
-                            letterSpacing: '-0.5px',
+                            letterSpacing: '-0.625px',
                             mb: 1,
                             textShadow: '0 2px 12px rgba(0,0,0,0.4)',
                         }}
@@ -243,9 +243,9 @@ export function CategoryPage({
                             <Typography
                                 sx={{
                                     color: 'rgba(255,255,255,0.82)',
-                                    fontSize: { xs: 13, md: 15 },
+                                    fontSize: { xs: 16.25, md: 18.75 },
                                     lineHeight: 1.6,
-                                    maxWidth: 600,
+                                    maxWidth: 750,
                                     textShadow: '0 1px 6px rgba(0,0,0,0.3)',
                                 }}
                             >
@@ -253,7 +253,7 @@ export function CategoryPage({
                             </Typography>
                         )}
                         <Chip
-                            icon={<GridViewIcon sx={{ fontSize: '14px !important', color: '#fff !important' }} />}
+                            icon={<GridViewIcon sx={{ fontSize: '17.5px !important', color: '#fff !important' }} />}
                             label={`${filteredProducts.length} produit${filteredProducts.length > 1 ? 's' : ''}`}
                             size="small"
                             sx={{
@@ -262,8 +262,8 @@ export function CategoryPage({
                                 border: '1px solid rgba(255,255,255,0.3)',
                                 color: '#fff',
                                 fontWeight: 500,
-                                fontSize: 12,
-                                height: 28,
+                                fontSize: 15,
+                                height: 35,
                             }}
                         />
                     </Box>
@@ -288,10 +288,10 @@ export function CategoryPage({
                             border: '1px solid rgba(255,255,255,0.3)',
                             color: '#fff',
                             fontWeight: 500,
-                            fontSize: 13,
+                            fontSize: 16.25,
                             px: 2,
                             py: 0.75,
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             textTransform: 'none',
                             '&:hover': {
                                 bgcolor: 'rgba(255,255,255,0.28)',
@@ -318,21 +318,21 @@ export function CategoryPage({
                         gap: 2,
                     }}
                 >
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
+                    <Typography sx={{ fontSize: 17.5, color: 'text.secondary' }}>
                         <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
                             {filteredProducts.length}
                         </Box>{' '}
                         produit{filteredProducts.length > 1 ? 's' : ''} dans cette catégorie
                     </Typography>
 
-                    <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+                    <FormControl variant="outlined" size="small" sx={{ minWidth: 250 }}>
                         <InputLabel id="sort-by-label">Trier par</InputLabel>
                         <Select
                             labelId="sort-by-label"
                             value={sortBy}
                             onChange={(e: SelectChangeEvent) => setSortBy(e.target.value as string)}
                             label="Trier par"
-                            sx={{ borderRadius: '8px' }}
+                            sx={{ borderRadius: '10px' }}
                         >
                             <MenuItem value="popular">Populaires</MenuItem>
                             <MenuItem value="price-asc">Prix croissant</MenuItem>

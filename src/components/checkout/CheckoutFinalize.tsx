@@ -244,7 +244,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               {/* Section 1: Mode de livraison */}
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <LocalShippingOutlined sx={{ color: brandBlue, fontSize: 22 }} />
+                  <LocalShippingOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
                   <Typography variant="h6" fontWeight={700}>Mode de livraison</Typography>
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -262,7 +262,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                      <LocalShippingOutlined sx={{ color: deliveryMethod === 'delivery' ? brandBlue : 'text.secondary', fontSize: 24 }} />
+                      <LocalShippingOutlined sx={{ color: deliveryMethod === 'delivery' ? brandBlue : 'text.secondary', fontSize: 30 }} />
                       <Typography variant="subtitle1" fontWeight={700} color={deliveryMethod === 'delivery' ? 'text.primary' : 'text.secondary'}>
                         Livraison à la maison
                       </Typography>
@@ -272,7 +272,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     </Typography>
                     {deliveryMethod === 'delivery' && (
                       <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 18 }} />
+                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 22.5 }} />
                         <Typography variant="caption" fontWeight={600} color={brandBlue}>Sélectionné</Typography>
                       </Box>
                     )}
@@ -292,7 +292,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                      <StoreOutlined sx={{ color: deliveryMethod === 'pickup' ? brandBlue : 'text.secondary', fontSize: 24 }} />
+                      <StoreOutlined sx={{ color: deliveryMethod === 'pickup' ? brandBlue : 'text.secondary', fontSize: 30 }} />
                       <Typography variant="subtitle1" fontWeight={700} color={deliveryMethod === 'pickup' ? 'text.primary' : 'text.secondary'}>
                         Retrait en boutique
                       </Typography>
@@ -302,7 +302,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     </Typography>
                     {deliveryMethod === 'pickup' && (
                       <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 18 }} />
+                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 22.5 }} />
                         <Typography variant="caption" fontWeight={600} color={brandBlue}>Sélectionné</Typography>
                       </Box>
                     )}
@@ -313,7 +313,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               {deliveryMethod === 'pickup' && (
                 <Box sx={{ ...sectionSx, bgcolor: alpha(brandBlue, 0.04) }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <StoreOutlined sx={{ color: brandBlue, fontSize: 22 }} />
+                    <StoreOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
                     <Typography variant="h6" fontWeight={700}>Retrait en boutique</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
@@ -327,7 +327,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               {deliveryMethod === 'delivery' && (
                 <Box sx={sectionSx}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                    <LocationOn sx={{ color: brandBlue, fontSize: 22 }} />
+                    <LocationOn sx={{ color: brandBlue, fontSize: 27.5 }} />
                     <Typography variant="h6" fontWeight={700}>Informations de livraison</Typography>
                   </Box>
 
@@ -436,7 +436,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               {/* Section 3: Méthode de paiement */}
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <PaymentOutlined sx={{ color: brandBlue, fontSize: 22 }} />
+                  <PaymentOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
                   <Typography variant="h6" fontWeight={700}>Méthode de paiement</Typography>
                 </Box>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -448,7 +448,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     }}
                     variant="fullWidth"
                     sx={{
-                      '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: 14 },
+                      '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: 17.5 },
                       '& .Mui-selected': { color: `${brandBlue} !important` },
                       '& .MuiTabs-indicator': { bgcolor: brandBlue },
                     }}
@@ -487,7 +487,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                             value={method}
                             control={<Radio sx={{ '&.Mui-checked': { color: brandBlue } }} />}
                             label={method === 'wave' ? 'Wave' : 'Orange Money'}
-                            sx={{ width: '100%', m: 0, '& .MuiTypography-root': { fontWeight: 600, fontSize: 14 } }}
+                            sx={{ width: '100%', m: 0, '& .MuiTypography-root': { fontWeight: 600, fontSize: 17.5 } }}
                           />
                         </ClientOnly>
                       </Paper>
@@ -541,10 +541,10 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   const totalPrice = (price || 0) * item.quantity;
                   return (
                     <Box key={item.id || item.product.id} sx={{ display: 'flex', gap: 2 }}>
-                      <Box
+                        <Box
                         sx={{
-                          width: 56,
-                          height: 56,
+                          width: 70,
+                          height: 70,
                           borderRadius: 2,
                           overflow: 'hidden',
                           bgcolor: 'action.hover',
@@ -592,8 +592,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                       label={deliveryFee === 0 ? 'Gratuite' : `${deliveryFee.toLocaleString('fr-FR')} FCFA`}
                       size="small"
                       sx={{
-                        height: 22,
-                        fontSize: 11,
+                        height: 27.5,
+                        fontSize: 13.75,
                         fontWeight: 600,
                         bgcolor: deliveryFee === 0 ? alpha(theme.palette.success.main, 0.1) : alpha(brandBlue, 0.1),
                         color: deliveryFee === 0 ? 'success.main' : brandBlue,
@@ -625,11 +625,11 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     onClick={handlePlaceOrder}
                     disabled={isProcessing || !isFormValid}
                     endIcon={isProcessing ? undefined : <ArrowForward />}
-                    sx={{
-                      borderRadius: 2,
-                      py: 1.6,
-                      fontWeight: 700,
-                      fontSize: 15,
+                      sx={{
+                        borderRadius: 2,
+                        py: 1.6,
+                        fontWeight: 700,
+                        fontSize: 18.75,
                       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
                     }}
                   >

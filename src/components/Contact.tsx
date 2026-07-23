@@ -18,16 +18,16 @@ const C = {
 } as const;
 
 const CONTACT_ITEMS = [
-  { icon:<Phone sx={{fontSize:17}}/>, label:'Téléphone', value:'+221 77 XXX XX XX', sub:'Lun – Sam · 9h–18h' },
-  { icon:<Email sx={{fontSize:17}}/>, label:'Email', value:'contact@damesarr.sn', sub:'Réponse sous 24h' },
-  { icon:<LocationOn sx={{fontSize:17}}/>, label:'Adresse', value:'Dakar, Sénégal', sub:'Quartier des affaires' },
+  { icon:<Phone sx={{fontSize:21.25}}/>, label:'Téléphone', value:'+221 77 XXX XX XX', sub:'Lun – Sam · 9h–18h' },
+  { icon:<Email sx={{fontSize:21.25}}/>, label:'Email', value:'contact@damesarr.sn', sub:'Réponse sous 24h' },
+  { icon:<LocationOn sx={{fontSize:21.25}}/>, label:'Adresse', value:'Dakar, Sénégal', sub:'Quartier des affaires' },
 ];
 
 const SOCIALS = [
-  { icon:<WhatsApp sx={{fontSize:16}}/>, label:'WhatsApp', color:'#25D366' },
-  { icon:<Facebook sx={{fontSize:16}}/>, label:'Facebook', color:'#1877F2' },
-  { icon:<Instagram sx={{fontSize:16}}/>, label:'Instagram', color:'#E4405F' },
-  { icon:<Twitter sx={{fontSize:16}}/>, label:'Twitter', color:'#1DA1F2' },
+  { icon:<WhatsApp sx={{fontSize:20}}/>, label:'WhatsApp', color:'#25D366' },
+  { icon:<Facebook sx={{fontSize:20}}/>, label:'Facebook', color:'#1877F2' },
+  { icon:<Instagram sx={{fontSize:20}}/>, label:'Instagram', color:'#E4405F' },
+  { icon:<Twitter sx={{fontSize:20}}/>, label:'Twitter', color:'#1DA1F2' },
 ];
 
 const FAQS = [
@@ -78,13 +78,13 @@ export default function ContactPage() {
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius:'10px', fontSize:13,
+      borderRadius:'12.5px', fontSize:16.25,
       transition:'all 0.2s ease',
       '& fieldset': {borderColor:C.border},
       '&:hover fieldset': {borderColor:C.mid},
       '&.Mui-focused fieldset': {borderColor:C.primary, borderWidth:1.5},
     },
-    '& .MuiInputLabel-root': {fontSize:13, color:C.muted},
+    '& .MuiInputLabel-root': {fontSize:16.25, color:C.muted},
     '& .MuiInputLabel-root.Mui-focused': {color:C.primary},
   };
 
@@ -118,7 +118,7 @@ export default function ContactPage() {
           sx={{
             position:'absolute',
             top:'-100px', right:'-60px',
-            width:320, height:320,
+            width:400, height:400,
             borderRadius:'50%',
             background:`radial-gradient(circle, ${alpha(C.primary, 0.07)} 0%, transparent 70%)`,
             filter:'blur(60px)',
@@ -129,7 +129,7 @@ export default function ContactPage() {
           sx={{
             position:'absolute',
             bottom:'-80px', left:'-40px',
-            width:240, height:240,
+            width:300, height:300,
             borderRadius:'50%',
             background:`radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
             filter:'blur(50px)',
@@ -143,12 +143,12 @@ export default function ContactPage() {
               display:'inline-flex',alignItems:'center',gap:1,
               bgcolor:alpha(C.primary, 0.08),
               border:`1px solid ${alpha(C.primary, 0.15)}`,
-              borderRadius:'20px', px:1.5, py:0.5, mb:3,
+              borderRadius:'25px', px:1.5, py:0.5, mb:3,
               backdropFilter:'blur(4px)',
             }}
           >
-            <Box sx={{width:6,height:6,borderRadius:'50%',bgcolor:'#22c55e'}}/>
-            <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'0.8px',textTransform:'uppercase'}}>
+            <Box sx={{width:7.5,height:7.5,borderRadius:'50%',bgcolor:'#22c55e'}}/>
+            <Typography sx={{fontSize:13.75,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
               Contactez-nous
             </Typography>
           </Box>
@@ -173,22 +173,22 @@ export default function ContactPage() {
                   content:'""',
                   position:'absolute',
                   bottom:2, left:0, right:0,
-                  height:4,
+                  height:5,
                   bgcolor:alpha(C.primary, 0.15),
-                  borderRadius:'2px',
+                  borderRadius:'2.5px',
                 },
               }}
             >
               votre projet
             </Box>
           </Typography>
-          <Typography sx={{fontSize:{xs:14,md:15},color:C.text,lineHeight:1.8,maxWidth:560,mx:'auto'}}>
+          <Typography sx={{fontSize:{xs:17.5,md:18.75},color:C.text,lineHeight:1.8,maxWidth:700,mx:'auto'}}>
             Une question ? Besoin d'un devis ? Notre équipe est disponible du lundi au samedi pour vous accompagner.
           </Typography>
         </Container>
       </Box>
 
-      <Container maxWidth="xl" sx={{px:{xs:2,md:6},py:{xs:6,md:9}}}>
+      <Container maxWidth="xl" sx={{px:{xs:2,md:4},py:{xs:6,md:9}}}>
 
         {/* ══════════════════════════════════════════
             2. GRILLE — infos + formulaire
@@ -198,8 +198,8 @@ export default function ContactPage() {
           {/* ─── Coordonnées ─── */}
           <Box sx={{display:'flex',flexDirection:'column',gap:1.5}}>
             <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:0.5}}>
-              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
-              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+              <Box sx={{width:35,height:2.5,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:13.75,fontWeight:600,color:C.primary,letterSpacing:'1.25px',textTransform:'uppercase'}}>
                 Coordonnées
               </Typography>
             </Box>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                 sx={{
                   display:'flex',alignItems:'center',gap:1.5,
                   bgcolor:C.surface,border:`1px solid ${C.border}`,
-                  borderRadius:'12px', px:2.5, py:2,
+                  borderRadius:'15px', px:2.5, py:2,
                   transition:'all 0.3s ease', cursor:'default',
                   '&:hover': {
                     borderColor:alpha(C.primary, 0.2),
@@ -218,14 +218,14 @@ export default function ContactPage() {
                   },
                 }}
               >
-                <Box sx={{width:38,height:38,borderRadius:'10px',bgcolor:alpha(C.primary,0.08),display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:C.primary}}>
+                <Box sx={{width:47.5,height:47.5,borderRadius:'12.5px',bgcolor:alpha(C.primary,0.08),display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:C.primary}}>
                   {item.icon}
                 </Box>
                 <Box>
-                  <Typography sx={{fontSize:11,color:C.muted,mb:0.25}}>{item.label}</Typography>
-                  <Typography sx={{fontSize:13,fontWeight:600,color:C.dark}}>{item.value}</Typography>
-                  <Typography sx={{fontSize:11,color:C.muted,display:'flex',alignItems:'center',gap:0.5,mt:0.25}}>
-                    <AccessTime sx={{fontSize:11}}/>{item.sub}
+                  <Typography sx={{fontSize:13.75,color:C.muted,mb:0.25}}>{item.label}</Typography>
+                  <Typography sx={{fontSize:16.25,fontWeight:600,color:C.dark}}>{item.value}</Typography>
+                  <Typography sx={{fontSize:13.75,color:C.muted,display:'flex',alignItems:'center',gap:0.5,mt:0.25}}>
+                    <AccessTime sx={{fontSize:13.75}}/>{item.sub}
                   </Typography>
                 </Box>
               </Box>
@@ -233,7 +233,7 @@ export default function ContactPage() {
 
             {/* Réseaux sociaux */}
             <Box sx={{mt:1}}>
-              <Typography sx={{fontSize:11,fontWeight:600,color:C.muted,letterSpacing:'1px',textTransform:'uppercase',mb:1.5}}>
+              <Typography sx={{fontSize:13.75,fontWeight:600,color:C.muted,letterSpacing:'1.25px',textTransform:'uppercase',mb:1.5}}>
                 Réseaux sociaux
               </Typography>
               <Box sx={{display:'flex',flexWrap:'wrap',gap:0.75}}>
@@ -242,7 +242,7 @@ export default function ContactPage() {
                     key={s.label}
                     sx={{
                       display:'flex',alignItems:'center',gap:0.75,
-                      border:`1px solid ${C.border}`,borderRadius:'9px',
+                      border:`1px solid ${C.border}`,borderRadius:'11.25px',
                       px:1.5,py:0.75,cursor:'pointer',
                       transition:'all 0.25s ease',
                       '&:hover':{
@@ -254,7 +254,7 @@ export default function ContactPage() {
                     }}
                   >
                     <Box sx={{color:s.color,display:'flex'}}>{s.icon}</Box>
-                    <Typography sx={{fontSize:12,fontWeight:500,color:C.text}}>{s.label}</Typography>
+                    <Typography sx={{fontSize:15,fontWeight:500,color:C.text}}>{s.label}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -266,7 +266,7 @@ export default function ContactPage() {
             sx={{
               bgcolor:'#fff',
               border:`1px solid ${C.border}`,
-              borderRadius:'16px',
+              borderRadius:'20px',
               p:{xs:3,md:5},
               boxShadow:`0 2px 16px ${alpha(C.dark, 0.04)}`,
               transition:'all 0.3s ease',
@@ -276,8 +276,8 @@ export default function ContactPage() {
               },
             }}
           >
-            <Typography sx={{fontSize:18,fontWeight:700,color:C.dark,mb:0.5}}>Envoyez-nous un message</Typography>
-            <Typography sx={{fontSize:13,color:C.muted,mb:3.5}}>Notre équipe vous répondra dans les plus brefs délais.</Typography>
+            <Typography sx={{fontSize:22.5,fontWeight:700,color:C.dark,mb:0.5}}>Envoyez-nous un message</Typography>
+            <Typography sx={{fontSize:16.25,color:C.muted,mb:3.5}}>Notre équipe vous répondra dans les plus brefs délais.</Typography>
 
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2.5}>
@@ -289,11 +289,11 @@ export default function ContactPage() {
                 <TextField fullWidth label="Message" name="message" multiline rows={5} value={form.message} onChange={handleChange} error={!!errors.message} helperText={errors.message} disabled={loading} sx={fieldSx}/>
                 <Button
                   type="submit" variant="contained" disabled={loading}
-                  endIcon={loading ? <CircularProgress size={16} color="inherit"/> : <Send sx={{fontSize:16}}/>}
+                  endIcon={loading ? <CircularProgress size={16} color="inherit"/> : <Send sx={{fontSize:20}}/>}
                   sx={{
                     alignSelf:'flex-start',
                     bgcolor:C.primary, color:'#fff',
-                    borderRadius:'10px', px:4, py:1.5, fontSize:13,
+                    borderRadius:'12.5px', px:4, py:1.5, fontSize:16.25,
                     fontWeight:700, textTransform:'none',
                     boxShadow:`0 4px 16px ${alpha(C.primary, 0.25)}`,
                     transition:'all 0.3s ease',
@@ -314,13 +314,13 @@ export default function ContactPage() {
         <Box sx={{maxWidth:760,mx:'auto',mb:8}}>
           <Box sx={{mb:4.5}}>
             <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:1}}>
-              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
-              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+              <Box sx={{width:35,height:2.5,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:13.75,fontWeight:600,color:C.primary,letterSpacing:'1.25px',textTransform:'uppercase'}}>
                 FAQ
               </Typography>
             </Box>
-            <Typography component="h2" sx={{fontSize:{xs:22,md:28},fontWeight:700,color:C.dark,letterSpacing:'-0.4px',mb:0.75}}>Questions fréquentes</Typography>
-            <Typography sx={{fontSize:14,color:C.muted}}>Trouvez rapidement les réponses aux questions courantes.</Typography>
+            <Typography component="h2" sx={{fontSize:{xs:27.5,md:35},fontWeight:700,color:C.dark,letterSpacing:'-0.5px',mb:0.75}}>Questions fréquentes</Typography>
+            <Typography sx={{fontSize:17.5,color:C.muted}}>Trouvez rapidement les réponses aux questions courantes.</Typography>
           </Box>
           <Stack spacing={1}>
             {FAQS.map((faq,i) => (
@@ -330,7 +330,7 @@ export default function ContactPage() {
                 disableGutters
                 sx={{
                   border:`1px solid ${C.border}`,
-                  borderRadius:'12px !important',
+                  borderRadius:'15px !important',
                   overflow:'hidden',
                   transition:'all 0.25s ease',
                   '&:before':{display:'none'},
@@ -344,17 +344,17 @@ export default function ContactPage() {
                 }}
               >
                 <AccordionSummary
-                  expandIcon={<ExpandMore sx={{fontSize:20,color:C.primary}}/>}
+                  expandIcon={<ExpandMore sx={{fontSize:25,color:C.primary}}/>}
                   sx={{
-                    px:2.5,py:0,minHeight:54,
-                    '&.Mui-expanded':{minHeight:54},
+                    px:2.5,py:0,minHeight:67.5,
+                    '&.Mui-expanded':{minHeight:67.5},
                     '& .MuiAccordionSummary-content':{my:1.75},
                   }}
                 >
-                  <Typography sx={{fontSize:13,fontWeight:600,color:C.dark}}>{faq.q}</Typography>
+                  <Typography sx={{fontSize:16.25,fontWeight:600,color:C.dark}}>{faq.q}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{px:2.5,pt:0,pb:2.5,borderTop:`1px solid ${C.border}`}}>
-                  <Typography sx={{fontSize:13,color:C.text,lineHeight:1.75}}>{faq.a}</Typography>
+                  <Typography sx={{fontSize:16.25,color:C.text,lineHeight:1.75}}>{faq.a}</Typography>
                 </AccordionDetails>
               </Accordion>
             ))}
@@ -367,19 +367,19 @@ export default function ContactPage() {
         <Box sx={{maxWidth:900,mx:'auto',mb:4}}>
           <Box sx={{mb:3}}>
             <Box sx={{display:'inline-flex',alignItems:'center',gap:1.5,mb:1}}>
-              <Box sx={{width:28,height:2,bgcolor:C.primary,borderRadius:'1px'}}/>
-              <Typography sx={{fontSize:11,fontWeight:600,color:C.primary,letterSpacing:'1px',textTransform:'uppercase'}}>
+              <Box sx={{width:35,height:2.5,bgcolor:C.primary,borderRadius:'1px'}}/>
+              <Typography sx={{fontSize:13.75,fontWeight:600,color:C.primary,letterSpacing:'1.25px',textTransform:'uppercase'}}>
                 Localisation
               </Typography>
             </Box>
-            <Typography component="h2" sx={{fontSize:{xs:20,md:24},fontWeight:700,color:C.dark,letterSpacing:'-0.3px'}}>Nous trouver à Dakar</Typography>
+            <Typography component="h2" sx={{fontSize:{xs:25,md:30},fontWeight:700,color:C.dark,letterSpacing:'-0.375px'}}>Nous trouver à Dakar</Typography>
           </Box>
           <Box
             sx={{
               border:`1px solid ${C.border}`,
-              borderRadius:'16px',
+              borderRadius:'20px',
               overflow:'hidden',
-              height:{xs:280,md:380},
+              height:{xs:350,md:475},
               transition:'all 0.3s ease',
               boxShadow:`0 2px 12px ${alpha(C.dark, 0.04)}`,
               '&:hover': {
@@ -399,7 +399,7 @@ export default function ContactPage() {
       </Container>
 
       <Snackbar open={snack.open} autoHideDuration={6000} onClose={()=>setSnack(p=>({...p,open:false}))} anchorOrigin={{vertical:'bottom',horizontal:'right'}}>
-        <Alert severity={snack.ok?'success':'error'} variant="filled" onClose={()=>setSnack(p=>({...p,open:false}))} sx={{borderRadius:'10px',fontSize:13,boxShadow:`0 4px 20px ${alpha('#000',0.15)}`}}>
+        <Alert severity={snack.ok?'success':'error'} variant="filled" onClose={()=>setSnack(p=>({...p,open:false}))} sx={{borderRadius:'12.5px',fontSize:16.25,boxShadow:`0 4px 20px ${alpha('#000',0.15)}`}}>
           {snack.msg}
         </Alert>
       </Snackbar>

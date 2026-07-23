@@ -48,6 +48,7 @@ const poppins = Poppins({
 });
 
 const theme = createTheme({
+  spacing: 10,
   typography: {
     fontFamily: [inter.style.fontFamily, poppins.style.fontFamily, 'sans-serif'].join(','),
     h1: {
@@ -162,7 +163,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 15,
   },
   components: {
     MuiCssBaseline: {
@@ -182,25 +183,25 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 10,
           fontWeight: 600,
-          padding: '10px 24px',
+          padding: '12.5px 30px',
           textTransform: 'none',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            transform: 'translateY(-1px)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            transform: 'translateY(-1.25px)',
+            boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
           },
           '&:active': {
             transform: 'translateY(0)',
           },
         },
         sizeLarge: {
-          padding: '12px 32px',
+          padding: '15px 40px',
           fontSize: '1rem',
         },
         sizeSmall: {
-          padding: '6px 16px',
+          padding: '7.5px 20px',
           fontSize: '0.875rem',
         },
         containedPrimary: {
@@ -210,9 +211,9 @@ const theme = createTheme({
           },
         },
         outlined: {
-          borderWidth: '2px',
+          borderWidth: '2.5px',
           '&:hover': {
-            borderWidth: '2px',
+            borderWidth: '2.5px',
           },
         },
       },
@@ -220,12 +221,12 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.05)',
+          borderRadius: 20,
+          boxShadow: '0 5px 25px 0 rgba(0, 0, 0, 0.05)',
           transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 8px 25px 0 rgba(0, 0, 0, 0.1)',
+            transform: 'translateY(-5px)',
+            boxShadow: '0 10px 31px 0 rgba(0, 0, 0, 0.1)',
           },
           overflow: 'visible',
         },
@@ -235,9 +236,9 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          boxShadow: '0 2px 30px 0 rgba(0, 0, 0, 0.05)',
+          backdropFilter: 'blur(12.5px)',
+          WebkitBackdropFilter: 'blur(12.5px)',
+          boxShadow: '0 2.5px 37.5px 0 rgba(0, 0, 0, 0.05)',
           borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
         },
       },
@@ -250,12 +251,12 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 12,
+            borderRadius: 15,
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: '#cbd5e1',
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderWidth: '2px',
+              borderWidth: '2.5px',
             },
           },
         },
@@ -282,7 +283,7 @@ const theme = createTheme({
           },
         },
         input: {
-          padding: '12px 16px',
+          padding: '15px 20px',
         },
       },
     },
@@ -290,7 +291,7 @@ const theme = createTheme({
       styleOverrides: {
         paper: {
           borderRight: 'none',
-          boxShadow: '2px 0 20px rgba(0, 0, 0, 0.05)',
+          boxShadow: '2.5px 0 25px rgba(0, 0, 0, 0.05)',
         },
       },
     },
@@ -298,7 +299,7 @@ const theme = createTheme({
       styleOverrides: {
         badge: {
           fontWeight: 600,
-          padding: '0 6px',
+          padding: '0 7.5px',
         },
       },
     },
@@ -309,7 +310,7 @@ const theme = createTheme({
       sm: 600,
       md: 900,
       lg: 1200,
-      xl: 1536,
+      xl: 1800,
     },
   },
 });
@@ -320,15 +321,15 @@ theme.components = {
   MuiCssBaseline: {
     styleOverrides: {
       '::-webkit-scrollbar': {
-        width: '8px',
-        height: '8px',
+        width: '10px',
+        height: '10px',
       },
       '::-webkit-scrollbar-track': {
         background: '#f1f5f9',
       },
       '::-webkit-scrollbar-thumb': {
         background: '#cbd5e1',
-        borderRadius: '4px',
+        borderRadius: '5px',
         '&:hover': {
           background: '#94a3b8',
         },

@@ -64,7 +64,7 @@ const LEGAL_LINKS = [
 ];
 
 const linkSx = {
-  fontSize: 14,
+  fontSize: 17.5,
   color: MUTED,
   textDecoration: 'none',
   transition: 'color 0.2s ease',
@@ -73,7 +73,7 @@ const linkSx = {
 };
 
 const headingSx = {
-  fontSize: 11,
+  fontSize: 13.75,
   fontWeight: 700,
   color: LIGHT,
   letterSpacing: '0.12em',
@@ -105,7 +105,7 @@ export function Footer() {
         }}
       />
 
-      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 2.5, sm: 4, md: 6 } }}>
+      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 2, sm: 3, md: 4 } }}>
         {/* Bandeau CTA */}
         
         {/* Grille principale */}
@@ -122,15 +122,15 @@ export function Footer() {
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
               <Box
                 sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '12px',
+                  width: 55,
+                  height: 55,
+                  borderRadius: '15px',
                   background: `linear-gradient(135deg, ${ACCENT} 0%, ${LIGHT} 100%)`,
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 14,
+                  fontSize: 17.5,
                   fontWeight: 800,
                   flexShrink: 0,
                   boxShadow: `0 8px 24px ${alpha('#000', 0.25)}`,
@@ -139,28 +139,28 @@ export function Footer() {
                 DS
               </Box>
               <Box>
-                <Typography sx={{ fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontSize: 21.25, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                   Dame Sarr
                 </Typography>
-                <Typography sx={{ fontSize: 10, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: 12.5, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                   Import & Commerce
                 </Typography>
               </Box>
             </Stack>
 
-            <Typography sx={{ fontSize: 14, color: MUTED, lineHeight: 1.75, mb: 3, maxWidth: 280 }}>
+            <Typography sx={{ fontSize: 17.5, color: MUTED, lineHeight: 1.75, mb: 3, maxWidth: 350 }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
 
             <Stack spacing={1.5}>
               {[
-                { icon: <MapPin sx={{ fontSize: 17 }} />, value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: 17 }} />, value: '+221 77 XXX XX XX' },
-                { icon: <Mail sx={{ fontSize: 17 }} />, value: 'contact@damesarr.sn' },
+                { icon: <MapPin sx={{ fontSize: 21.25 }} />, value: 'Dakar, Sénégal' },
+                { icon: <Phone sx={{ fontSize: 21.25 }} />, value: '+221 77 XXX XX XX' },
+                { icon: <Mail sx={{ fontSize: 21.25 }} />, value: 'contact@damesarr.sn' },
               ].map((item) => (
                 <Stack key={item.value} direction="row" alignItems="center" spacing={1.25}>
                   <Box sx={{ color: LIGHT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
-                  <Typography sx={{ fontSize: 13, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
+                  <Typography sx={{ fontSize: 16.25, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -230,7 +230,7 @@ export function Footer() {
             gap: { xs: 2.5, md: 2 },
           }}
         >
-          <Typography sx={{ fontSize: 12, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
+          <Typography sx={{ fontSize: 15, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
             © {new Date().getFullYear()} Dame Sarr · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
@@ -243,9 +243,9 @@ export function Footer() {
                 aria-label={label}
                 size="small"
                 sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '10px',
+                  width: 47.5,
+                  height: 47.5,
+                  borderRadius: '12.5px',
                   border: `1px solid ${SOFT}`,
                   color: alpha('#fff', 0.75),
                   bgcolor: alpha('#fff', 0.04),
@@ -258,14 +258,14 @@ export function Footer() {
                   },
                 }}
               >
-                <Icon sx={{ fontSize: 18 }} />
+                <Icon sx={{ fontSize: 22.5 }} />
               </IconButton>
             ))}
           </Stack>
 
           <Stack direction="row" spacing={2.5} justifyContent={{ xs: 'center', md: 'flex-end' }} flexWrap="wrap">
             {LEGAL_LINKS.map((l) => (
-              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: 12 }}>
+              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: 15 }}>
                 {l.label}
               </MuiLink>
             ))}

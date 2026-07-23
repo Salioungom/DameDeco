@@ -20,7 +20,7 @@ export default function ShippingManagement() {
         sx={{
           mb: 2.5,
           p: { xs: 2, sm: 2.5 },
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.light,
           display: 'flex',
@@ -30,9 +30,9 @@ export default function ShippingManagement() {
       >
         <Box
           sx={{
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
+            width: 55,
+            height: 55,
+            borderRadius: '15px',
             bgcolor: 'rgba(24, 95, 165, 0.12)',
             display: 'flex',
             alignItems: 'center',
@@ -43,10 +43,10 @@ export default function ShippingManagement() {
           <LocalShippingOutlined />
         </Box>
         <Box>
-          <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 700, color: BRAND.dark }}>
+          <Typography sx={{ fontSize: { xs: 25, sm: 30 }, fontWeight: 700, color: BRAND.dark }}>
             Frais de livraison
           </Typography>
-          <Typography sx={{ fontSize: 14, color: BRAND.muted }}>
+          <Typography sx={{ fontSize: 17.5, color: BRAND.muted }}>
             Configurez le seuil de livraison gratuite et les tarifs standard
           </Typography>
         </Box>

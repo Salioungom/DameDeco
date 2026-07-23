@@ -69,8 +69,8 @@ function CommandDialog({
             color: "text.primary",
           },
           "& [cmdk-item] svg": {
-            width: 20,
-            height: 20,
+            width: 25,
+            height: 25,
           },
         }}
       >
@@ -96,12 +96,12 @@ function CommandInput({
       }}
       data-slot="command-input-wrapper"
     >
-      <SearchIcon sx={{ mr: 1, color: "text.disabled", fontSize: 20 }} />
+      <SearchIcon sx={{ mr: 1, color: "text.disabled", fontSize: 25 }} />
       <Box
         component={CommandPrimitive.Input}
         sx={{
           flex: 1,
-          height: 44,
+          height: 55,
           width: "100%",
           borderRadius: 0,
           bgcolor: "transparent",
@@ -134,7 +134,7 @@ function CommandList({
     <Box
       component={CommandPrimitive.List}
       sx={{
-        maxHeight: 300,
+        maxHeight: 375,
         overflowY: "auto",
         overflowX: "hidden",
         ...sx,

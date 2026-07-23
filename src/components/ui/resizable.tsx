@@ -59,8 +59,8 @@ function ResizableHandle({
           sx={{
             zIndex: 10,
             display: "flex",
-            height: 16,
-            width: 12,
+            height: 20,
+            width: 15,
             alignItems: "center",
             justifyContent: "center",
             borderRadius: 0.5,
@@ -69,7 +69,7 @@ function ResizableHandle({
             bgcolor: "background.paper",
           }}
         >
-          <GripVerticalIcon sx={{ fontSize: 10 }} />
+          <GripVerticalIcon sx={{ fontSize: 12.5 }} />
         </Box>
       )}
     </ResizablePrimitive.PanelResizeHandle>

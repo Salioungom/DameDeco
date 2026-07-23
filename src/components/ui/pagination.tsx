@@ -70,7 +70,7 @@ function PaginationLink({
       size={size}
       sx={{
         minWidth: 36,
-        height: 36,
+        height: 45,
         p: 0,
         borderRadius: 1,
         color: isActive ? "text.primary" : "text.secondary",
@@ -149,15 +149,15 @@ function PaginationEllipsis({
       aria-hidden
       sx={{
         display: "flex",
-        height: 36,
-        width: 36,
+        height: 45,
+        width: 45,
         alignItems: "center",
         justifyContent: "center",
         ...sx,
       }}
       {...props}
     >
-      <MoreHorizontalIcon sx={{ fontSize: 16 }} />
+      <MoreHorizontalIcon sx={{ fontSize: 20 }} />
       <Box component="span" sx={{ position: "absolute", width: "1px", height: "1px", p: 0, m: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
         More pages
       </Box>

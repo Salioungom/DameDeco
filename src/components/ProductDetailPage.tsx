@@ -91,8 +91,8 @@ const navBtnSx = {
   color: C.dark,
   border: `1px solid ${C.border}`,
   boxShadow: '0 4px 16px rgba(4,44,83,0.1)',
-  width: 44,
-  height: 44,
+  width: 55,
+  height: 55,
   zIndex: 2,
   '&:hover': { bgcolor: '#fff', transform: 'translateY(-50%) scale(1.05)' },
 };
@@ -224,7 +224,7 @@ export function ProductDetailPage({
       sx={{
         width: '100%',
         aspectRatio: '1',
-        borderRadius: '12px',
+        borderRadius: '15px',
         overflow: 'hidden',
         border: selectedImage === index ? `2px solid ${C.primary}` : `1px solid ${C.border}`,
         bgcolor: '#fff',
@@ -246,10 +246,10 @@ export function ProductDetailPage({
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: C.surface, pb: { xs: 6, md: 10 } }}>
-      <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 }, pt: { xs: 3, md: 4 } }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 3, md: 4 } }}>
         <Breadcrumbs
-          separator={<NavigateNext sx={{ fontSize: 16, color: C.muted }} />}
-          sx={{ mb: { xs: 3, md: 4 }, '& .MuiBreadcrumbs-li': { fontSize: 13 } }}
+          separator={<NavigateNext sx={{ fontSize: 20, color: C.muted }} />}
+          sx={{ mb: { xs: 3, md: 4 }, '& .MuiBreadcrumbs-li': { fontSize: 16.25 } }}
         >
           <Link href="/" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Accueil</Link>
           <Link href="/shop" style={{ textDecoration: 'none', color: C.muted, fontWeight: 500 }}>Boutique</Link>
@@ -261,7 +261,7 @@ export function ProductDetailPage({
               {product.category_name}
             </Link>
           )}
-          <Typography sx={{ color: C.dark, fontWeight: 600, fontSize: 13 }} noWrap>
+          <Typography sx={{ color: C.dark, fontWeight: 600, fontSize: 16.25 }} noWrap>
             {product.name}
           </Typography>
         </Breadcrumbs>
@@ -291,7 +291,7 @@ export function ProductDetailPage({
                   spacing={1}
                   sx={{
                     display: { xs: 'none', md: 'flex' },
-                    maxHeight: 560,
+                    maxHeight: 700,
                     overflowY: 'auto',
                     pr: 0.5,
                   }}
@@ -306,12 +306,12 @@ export function ProductDetailPage({
                 elevation={0}
                 sx={{
                   position: 'relative',
-                  borderRadius: '20px',
+                  borderRadius: '25px',
                   overflow: 'hidden',
                   bgcolor: '#fff',
                   border: `1px solid ${C.border}`,
                   aspectRatio: { xs: '1', sm: '4/5', md: '1' },
-                  maxHeight: { md: 560 },
+                  maxHeight: { md: 700 },
                   boxShadow: `0 16px 48px ${alpha(C.dark, 0.08)}`,
                 }}
               >
@@ -344,7 +344,7 @@ export function ProductDetailPage({
                         bgcolor: alpha(C.dark, 0.75),
                         color: '#fff',
                         fontWeight: 700,
-                        fontSize: 12,
+                        fontSize: 15,
                         backdropFilter: 'blur(8px)',
                       }}
                     />
@@ -389,7 +389,7 @@ export function ProductDetailPage({
             elevation={0}
             sx={{
               p: { xs: 3, md: 3.5 },
-              borderRadius: '20px',
+              borderRadius: '25px',
               border: `1px solid ${C.border}`,
               bgcolor: '#fff',
               position: { lg: 'sticky' },
@@ -402,17 +402,17 @@ export function ProductDetailPage({
                 <Chip
                   label="Populaire"
                   size="small"
-                  sx={{ bgcolor: alpha(C.gold, 0.15), color: '#92680a', fontWeight: 700, fontSize: 11 }}
+                  sx={{ bgcolor: alpha(C.gold, 0.15), color: '#92680a', fontWeight: 700, fontSize: 13.75 }}
                 />
               )}
               {product.is_new && (
-                <Chip label="Nouveau" size="small" sx={{ bgcolor: C.light, color: C.primary, fontWeight: 700, fontSize: 11 }} />
+                <Chip label="Nouveau" size="small" sx={{ bgcolor: C.light, color: C.primary, fontWeight: 700, fontSize: 13.75 }} />
               )}
               {product.pieces != null && product.pieces > 0 && (
                 <Chip
                   label={`${product.pieces} pièce${product.pieces > 1 ? 's' : ''}`}
                   size="small"
-                  sx={{ bgcolor: C.surface, color: C.muted, fontWeight: 600, fontSize: 11 }}
+                  sx={{ bgcolor: C.surface, color: C.muted, fontWeight: 600, fontSize: 13.75 }}
                 />
               )}
               {product.category_name && (
@@ -422,7 +422,7 @@ export function ProductDetailPage({
                   component={Link}
                   href={`/shop?category=${product.category_id}`}
                   clickable
-                  sx={{ bgcolor: C.surface, color: C.primary, fontWeight: 600, fontSize: 11 }}
+                  sx={{ bgcolor: C.surface, color: C.primary, fontWeight: 600, fontSize: 13.75 }}
                 />
               )}
               <Box sx={{ flex: 1 }} />
@@ -431,7 +431,7 @@ export function ProductDetailPage({
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 sx={{
                   border: `1px solid ${C.border}`,
-                  borderRadius: '10px',
+                  borderRadius: '12.5px',
                   color: isFavorite ? '#e11d48' : C.muted,
                   bgcolor: isFavorite ? alpha('#e11d48', 0.06) : C.surface,
                 }}
@@ -456,12 +456,12 @@ export function ProductDetailPage({
 
             {product.average_rating && Number(product.average_rating) > 0 && (
               <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 2 }}>
-                <StarIcon sx={{ fontSize: 18, color: '#fbbf24' }} />
-                <Typography sx={{ fontWeight: 700, fontSize: 14, color: C.dark }}>
+                <StarIcon sx={{ fontSize: 22.5, color: '#fbbf24' }} />
+                <Typography sx={{ fontWeight: 700, fontSize: 17.5, color: C.dark }}>
                   {Number(product.average_rating).toFixed(1)}
                 </Typography>
                 {reviewCount > 0 && (
-                  <Typography sx={{ fontSize: 13, color: C.muted }}>({reviewCount} avis)</Typography>
+                  <Typography sx={{ fontSize: 16.25, color: C.muted }}>({reviewCount} avis)</Typography>
                 )}
               </Stack>
             )}
@@ -472,7 +472,7 @@ export function ProductDetailPage({
                   {formatPrice(price)}
                 </Typography>
                 {originalPrice && originalPrice > price && (
-                  <Typography sx={{ fontSize: 16, color: C.muted, textDecoration: 'line-through' }}>
+                  <Typography sx={{ fontSize: 20, color: C.muted, textDecoration: 'line-through' }}>
                     {formatPrice(originalPrice)}
                   </Typography>
                 )}
@@ -483,9 +483,9 @@ export function ProductDetailPage({
                   <Chip
                     label={`-${discountPercent}%`}
                     size="small"
-                    sx={{ bgcolor: '#fef2f2', color: '#b91c1c', fontWeight: 800, fontSize: 12 }}
+                    sx={{ bgcolor: '#fef2f2', color: '#b91c1c', fontWeight: 800, fontSize: 15 }}
                   />
-                  <Typography sx={{ fontSize: 13, color: C.muted }}>
+                  <Typography sx={{ fontSize: 16.25, color: C.muted }}>
                     Économisez {formatPrice(originalPrice! - price)}
                   </Typography>
                 </Stack>
@@ -501,7 +501,7 @@ export function ProductDetailPage({
             </Box>
 
             {(product.short_description || product.description) && (
-              <Typography sx={{ fontSize: 14, color: C.text, lineHeight: 1.75, mb: 3 }}>
+              <Typography sx={{ fontSize: 17.5, color: C.text, lineHeight: 1.75, mb: 3 }}>
                 {product.short_description || product.description}
               </Typography>
             )}
@@ -509,30 +509,30 @@ export function ProductDetailPage({
             <Divider sx={{ borderColor: C.border, mb: 3 }} />
 
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 700, color: C.dark }}>Quantité</Typography>
+              <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: C.dark }}>Quantité</Typography>
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <IconButton
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   size="small"
-                  sx={{ border: `1px solid ${C.border}`, borderRadius: '10px', width: 36, height: 36 }}
+                  sx={{ border: `1px solid ${C.border}`, borderRadius: '12.5px', width: 45, height: 45 }}
                 >
                   <Minus fontSize="small" />
                 </IconButton>
-                <Typography sx={{ minWidth: 44, textAlign: 'center', fontWeight: 800, fontSize: 16 }}>
+                <Typography sx={{ minWidth: 55, textAlign: 'center', fontWeight: 800, fontSize: 20 }}>
                   {quantity}
                 </Typography>
                 <IconButton
                   onClick={() => setQuantity(quantity + 1)}
                   disabled={quantity >= product.inventory_quantity}
                   size="small"
-                  sx={{ border: `1px solid ${C.border}`, borderRadius: '10px', width: 36, height: 36 }}
+                  sx={{ border: `1px solid ${C.border}`, borderRadius: '12.5px', width: 45, height: 45 }}
                 >
                   <Plus fontSize="small" />
                 </IconButton>
               </Stack>
             </Stack>
 
-            <Typography sx={{ fontSize: 12, color: inStock ? '#15803d' : '#b91c1c', fontWeight: 600, mb: 3 }}>
+            <Typography sx={{ fontSize: 15, color: inStock ? '#15803d' : '#b91c1c', fontWeight: 600, mb: 3 }}>
               {inStock ? `${product.inventory_quantity} en stock` : 'Produit indisponible'}
             </Typography>
 
@@ -546,9 +546,9 @@ export function ProductDetailPage({
                 disabled={!inStock}
                 sx={{
                   py: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: '15px',
                   fontWeight: 800,
-                  fontSize: 15,
+                  fontSize: 18.75,
                   textTransform: 'none',
                   bgcolor: C.primary,
                   boxShadow: `0 8px 24px ${alpha(C.primary, 0.35)}`,
@@ -565,9 +565,9 @@ export function ProductDetailPage({
                 onClick={handleWhatsAppOrder}
                 sx={{
                   py: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: '15px',
                   fontWeight: 700,
-                  fontSize: 14,
+                  fontSize: 17.5,
                   textTransform: 'none',
                   borderColor: '#25D366',
                   color: '#15803d',
@@ -583,9 +583,9 @@ export function ProductDetailPage({
                 <Stack key={text} direction="row" spacing={1.5} alignItems="flex-start">
                   <Box
                     sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: '10px',
+                      width: 45,
+                      height: 45,
+                      borderRadius: '12.5px',
                       bgcolor: C.light,
                       display: 'flex',
                       alignItems: 'center',
@@ -593,9 +593,9 @@ export function ProductDetailPage({
                       flexShrink: 0,
                     }}
                   >
-                    <Icon sx={{ fontSize: 18, color: C.primary }} />
+                    <Icon sx={{ fontSize: 22.5, color: C.primary }} />
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: C.text, lineHeight: 1.5, pt: 0.5 }}>{text}</Typography>
+                  <Typography sx={{ fontSize: 16.25, color: C.text, lineHeight: 1.5, pt: 0.5 }}>{text}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -607,7 +607,7 @@ export function ProductDetailPage({
           elevation={0}
           sx={{
             mt: { xs: 5, md: 7 },
-            borderRadius: '20px',
+            borderRadius: '25px',
             border: `1px solid ${C.border}`,
             bgcolor: '#fff',
             overflow: 'hidden',
@@ -621,16 +621,16 @@ export function ProductDetailPage({
             sx={{
               px: { xs: 1, md: 2 },
               borderBottom: `1px solid ${C.border}`,
-              minHeight: 52,
+              minHeight: 65,
               '& .MuiTab-root': {
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 17.5,
                 textTransform: 'none',
                 color: C.muted,
-                minHeight: 52,
+                minHeight: 65,
                 '&.Mui-selected': { color: C.primary },
               },
-              '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0', bgcolor: C.primary },
+              '& .MuiTabs-indicator': { height: 3.75, borderRadius: '3.75px 3.75px 0 0', bgcolor: C.primary },
             }}
           >
             <Tab label="Description" />
@@ -639,45 +639,45 @@ export function ProductDetailPage({
             <Tab label="Paiement" />
           </Tabs>
 
-          <Box sx={{ px: { xs: 2.5, md: 4 } }}>
+          <Box sx={{ px: { xs: 2, md: 3 } }}>
             <CustomTabPanel value={tabValue} index={0}>
-              <Typography sx={{ fontSize: 15, color: C.text, lineHeight: 1.8, mb: 3 }}>
+              <Typography sx={{ fontSize: 18.75, color: C.text, lineHeight: 1.8, mb: 3 }}>
                 {product.description || product.short_description || 'Description à venir.'}
               </Typography>
-              <Typography sx={{ fontSize: 14, fontWeight: 800, color: C.dark, mb: 1.5 }}>Caractéristiques</Typography>
+              <Typography sx={{ fontSize: 17.5, fontWeight: 800, color: C.dark, mb: 1.5 }}>Caractéristiques</Typography>
               <Box component="ul" sx={{ pl: 2.5, m: 0, '& li': { mb: 1 } }}>
-                <Typography component="li" sx={{ fontSize: 14, color: C.text }}>Importé directement de Chine</Typography>
-                <Typography component="li" sx={{ fontSize: 14, color: C.text }}>Qualité premium contrôlée</Typography>
+                <Typography component="li" sx={{ fontSize: 17.5, color: C.text }}>Importé directement de Chine</Typography>
+                <Typography component="li" sx={{ fontSize: 17.5, color: C.text }}>Qualité premium contrôlée</Typography>
                 {product.pieces != null && product.pieces > 0 && (
-                  <Typography component="li" sx={{ fontSize: 14, color: C.text }}>
+                  <Typography component="li" sx={{ fontSize: 17.5, color: C.text }}>
                     Ensemble de {product.pieces} pièce{product.pieces > 1 ? 's' : ''}
                   </Typography>
                 )}
                 {product.sku && (
-                  <Typography component="li" sx={{ fontSize: 14, color: C.text }}>Réf. {product.sku}</Typography>
+                  <Typography component="li" sx={{ fontSize: 17.5, color: C.text }}>Réf. {product.sku}</Typography>
                 )}
               </Box>
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={1}>
-              <Typography sx={{ fontSize: 14, color: C.muted }}>Les avis clients seront bientôt disponibles.</Typography>
+              <Typography sx={{ fontSize: 17.5, color: C.muted }}>Les avis clients seront bientôt disponibles.</Typography>
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={2}>
               <Stack spacing={2.5}>
                 <Box>
                   <Typography sx={{ fontWeight: 700, color: C.dark, mb: 0.5 }}>Dakar & banlieue</Typography>
-                  <Typography sx={{ fontSize: 14, color: C.text }}>Livraison express sous 24–48h ouvrées.</Typography>
+                  <Typography sx={{ fontSize: 17.5, color: C.text }}>Livraison express sous 24–48h ouvrées.</Typography>
                 </Box>
                 <Box>
                   <Typography sx={{ fontWeight: 700, color: C.dark, mb: 0.5 }}>Reste du Sénégal</Typography>
-                  <Typography sx={{ fontSize: 14, color: C.text }}>Expédition sous 3–5 jours ouvrés avec suivi.</Typography>
+                  <Typography sx={{ fontSize: 17.5, color: C.text }}>Expédition sous 3–5 jours ouvrés avec suivi.</Typography>
                 </Box>
               </Stack>
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={3}>
-              <Typography sx={{ fontSize: 14, color: C.text, mb: 2 }}>
+              <Typography sx={{ fontSize: 17.5, color: C.text, mb: 2 }}>
                 Paiement sécurisé — Wave, Orange Money, PayPal ou paiement à la livraison.
               </Typography>
               <PaymentIcons size="md" showLabels />
@@ -688,7 +688,7 @@ export function ProductDetailPage({
         {/* Similaires */}
         <Box sx={{ mt: { xs: 7, md: 9 } }}>
           <Box sx={{ mb: 4 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.primary, mb: 1 }}>
+            <Typography sx={{ fontSize: 13.75, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.primary, mb: 1 }}>
               Vous aimerez aussi
             </Typography>
             <Typography component="h2" sx={{ fontSize: { xs: '1.5rem', md: '1.85rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.03em' }}>
@@ -699,7 +699,7 @@ export function ProductDetailPage({
           {loadingSimilar ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2.5 }}>
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} variant="rounded" height={360} sx={{ borderRadius: '14px' }} />
+                <Skeleton key={i} variant="rounded" height={450} sx={{ borderRadius: '17.5px' }} />
               ))}
             </Box>
           ) : similarProducts.length > 0 ? (

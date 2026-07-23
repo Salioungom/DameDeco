@@ -46,19 +46,19 @@ const C = {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const TIMELINE = [
-  { year: '2010', title: "Création de l'entreprise", desc: "Dame Sarr débute l'importation avec une vision claire : offrir des produits de qualité accessibles à Dakar.", icon: <EmojiEvents sx={{ fontSize: 16 }} /> },
-  { year: '2015', title: 'Expansion de la gamme', desc: 'Diversification vers la literie, les meubles et la décoration. Premier partenariat majeur avec des fournisseurs certifiés en Chine.', icon: <TrendingUp sx={{ fontSize: 16 }} /> },
-  { year: '2020', title: 'Croissance & showroom', desc: '5 000+ clients satisfaits. Ouverture d\'un showroom moderne à Dakar et développement de l\'activité grossiste.', icon: <WorkspacePremium sx={{ fontSize: 16 }} /> },
-  { year: '2024', title: 'Excellence & e-commerce', desc: 'Lancement de la plateforme en ligne. Livraison express dans tout le Sénégal et service client 6j/7.', icon: <Groups sx={{ fontSize: 16 }} /> },
+  { year: '2010', title: "Création de l'entreprise", desc: "Dame Sarr débute l'importation avec une vision claire : offrir des produits de qualité accessibles à Dakar.", icon: <EmojiEvents sx={{ fontSize: 20 }} /> },
+  { year: '2015', title: 'Expansion de la gamme', desc: 'Diversification vers la literie, les meubles et la décoration. Premier partenariat majeur avec des fournisseurs certifiés en Chine.', icon: <TrendingUp sx={{ fontSize: 20 }} /> },
+  { year: '2020', title: 'Croissance & showroom', desc: '5 000+ clients satisfaits. Ouverture d\'un showroom moderne à Dakar et développement de l\'activité grossiste.', icon: <WorkspacePremium sx={{ fontSize: 20 }} /> },
+  { year: '2024', title: 'Excellence & e-commerce', desc: 'Lancement de la plateforme en ligne. Livraison express dans tout le Sénégal et service client 6j/7.', icon: <Groups sx={{ fontSize: 20 }} /> },
 ];
 
 const VALUES = [
-  { icon: <Shield sx={{ fontSize: 20 }} />,      title: 'Qualité garantie',           desc: 'Chaque produit est rigoureusement sélectionné chez des fournisseurs certifiés avant d\'être proposé à la vente.' },
-  { icon: <Handshake sx={{ fontSize: 20 }} />,   title: 'Accompagnement dédié',       desc: 'Un suivi personnalisé à chaque étape — de la commande à la livraison, nous sommes à vos côtés.' },
-  { icon: <Lightbulb sx={{ fontSize: 20 }} />,   title: 'Innovation continue',        desc: 'Nous améliorons constamment nos services pour vous offrir la meilleure expérience d\'achat.' },
-  { icon: <VerifiedUser sx={{ fontSize: 20 }} />, title: 'Confiance & transparence',  desc: 'Prix clairs, politique de retour simple, et communication honnête à chaque interaction.' },
-  { icon: <LocalShipping sx={{ fontSize: 20 }} />, title: 'Livraison rapide',         desc: 'Expédition express 24–48h sur Dakar et banlieue avec suivi en temps réel de votre colis.' },
-  { icon: <SupportAgent sx={{ fontSize: 20 }} />, title: 'Support réactif',           desc: 'Une équipe disponible du lundi au samedi pour répondre à toutes vos questions et vous conseiller.' },
+  { icon: <Shield sx={{ fontSize: 25 }} />,      title: 'Qualité garantie',           desc: 'Chaque produit est rigoureusement sélectionné chez des fournisseurs certifiés avant d\'être proposé à la vente.' },
+  { icon: <Handshake sx={{ fontSize: 25 }} />,   title: 'Accompagnement dédié',       desc: 'Un suivi personnalisé à chaque étape — de la commande à la livraison, nous sommes à vos côtés.' },
+  { icon: <Lightbulb sx={{ fontSize: 25 }} />,   title: 'Innovation continue',        desc: 'Nous améliorons constamment nos services pour vous offrir la meilleure expérience d\'achat.' },
+  { icon: <VerifiedUser sx={{ fontSize: 25 }} />, title: 'Confiance & transparence',  desc: 'Prix clairs, politique de retour simple, et communication honnête à chaque interaction.' },
+  { icon: <LocalShipping sx={{ fontSize: 25 }} />, title: 'Livraison rapide',         desc: 'Expédition express 24–48h sur Dakar et banlieue avec suivi en temps réel de votre colis.' },
+  { icon: <SupportAgent sx={{ fontSize: 25 }} />, title: 'Support réactif',           desc: 'Une équipe disponible du lundi au samedi pour répondre à toutes vos questions et vous conseiller.' },
 ];
 
 const TEAM = [
@@ -111,8 +111,8 @@ export default function AboutPage() {
             position: 'absolute',
             top: '-120px',
             right: '-80px',
-            width: 400,
-            height: 400,
+            width: 500,
+            height: 500,
             borderRadius: '50%',
             background: `radial-gradient(circle, ${alpha(C.primary, 0.08)} 0%, transparent 70%)`,
             filter: 'blur(60px)',
@@ -124,8 +124,8 @@ export default function AboutPage() {
             position: 'absolute',
             bottom: '-100px',
             left: '-60px',
-            width: 300,
-            height: 300,
+            width: 375,
+            height: 375,
             borderRadius: '50%',
             background: `radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
             filter: 'blur(50px)',
@@ -133,7 +133,7 @@ export default function AboutPage() {
           }}
         />
 
-        <Container maxWidth="xl" sx={{ px: { xs: 3, md: 6 }, position: 'relative', zIndex: 1 }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, position: 'relative', zIndex: 1 }}>
           <Box
             sx={{
               display: 'grid',
@@ -151,15 +151,15 @@ export default function AboutPage() {
                   gap: 1,
                   bgcolor: alpha(C.primary, 0.08),
                   border: `1px solid ${alpha(C.primary, 0.15)}`,
-                  borderRadius: '20px',
+                  borderRadius: '25px',
                   px: 1.5,
                   py: 0.5,
                   mb: 3,
                   backdropFilter: 'blur(4px)',
                 }}
               >
-                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e' }} />
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.primary, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e' }} />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.primary, letterSpacing: '1px', textTransform: 'uppercase' }}>
                   Depuis 2010 · Dakar, Sénégal
                 </Typography>
               </Box>
@@ -187,9 +187,9 @@ export default function AboutPage() {
                       bottom: 2,
                       left: 0,
                       right: 0,
-                      height: 4,
-                      bgcolor: alpha(C.primary, 0.15),
-                      borderRadius: '2px',
+                    height: 5,
+                    bgcolor: alpha(C.primary, 0.15),
+                    borderRadius: '3px',
                     },
                   }}
                 >
@@ -200,11 +200,11 @@ export default function AboutPage() {
 
               <Typography
                 sx={{
-                  fontSize: { xs: 14, md: 15 },
+                  fontSize: { xs: 18, md: 19 },
                   color: C.text,
                   lineHeight: 1.8,
                   mb: 4,
-                  maxWidth: 520,
+                  maxWidth: 650,
                 }}
               >
                 Dame Sarr Import & Commerce sélectionne et importe des produits premium depuis la Chine — meubles, décoration, textile — pour les particuliers et professionnels au Sénégal.
@@ -215,8 +215,8 @@ export default function AboutPage() {
                   <Stack key={pt} direction="row" spacing={1.25} alignItems="center">
                     <Box
                       sx={{
-                        width: 18,
-                        height: 18,
+                        width: 23,
+                        height: 23,
                         borderRadius: '50%',
                         bgcolor: alpha(C.primary, 0.1),
                         display: 'flex',
@@ -225,9 +225,9 @@ export default function AboutPage() {
                         flexShrink: 0,
                       }}
                     >
-                      <CheckCircle sx={{ fontSize: 12, color: C.primary }} />
+                      <CheckCircle sx={{ fontSize: 15, color: C.primary }} />
                     </Box>
-                    <Typography sx={{ fontSize: 13, color: C.text }}>{pt}</Typography>
+                    <Typography sx={{ fontSize: 16, color: C.text }}>{pt}</Typography>
                   </Stack>
                 ))}
               </Stack>
@@ -240,10 +240,10 @@ export default function AboutPage() {
                   sx={{
                     bgcolor: C.primary,
                     color: '#fff',
-                    borderRadius: '10px',
+                    borderRadius: '13px',
                     px: 4,
                     py: 1.5,
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: 700,
                     textTransform: 'none',
                     boxShadow: `0 4px 16px ${alpha(C.primary, 0.25)}`,
@@ -263,10 +263,10 @@ export default function AboutPage() {
                   sx={{
                     borderColor: C.border,
                     color: C.primary,
-                    borderRadius: '10px',
+                    borderRadius: '13px',
                     px: 3.5,
                     py: 1.5,
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: 600,
                     textTransform: 'none',
                     transition: 'all 0.3s ease',
@@ -294,7 +294,7 @@ export default function AboutPage() {
                 <Box
                   key={s.label}
                   sx={{
-                    borderRadius: '16px',
+                    borderRadius: '20px',
                     p: { xs: 2.5, md: 3.5 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -325,8 +325,8 @@ export default function AboutPage() {
                           position: 'absolute',
                           top: '-40%',
                           right: '-20%',
-                          width: 120,
-                          height: 120,
+                          width: 150,
+                          height: 150,
                           borderRadius: '50%',
                           background: `radial-gradient(circle, ${alpha('#fff', 0.06)} 0%, transparent 70%)`,
                           pointerEvents: 'none',
@@ -339,14 +339,14 @@ export default function AboutPage() {
                       fontSize: { xs: '1.75rem', md: '2.25rem' },
                       fontWeight: 800,
                       color: i === 0 ? '#fff' : C.dark,
-                      letterSpacing: '-2px',
+                      letterSpacing: '-2.5px',
                       lineHeight: 1,
                       mb: 0.5,
                     }}
                   >
                     {s.num}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: i === 0 ? alpha('#fff', 0.7) : C.muted, fontWeight: 500 }}>
+                  <Typography sx={{ fontSize: 15, color: i === 0 ? alpha('#fff', 0.7) : C.muted, fontWeight: 500 }}>
                     {s.label}
                   </Typography>
                 </Box>
@@ -360,7 +360,7 @@ export default function AboutPage() {
           2. QUI SOMMES-NOUS — refined
       ══════════════════════════════════════════ */}
       <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#fff' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 3, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box
             sx={{
               display: 'grid',
@@ -379,27 +379,27 @@ export default function AboutPage() {
                   mb: 1.5,
                 }}
               >
-                <Box sx={{ width: 28, height: 2, bgcolor: C.primary, borderRadius: '1px' }} />
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.primary, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                <Box sx={{ width: 35, height: 3, bgcolor: C.primary, borderRadius: '2px' }} />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.primary, letterSpacing: '1.25px', textTransform: 'uppercase' }}>
                   Qui sommes-nous
                 </Typography>
               </Box>
               <Typography
                 component="h2"
                 sx={{
-                  fontSize: { xs: 22, md: 30 },
+                  fontSize: { xs: 28, md: 38 },
                   fontWeight: 700,
                   color: C.dark,
-                  letterSpacing: '-0.4px',
+                  letterSpacing: '-0.5px',
                   mb: 3,
                 }}
               >
                 Notre raison d'être
               </Typography>
-              <Typography sx={{ fontSize: 14, color: C.text, lineHeight: 1.85, mb: 2.5 }}>
+              <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85, mb: 2.5 }}>
                 Depuis 2010, Dame Sarr Import & Commerce s'est imposée comme le partenaire de référence pour l'importation de produits de qualité au Sénégal. Nous travaillons directement avec des fournisseurs certifiés en Chine pour garantir les meilleurs prix et standards de qualité.
               </Typography>
-              <Typography sx={{ fontSize: 14, color: C.text, lineHeight: 1.85 }}>
+              <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85 }}>
                 Notre mission : rendre accessibles des produits premium à tous, particuliers comme professionnels, grâce à une logistique maîtrisée et un service client de proximité basé à Dakar.
               </Typography>
             </Box>
@@ -407,9 +407,9 @@ export default function AboutPage() {
             {/* Droite */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {[
-                { icon: <Place sx={{ fontSize: 17 }} />,  label: 'Adresse',   value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: 17 }} />,  label: 'Téléphone', value: '+221 77 XXX XX XX' },
-                { icon: <Email sx={{ fontSize: 17 }} />,  label: 'Email',     value: 'contact@damesarr.sn' },
+                { icon: <Place sx={{ fontSize: 21 }} />,  label: 'Adresse',   value: 'Dakar, Sénégal' },
+                { icon: <Phone sx={{ fontSize: 21 }} />,  label: 'Téléphone', value: '+221 77 XXX XX XX' },
+                { icon: <Email sx={{ fontSize: 21 }} />,  label: 'Email',     value: 'contact@damesarr.sn' },
               ].map((item) => (
                 <Box
                   key={item.label}
@@ -419,7 +419,7 @@ export default function AboutPage() {
                     gap: 1.5,
                     bgcolor: C.surface,
                     border: `1px solid ${C.border}`,
-                    borderRadius: '12px',
+                    borderRadius: '15px',
                     px: 2.5,
                     py: 2,
                     transition: 'all 0.3s ease',
@@ -433,9 +433,9 @@ export default function AboutPage() {
                 >
                   <Box
                     sx={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: '10px',
+                      width: 48,
+                      height: 48,
+                      borderRadius: '13px',
                       bgcolor: alpha(C.primary, 0.08),
                       display: 'flex',
                       alignItems: 'center',
@@ -447,8 +447,8 @@ export default function AboutPage() {
                     {item.icon}
                   </Box>
                   <Box>
-                    <Typography sx={{ fontSize: 11, color: C.muted, mb: 0.25 }}>{item.label}</Typography>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, color: C.dark }}>{item.value}</Typography>
+                    <Typography sx={{ fontSize: 14, color: C.muted, mb: 0.25 }}>{item.label}</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: C.dark }}>{item.value}</Typography>
                   </Box>
                 </Box>
               ))}
@@ -461,14 +461,14 @@ export default function AboutPage() {
           3. VALEURS — premium cards
       ══════════════════════════════════════════ */}
       <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: C.surface }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 3, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box sx={{ mb: 6 }}>
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 600,
                 color: C.primary,
-                letterSpacing: '1px',
+                letterSpacing: '1.25px',
                 textTransform: 'uppercase',
                 mb: 1,
               }}
@@ -478,10 +478,10 @@ export default function AboutPage() {
             <Typography
               component="h2"
               sx={{
-                fontSize: { xs: 22, md: 30 },
+                fontSize: { xs: 28, md: 38 },
                 fontWeight: 700,
                 color: C.dark,
-                letterSpacing: '-0.4px',
+                letterSpacing: '-0.5px',
               }}
             >
               Nos valeurs fondamentales
@@ -500,7 +500,7 @@ export default function AboutPage() {
                 key={v.title}
                 sx={{
                   bgcolor: '#fff',
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   p: { xs: 3, md: 4 },
                   border: `1px solid ${C.border}`,
                   transition: 'all 0.4s ease',
@@ -513,7 +513,7 @@ export default function AboutPage() {
                     top: 0,
                     left: 0,
                     right: 0,
-                    height: 3,
+                    height: 4,
                     background: `linear-gradient(90deg, ${C.primary}, ${alpha(C.primary, 0.3)})`,
                     opacity: 0,
                     transition: 'opacity 0.4s ease',
@@ -528,9 +528,9 @@ export default function AboutPage() {
               >
                 <Box
                   sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: '12px',
+                    width: 60,
+                    height: 60,
+                    borderRadius: '15px',
                     background: `linear-gradient(135deg, ${alpha(C.primary, 0.1)} 0%, ${alpha(C.primary, 0.03)} 100%)`,
                     display: 'flex',
                     alignItems: 'center',
@@ -545,7 +545,7 @@ export default function AboutPage() {
                 <Typography
                   component="h3"
                   sx={{
-                    fontSize: 15,
+                    fontSize: 19,
                     fontWeight: 600,
                     color: C.dark,
                     mb: 1,
@@ -553,7 +553,7 @@ export default function AboutPage() {
                 >
                   {v.title}
                 </Typography>
-                <Typography sx={{ fontSize: 13, color: C.text, lineHeight: 1.75 }}>
+                <Typography sx={{ fontSize: 16, color: C.text, lineHeight: 1.75 }}>
                   {v.desc}
                 </Typography>
               </Box>
@@ -566,14 +566,14 @@ export default function AboutPage() {
           4. TIMELINE — premium history
       ══════════════════════════════════════════ */}
       <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: '#fff' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 3, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box sx={{ mb: 6 }}>
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 600,
                 color: C.primary,
-                letterSpacing: '1px',
+                letterSpacing: '1.25px',
                 textTransform: 'uppercase',
                 mb: 1,
               }}
@@ -583,17 +583,17 @@ export default function AboutPage() {
             <Typography
               component="h2"
               sx={{
-                fontSize: { xs: 22, md: 30 },
+                fontSize: { xs: 28, md: 38 },
                 fontWeight: 700,
                 color: C.dark,
-                letterSpacing: '-0.4px',
+                letterSpacing: '-0.5px',
               }}
             >
               14 ans d'excellence
             </Typography>
           </Box>
 
-          <Box sx={{ position: 'relative', maxWidth: 760, mx: 'auto' }}>
+          <Box sx={{ position: 'relative', maxWidth: 950, mx: 'auto' }}>
             {/* Vertical line */}
             <Box
               sx={{
@@ -601,7 +601,7 @@ export default function AboutPage() {
                 left: 24,
                 top: 24,
                 bottom: 24,
-                width: 2,
+                width: 3,
                 background: `linear-gradient(180deg, ${C.primary} 0%, ${alpha(C.primary, 0.15)} 100%)`,
                 display: { xs: 'none', sm: 'block' },
               }}
@@ -631,8 +631,8 @@ export default function AboutPage() {
                 >
                   <Box
                     sx={{
-                      width: 50,
-                      height: 50,
+                      width: 63,
+                      height: 63,
                       borderRadius: '50%',
                       background: `linear-gradient(135deg, ${C.primary}, ${alpha(C.primary, 0.7)})`,
                       color: '#fff',
@@ -658,7 +658,7 @@ export default function AboutPage() {
                     flex: 1,
                     bgcolor: C.surface,
                     border: `1px solid ${C.border}`,
-                    borderRadius: '14px',
+                    borderRadius: '18px',
                     p: 3,
                     mt: 0.75,
                     transition: 'all 0.3s ease',
@@ -674,21 +674,21 @@ export default function AboutPage() {
                       sx={{
                         bgcolor: C.primary,
                         color: '#fff',
-                        fontSize: 11,
+                        fontSize: 14,
                         fontWeight: 700,
                         px: 1.25,
                         py: 0.375,
-                        borderRadius: '6px',
-                        letterSpacing: '0.5px',
+                        borderRadius: '8px',
+                        letterSpacing: '0.625px',
                       }}
                     >
                       {ev.year}
                     </Box>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.dark }}>
+                    <Typography sx={{ fontSize: 18, fontWeight: 600, color: C.dark }}>
                       {ev.title}
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: C.text, lineHeight: 1.75 }}>
+                  <Typography sx={{ fontSize: 16, color: C.text, lineHeight: 1.75 }}>
                     {ev.desc}
                   </Typography>
                 </Box>
@@ -702,14 +702,14 @@ export default function AboutPage() {
           5. ÉQUIPE — premium cards
       ══════════════════════════════════════════ */}
       <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: C.surface }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 3, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box sx={{ mb: 6 }}>
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 600,
                 color: C.primary,
-                letterSpacing: '1px',
+                letterSpacing: '1.25px',
                 textTransform: 'uppercase',
                 mb: 1,
               }}
@@ -719,10 +719,10 @@ export default function AboutPage() {
             <Typography
               component="h2"
               sx={{
-                fontSize: { xs: 22, md: 30 },
+                fontSize: { xs: 28, md: 38 },
                 fontWeight: 700,
                 color: C.dark,
-                letterSpacing: '-0.4px',
+                letterSpacing: '-0.5px',
               }}
             >
               Les artisans de votre satisfaction
@@ -742,7 +742,7 @@ export default function AboutPage() {
                 sx={{
                   bgcolor: '#fff',
                   border: `1px solid ${C.border}`,
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   p: 3.5,
                   display: 'flex',
                   flexDirection: 'column',
@@ -759,10 +759,10 @@ export default function AboutPage() {
               >
                 <Avatar
                   sx={{
-                    width: 72,
-                    height: 72,
+                    width: 90,
+                    height: 90,
                     background: `linear-gradient(135deg, ${member.color}, ${alpha(member.color, 0.6)})`,
-                    fontSize: 22,
+                    fontSize: 28,
                     fontWeight: 700,
                     mb: 2.5,
                     boxShadow: `0 4px 16px ${alpha(member.color, 0.2)}`,
@@ -771,10 +771,10 @@ export default function AboutPage() {
                 >
                   {member.initials}
                 </Avatar>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.dark, mb: 0.5 }}>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: C.dark, mb: 0.5 }}>
                   {member.name}
                 </Typography>
-                <Typography sx={{ fontSize: 12, color: C.primary, fontWeight: 500 }}>
+                <Typography sx={{ fontSize: 15, color: C.primary, fontWeight: 500 }}>
                   {member.role}
                 </Typography>
               </Box>
@@ -792,7 +792,7 @@ export default function AboutPage() {
           my: 8,
           bgcolor: C.dark,
           borderRadius: '20px',
-          px: { xs: 4, md: 8 },
+          px: { xs: 2.5, sm: 4, md: 5 },
           py: { xs: 6, md: 9 },
           display: 'flex',
           alignItems: 'center',
@@ -807,8 +807,8 @@ export default function AboutPage() {
             position: 'absolute',
             top: '-60px',
             right: '-60px',
-            width: 300,
-            height: 300,
+            width: 375,
+            height: 375,
             borderRadius: '50%',
             background: `radial-gradient(circle, ${alpha(C.primary, 0.2)} 0%, transparent 70%)`,
             filter: 'blur(60px)',
@@ -819,8 +819,8 @@ export default function AboutPage() {
             position: 'absolute',
             bottom: '-80px',
             left: '-40px',
-            width: 240,
-            height: 240,
+            width: 300,
+            height: 300,
             borderRadius: '50%',
             background: `radial-gradient(circle, ${alpha(C.primary, 0.15)} 0%, transparent 70%)`,
             filter: 'blur(50px)',
@@ -828,12 +828,12 @@ export default function AboutPage() {
           },
         }}
       >
-        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 500 }}>
+        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 625 }}>
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: 600,
-              letterSpacing: '1.5px',
+              letterSpacing: '1.875px',
               textTransform: 'uppercase',
               color: alpha(C.mid, 0.8),
               mb: 1.5,
@@ -844,17 +844,17 @@ export default function AboutPage() {
           <Typography
             component="h2"
             sx={{
-              fontSize: { xs: 24, md: 32 },
+              fontSize: { xs: 30, md: 40 },
               fontWeight: 700,
               color: '#fff',
               lineHeight: 1.2,
-              letterSpacing: '-0.5px',
+              letterSpacing: '-0.625px',
               mb: 1.5,
             }}
           >
             Découvrez notre catalogue
           </Typography>
-          <Typography sx={{ fontSize: 14, color: alpha('#fff', 0.7), lineHeight: 1.75, maxWidth: 420 }}>
+          <Typography sx={{ fontSize: 18, color: alpha('#fff', 0.7), lineHeight: 1.75, maxWidth: 525 }}>
             Parcourez plus de 1 200 produits importés directement pour vous, à des prix compétitifs.
           </Typography>
         </Box>
@@ -868,10 +868,10 @@ export default function AboutPage() {
               bgcolor: '#fff',
               color: C.dark,
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 16,
               px: 4,
               py: 1.5,
-              borderRadius: '10px',
+              borderRadius: '13px',
               textTransform: 'none',
               boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
               whiteSpace: 'nowrap',
@@ -892,10 +892,10 @@ export default function AboutPage() {
               borderColor: alpha('#fff', 0.3),
               color: '#fff',
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: 16,
               px: 3.5,
               py: 1.5,
-              borderRadius: '10px',
+              borderRadius: '13px',
               textTransform: 'none',
               transition: 'all 0.3s ease',
               '&:hover': {

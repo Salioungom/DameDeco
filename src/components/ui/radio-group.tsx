@@ -21,8 +21,8 @@ function RadioGroupItem({ className, sx, ...props }: React.ComponentProps<typeof
       icon={
         <Box
           sx={{
-            height: 16,
-            width: 16,
+            height: 20,
+            width: 20,
             borderRadius: "50%",
             border: 1,
             borderColor: "divider",
@@ -32,8 +32,8 @@ function RadioGroupItem({ className, sx, ...props }: React.ComponentProps<typeof
       checkedIcon={
         <Box
           sx={{
-            height: 16,
-            width: 16,
+            height: 20,
+            width: 20,
             borderRadius: "50%",
             border: 1,
             borderColor: "primary.main",
@@ -42,13 +42,13 @@ function RadioGroupItem({ className, sx, ...props }: React.ComponentProps<typeof
             justifyContent: "center",
           }}
         >
-          <CircleIcon sx={{ fontSize: 10, color: "primary.main" }} />
+          <CircleIcon sx={{ fontSize: 12.5, color: "primary.main" }} />
         </Box>
       }
       sx={{
         p: 0,
-        width: 16,
-        height: 16,
+        width: 20,
+        height: 20,
         "&:hover": {
           bgcolor: "transparent",
         },

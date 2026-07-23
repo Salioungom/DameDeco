@@ -63,7 +63,7 @@ const BRAND = {
 
 const primaryBtnSx = {
   bgcolor: BRAND.primary,
-  borderRadius: '10px',
+  borderRadius: '12.5px',
   textTransform: 'none' as const,
   fontWeight: 600,
   boxShadow: 'none',
@@ -74,7 +74,7 @@ const StyledCard = styled(Card)(() => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  borderRadius: '16px',
+  borderRadius: '20px',
   border: `1px solid ${BRAND.border}`,
   overflow: 'hidden',
   transition: 'box-shadow 0.25s ease, transform 0.25s ease',
@@ -567,7 +567,7 @@ export function ProductManagement() {
         sx={{
           mb: 2.5,
           p: { xs: 2, sm: 2.5 },
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.light,
           display: 'flex',
@@ -578,10 +578,10 @@ export function ProductManagement() {
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 700, color: BRAND.dark }}>
+          <Typography sx={{ fontSize: { xs: 25, sm: 30 }, fontWeight: 700, color: BRAND.dark }}>
             Gestion des produits
           </Typography>
-          <Typography sx={{ fontSize: 14, color: BRAND.muted, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 18, color: BRAND.muted, mt: 0.5 }}>
             Catalogue de {total} produit{total !== 1 ? 's' : ''}
           </Typography>
         </Box>
@@ -599,7 +599,7 @@ export function ProductManagement() {
         elevation={0}
         sx={{
           mb: 2.5,
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.white,
           overflow: 'hidden',
@@ -607,8 +607,8 @@ export function ProductManagement() {
       >
         <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
           <Stack direction="row" spacing={1} alignItems="center">
-            <FilterIcon sx={{ color: BRAND.primary, fontSize: 20 }} />
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 25 }} />
+            <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
             </Typography>
           </Stack>
@@ -625,7 +625,7 @@ export function ProductManagement() {
                 startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
               }}
               size="small"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: BRAND.surface } }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12.5px', bgcolor: BRAND.surface } }}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 3 }}>
@@ -666,7 +666,7 @@ export function ProductManagement() {
               fullWidth
               onClick={fetchProducts}
               sx={{
-                borderRadius: '10px',
+                borderRadius: '12.5px',
                 textTransform: 'none',
                 fontWeight: 600,
                 borderColor: BRAND.border,
@@ -689,9 +689,9 @@ export function ProductManagement() {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : !Array.isArray(products) || products.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', border: `1px solid ${BRAND.border}` }}>
-          <Package sx={{ fontSize: 56, color: BRAND.border, mb: 1 }} />
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.muted }}>Aucun produit trouvé</Typography>
+        <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '20px', border: `1px solid ${BRAND.border}` }}>
+          <Package sx={{ fontSize: 70, color: BRAND.border, mb: 1 }} />
+          <Typography sx={{ fontSize: 20, fontWeight: 600, color: BRAND.muted }}>Aucun produit trouvé</Typography>
         </Paper>
       ) : (
         <>
@@ -799,7 +799,7 @@ export function ProductManagement() {
         scroll="paper"
         PaperProps={{
           sx: {
-            borderRadius: '20px',
+            borderRadius: '25px',
             overflow: 'hidden',
             border: `1px solid ${BRAND.border}`,
             boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
@@ -824,9 +824,9 @@ export function ProductManagement() {
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box
               sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
+                width: 55,
+                height: 55,
+                borderRadius: '15px',
                 bgcolor: alpha(BRAND.white, 0.12),
                 display: 'flex',
                 alignItems: 'center',
@@ -839,7 +839,7 @@ export function ProductManagement() {
               <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>
                 {isAddDialogOpen ? 'Nouveau produit' : 'Modifier le produit'}
               </Typography>
-              <Typography sx={{ fontSize: 13, color: alpha(BRAND.white, 0.72) }}>
+              <Typography sx={{ fontSize: 16, color: alpha(BRAND.white, 0.72) }}>
                 {isAddDialogOpen ? 'Ajoutez une référence à votre catalogue' : formData.name || 'Mettre à jour les informations'}
               </Typography>
             </Box>
@@ -860,15 +860,15 @@ export function ProductManagement() {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Package sx={{ color: 'primary.main', fontSize: 20 }} />
+                  <Package sx={{ color: 'primary.main', fontSize: 25 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -1046,15 +1046,15 @@ export function ProductManagement() {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.success.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Typography sx={{ color: 'success.main', fontSize: 20, fontWeight: 700 }}>XOF</Typography>
+                  <Typography sx={{ color: 'success.main', fontSize: 25, fontWeight: 700 }}>XOF</Typography>
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -1129,15 +1129,15 @@ export function ProductManagement() {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, mt: 2 }}>
                 <Box sx={{
-                  width: 40,
-                  height: 40,
+                  width: 50,
+                  height: 50,
                   borderRadius: 2,
                   bgcolor: alpha(theme.palette.info.main, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <ImageIcon sx={{ color: 'info.main', fontSize: 20 }} />
+                  <ImageIcon sx={{ color: 'info.main', fontSize: 25 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -1158,7 +1158,7 @@ export function ProductManagement() {
               <Paper
                 variant="outlined"
                 sx={{
-                  height: 200,
+                  height: 250,
                   borderRadius: 2.5,
                   borderStyle: 'dashed',
                   borderWidth: 2,
@@ -1234,7 +1234,7 @@ export function ProductManagement() {
                       '&:hover': { color: 'primary.main' }
                     }}
                   >
-                    <Upload sx={{ fontSize: 40, opacity: 0.6 }} />
+                    <Upload sx={{ fontSize: 50, opacity: 0.6 }} />
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="body2" fontWeight={600}>Cliquer pour uploader</Typography>
                       <Typography variant="caption" color="text.disabled">PNG, JPG jusqu'à 5MB</Typography>
@@ -1252,7 +1252,7 @@ export function ProductManagement() {
               <Paper
                 variant="outlined"
                 sx={{
-                  height: 200,
+                  height: 250,
                   borderRadius: 2.5,
                   borderStyle: 'dashed',
                   borderWidth: 2,
@@ -1270,8 +1270,8 @@ export function ProductManagement() {
                     component="label"
                     variant="outlined"
                     sx={{
-                      width: 70,
-                      height: 70,
+                      width: 88,
+                      height: 88,
                       borderRadius: 2,
                       borderStyle: 'dashed',
                       borderWidth: 2,
@@ -1284,15 +1284,15 @@ export function ProductManagement() {
                       }
                     }}
                   >
-                    <Plus sx={{ fontSize: 24, opacity: 0.6 }} />
+                    <Plus sx={{ fontSize: 30, opacity: 0.6 }} />
                     <input type="file" hidden multiple accept="image/*" onChange={(e: any) => handleFileSelect(e, 'gallery')} />
                   </Button>
                   {[...(selectedProduct?.images && Array.isArray(selectedProduct.images) ? selectedProduct.images : []), ...galleryPreviews.map((p, i) => ({ id: `new-${i}`, image_url: p, isNew: true }))].map((img: any, idx) => (
                     <Box
                       key={img.id}
                       sx={{
-                        width: 70,
-                        height: 70,
+                        width: 88,
+                        height: 88,
                         borderRadius: 2,
                         overflow: 'hidden',
                         position: 'relative',
@@ -1340,7 +1340,7 @@ export function ProductManagement() {
                           }
                         }}
                       >
-                        <Trash2 sx={{ fontSize: 14 }} />
+                        <Trash2 sx={{ fontSize: 18 }} />
                       </IconButton>
                       {!img.isNew && (
                         <IconButton
@@ -1356,7 +1356,7 @@ export function ProductManagement() {
                             '&:hover': { bgcolor: 'primary.main' }
                           }}
                         >
-                          <Upload sx={{ fontSize: 14 }} />
+                          <Upload sx={{ fontSize: 18 }} />
                           <input type="file" hidden accept="image/*" onChange={async (e: any) => {
                             if (e.target.files && e.target.files[0] && selectedProduct) {
                               const file = e.target.files[0];
@@ -1423,7 +1423,7 @@ export function ProductManagement() {
         >
           <Button
             onClick={() => { setIsAddDialogOpen(false); setIsEditDialogOpen(false); }}
-            sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted, borderRadius: '10px' }}
+            sx={{ textTransform: 'none', fontWeight: 600, color: BRAND.muted, borderRadius: '12.5px' }}
           >
             Annuler
           </Button>
@@ -1465,7 +1465,7 @@ export function ProductManagement() {
                 {selectedProduct?.images && Array.isArray(selectedProduct.images) && selectedProduct.images.length > 0 && (
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {selectedProduct.images.map((img, i) => (
-                      <Paper key={i} variant="outlined" sx={{ width: 60, height: 60, borderRadius: 1.5, overflow: 'hidden' }}>
+                      <Paper key={i} variant="outlined" sx={{ width: 75, height: 75, borderRadius: 1.5, overflow: 'hidden' }}>
                         <ProductImage src={img.image_url} alt={`Gallery ${i}`} width={60} height={60} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </Paper>
                     ))}

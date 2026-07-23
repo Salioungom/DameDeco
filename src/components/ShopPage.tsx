@@ -67,12 +67,12 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
     <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${C.border}` }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TuneIcon sx={{ fontSize: 17, color: C.primary }} />
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: C.dark }}>
+          <TuneIcon sx={{ fontSize: 21.25, color: C.primary }} />
+          <Typography sx={{ fontSize: 16.25, fontWeight: 600, color: C.dark }}>
             Filtres
           </Typography>
           {activeFiltersCount > 0 && (
-            <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {activeFiltersCount}
             </Box>
           )}
@@ -80,7 +80,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
         {activeFiltersCount > 0 && (
           <Typography
             onClick={resetFilters}
-            sx={{ fontSize: 12, color: C.primary, cursor: 'pointer', fontWeight: 500, '&:hover': { color: C.dark } }}
+            sx={{ fontSize: 15, color: C.primary, cursor: 'pointer', fontWeight: 500, '&:hover': { color: C.dark } }}
           >
             Réinitialiser
           </Typography>
@@ -89,7 +89,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
     </Box>
     <Box sx={{ flex: 1, overflowY: 'auto', px: 3, py: 2 }}>
       <Box sx={{ mb: 3.5 }}>
-        <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
+        <Typography sx={{ fontSize: 13.75, fontWeight: 600, color: C.muted, letterSpacing: '1px', textTransform: 'uppercase', mb: 2 }}>
           Catégories
         </Typography>
         <Stack spacing={0.25}>
@@ -105,7 +105,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
                   justifyContent: 'space-between',
                   px: 1.25,
                   py: 0.875,
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   bgcolor: active ? alpha(C.primary, 0.08) : 'transparent',
                   border: `1px solid ${active ? alpha(C.primary, 0.3) : 'transparent'}`,
@@ -116,8 +116,8 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
                   <Box
                     sx={{
-                      width: 20, height: 20,
-                      borderRadius: '5px',
+                      width: 25, height: 25,
+                      borderRadius: '6.25px',
                       border: `2px solid ${active ? C.primary : '#C4C3BF'}`,
                       bgcolor: active ? C.primary : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -131,12 +131,12 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
                       </svg>
                     )}
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 500 }}>
+                  <Typography sx={{ fontSize: 16.25, color: active ? C.primary : C.text, fontWeight: active ? 600 : 500 }}>
                     {cat.name}
                   </Typography>
                 </Box>
                 {cat.product_count !== undefined && (
-                  <Typography sx={{ fontSize: 11, color: C.muted }}>{cat.product_count}</Typography>
+                  <Typography sx={{ fontSize: 13.75, color: C.muted }}>{cat.product_count}</Typography>
                 )}
               </Box>
             );
@@ -145,12 +145,12 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
       </Box>
       <Divider sx={{ borderColor: C.border, mb: 3 }} />
       <Box>
-        <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
+        <Typography sx={{ fontSize: 13.75, fontWeight: 600, color: C.muted, letterSpacing: '1px', textTransform: 'uppercase', mb: 2 }}>
           Prix (F CFA)
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, gap: 1 }}>
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontSize: 10, color: C.muted, mb: 0.25 }}>Min</Typography>
+            <Typography sx={{ fontSize: 12.5, color: C.muted, mb: 0.25 }}>Min</Typography>
             <Box
               component="input"
               type="text"
@@ -164,10 +164,10 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
               sx={{
                 width: '100%',
                 border: `1px solid ${C.border}`,
-                borderRadius: '7px',
+                borderRadius: '8.75px',
                 px: 1,
                 py: 0.5,
-                fontSize: 12,
+                fontSize: 15,
                 fontWeight: 600,
                 color: C.dark,
                 textAlign: 'center',
@@ -177,7 +177,7 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
             />
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontSize: 10, color: C.muted, mb: 0.25 }}>Max</Typography>
+            <Typography sx={{ fontSize: 12.5, color: C.muted, mb: 0.25 }}>Max</Typography>
             <Box
               component="input"
               type="text"
@@ -191,10 +191,10 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
               sx={{
                 width: '100%',
                 border: `1px solid ${C.border}`,
-                borderRadius: '7px',
+                borderRadius: '8.75px',
                 px: 1,
                 py: 0.5,
-                fontSize: 12,
+                fontSize: 15,
                 fontWeight: 600,
                 color: C.dark,
                 textAlign: 'center',
@@ -212,9 +212,9 @@ const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRa
           onChange={(_: Event, v: number | number[]) => setPriceRange(v as number[])}
           sx={{
             color: C.primary,
-            '& .MuiSlider-thumb': { width: 16, height: 16, border: `2px solid ${C.primary}`, bgcolor: '#fff', '&:hover': { boxShadow: `0 0 0 6px rgba(24,95,165,0.12)` } },
-            '& .MuiSlider-track': { height: 3 },
-            '& .MuiSlider-rail': { height: 3, bgcolor: C.border },
+            '& .MuiSlider-thumb': { width: 20, height: 20, border: `2px solid ${C.primary}`, bgcolor: '#fff', '&:hover': { boxShadow: `0 0 0 6px rgba(24,95,165,0.12)` } },
+            '& .MuiSlider-track': { height: 3.75 },
+            '& .MuiSlider-rail': { height: 3.75, bgcolor: C.border },
           }}
         />
       </Box>
@@ -333,7 +333,7 @@ export function ShopPage({
         <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
           <Box
             sx={{
-              height: 64,
+              height: 80,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -344,12 +344,12 @@ export function ShopPage({
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
               <Typography
                 component="h1"
-                sx={{ fontSize: { xs: 18, md: 22 }, fontWeight: 700, color: C.dark, letterSpacing: '-0.3px' }}
+                sx={{ fontSize: { xs: 22.5, md: 27.5 }, fontWeight: 700, color: C.dark, letterSpacing: '-0.375px' }}
               >
                 Boutique
               </Typography>
               {!loading && (
-                <Typography sx={{ fontSize: 13, color: C.muted }}>
+                <Typography sx={{ fontSize: 16.25, color: C.muted }}>
                   {sortedProducts.length} produit{sortedProducts.length > 1 ? 's' : ''}
                 </Typography>
               )}
@@ -360,13 +360,13 @@ export function ShopPage({
               {/* Bouton filtre mobile */}
               <Button
                 onClick={() => setMobileOpen(true)}
-                startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
+                startIcon={<FilterIcon sx={{ fontSize: 20 }} />}
                 sx={{
                   display: { lg: 'none' },
                   border: `1px solid ${C.border}`,
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   color: C.text,
-                  fontSize: 13,
+                  fontSize: 16.25,
                   fontWeight: 500,
                   textTransform: 'none',
                   px: 1.5,
@@ -376,7 +376,7 @@ export function ShopPage({
               >
                 Filtres
                 {activeFiltersCount > 0 && (
-                  <Box sx={{ ml: 0.75, width: 18, height: 18, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ ml: 0.75, width: 22.5, height: 22.5, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     {activeFiltersCount}
                   </Box>
                 )}
@@ -389,18 +389,18 @@ export function ShopPage({
                   onChange={(e: SelectChangeEvent) => setSortBy(e.target.value)}
                   displayEmpty
                   sx={{
-                    fontSize: 13,
-                    borderRadius: '8px',
+                    fontSize: 16.25,
+                    borderRadius: '10px',
                     color: C.text,
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: C.border },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: C.mid },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: C.primary },
                   }}
                 >
-                  <MenuItem value="popular"    sx={{ fontSize: 13 }}>Populaires</MenuItem>
-                  <MenuItem value="price-asc"  sx={{ fontSize: 13 }}>Prix croissant</MenuItem>
-                  <MenuItem value="price-desc" sx={{ fontSize: 13 }}>Prix décroissant</MenuItem>
-                  <MenuItem value="name"       sx={{ fontSize: 13 }}>Nom A–Z</MenuItem>
+                  <MenuItem value="popular"    sx={{ fontSize: 16.25 }}>Populaires</MenuItem>
+                  <MenuItem value="price-asc"  sx={{ fontSize: 16.25 }}>Prix croissant</MenuItem>
+                  <MenuItem value="price-desc" sx={{ fontSize: 16.25 }}>Prix décroissant</MenuItem>
+                  <MenuItem value="name"       sx={{ fontSize: 16.25 }}>Nom A–Z</MenuItem>
                 </Select>
               </FormControl>
             </Stack>
@@ -417,7 +417,7 @@ export function ShopPage({
                     label={cat.name}
                     size="small"
                     onDelete={() => toggleCategory(id)}
-                    sx={{ bgcolor: C.light, color: C.primary, fontWeight: 500, fontSize: 12, height: 24, '& .MuiChip-deleteIcon': { color: C.mid, fontSize: 14 } }}
+                    sx={{ bgcolor: C.light, color: C.primary, fontWeight: 500, fontSize: 15, height: 30, '& .MuiChip-deleteIcon': { color: C.mid, fontSize: 17.5 } }}
                   />
                 ) : null;
               })}
@@ -426,7 +426,7 @@ export function ShopPage({
                   label={`${priceRange[0].toLocaleString('fr-FR')} – ${priceRange[1].toLocaleString('fr-FR')} F CFA`}
                   size="small"
                   onDelete={() => setPriceRange([0, 150000])}
-                  sx={{ bgcolor: C.light, color: C.primary, fontWeight: 500, fontSize: 12, height: 24, '& .MuiChip-deleteIcon': { color: C.mid, fontSize: 14 } }}
+                  sx={{ bgcolor: C.light, color: C.primary, fontWeight: 500, fontSize: 15, height: 30, '& .MuiChip-deleteIcon': { color: C.mid, fontSize: 17.5 } }}
                 />
               )}
             </Box>
@@ -441,7 +441,7 @@ export function ShopPage({
         {isDesktop && (
           <Box
             sx={{
-              width: 260,
+              width: 325,
               flexShrink: 0,
               position: 'sticky',
               top: 64,
@@ -474,7 +474,7 @@ export function ShopPage({
           }}
         >
           {loading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 500 }}>
               <CircularProgress sx={{ color: C.primary }} />
             </Box>
           ) : sortedProducts.length > 0 ? (
@@ -511,32 +511,32 @@ export function ShopPage({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: 400,
+                height: 500,
                 gap: 2,
               }}
             >
               <Box
                 sx={{
-                  width: 64, height: 64,
-                  borderRadius: '16px',
+                  width: 80, height: 80,
+                  borderRadius: '20px',
                   bgcolor: C.light,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                <SearchIcon sx={{ fontSize: 28, color: C.primary }} />
+                <SearchIcon sx={{ fontSize: 35, color: C.primary }} />
               </Box>
-              <Typography sx={{ fontSize: 16, fontWeight: 600, color: C.dark }}>
+              <Typography sx={{ fontSize: 20, fontWeight: 600, color: C.dark }}>
                 Aucun produit trouvé
               </Typography>
-              <Typography sx={{ fontSize: 13, color: C.muted, textAlign: 'center', maxWidth: 300 }}>
+              <Typography sx={{ fontSize: 16.25, color: C.muted, textAlign: 'center', maxWidth: 375 }}>
                 Essayez de modifier ou réinitialiser vos filtres pour voir plus de produits.
               </Typography>
               <Button
                 variant="outlined"
                 onClick={resetFilters}
                 sx={{
-                  borderColor: C.border, color: C.primary, borderRadius: '8px',
-                  textTransform: 'none', fontWeight: 500, fontSize: 13,
+                  borderColor: C.border, color: C.primary, borderRadius: '10px',
+                  textTransform: 'none', fontWeight: 500, fontSize: 16.25,
                   '&:hover': { bgcolor: C.surface, borderColor: C.mid },
                 }}
               >
@@ -555,20 +555,20 @@ export function ShopPage({
         ModalProps={{ keepMounted: true }}
         PaperProps={{
           sx: {
-            width: 280,
+            width: 350,
             border: 'none',
             boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
           },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2.5, py: 2, borderBottom: `1px solid ${C.border}` }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: C.dark }}>Filtres</Typography>
+          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: C.dark }}>Filtres</Typography>
           <IconButton
             size="small"
             onClick={() => setMobileOpen(false)}
-            sx={{ border: `1px solid ${C.border}`, borderRadius: '7px', width: 30, height: 30 }}
+            sx={{ border: `1px solid ${C.border}`, borderRadius: '8.75px', width: 37.5, height: 37.5 }}
           >
-            <CloseIcon sx={{ fontSize: 15, color: C.text }} />
+            <CloseIcon sx={{ fontSize: 18.75, color: C.text }} />
           </IconButton>
         </Box>
         <FilterSidebar

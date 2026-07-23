@@ -51,7 +51,7 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
           variant="h3"
           fontWeight={800}
           sx={{
-            fontSize: { xs: 26, md: 34 },
+            fontSize: { xs: 32.5, md: 42.5 },
             letterSpacing: '-0.02em',
             mb: 3,
           }}
@@ -62,10 +62,10 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
         <Stepper
           activeStep={activeStep}
           sx={{
-            maxWidth: 500,
+            maxWidth: 625,
             '& .MuiStepLabel-label': {
               fontWeight: 600,
-              fontSize: { xs: 13, md: 14 },
+              fontSize: { xs: 16.25, md: 17.5 },
             },
             '& .MuiStepLabel-label.Mui-active': {
               color: brandBlue,

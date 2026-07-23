@@ -81,7 +81,7 @@ function StatCard({
       sx={{
         p: 2.5,
         height: '100%',
-        borderRadius: '16px',
+        borderRadius: '20px',
         border: `1px solid ${BRAND.border}`,
         bgcolor: BRAND.white,
         transition: 'box-shadow 0.25s ease, transform 0.25s ease',
@@ -94,9 +94,9 @@ function StatCard({
       <Stack direction="row" spacing={2} alignItems="flex-start">
         <Box
           sx={{
-            width: 48,
-            height: 48,
-            borderRadius: '12px',
+            width: 60,
+            height: 60,
+            borderRadius: '15px',
             bgcolor: alpha(BRAND.primary, 0.1),
             color: BRAND.primary,
             display: 'flex',
@@ -108,17 +108,17 @@ function StatCard({
           {icon}
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontSize: 13, color: BRAND.muted, fontWeight: 500 }}>
+          <Typography sx={{ fontSize: 16.25, color: BRAND.muted, fontWeight: 500 }}>
             {title}
           </Typography>
           {loading ? (
             <CircularProgress size={24} sx={{ color: BRAND.primary, mt: 1 }} />
           ) : (
-            <Typography sx={{ fontSize: 26, fontWeight: 700, color: BRAND.dark, mt: 0.5, lineHeight: 1.2 }}>
+            <Typography sx={{ fontSize: 32.5, fontWeight: 700, color: BRAND.dark, mt: 0.5, lineHeight: 1.2 }}>
               {value}
             </Typography>
           )}
-          <Typography sx={{ fontSize: 12, color: BRAND.muted, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.5 }}>
             {subtitle}
           </Typography>
         </Box>
@@ -245,7 +245,7 @@ export function AdminDashboard() {
       refunded: { bg: alpha(BRAND.muted, 0.15), color: BRAND.muted },
     };
     const c = colors[status] || { bg: alpha(BRAND.muted, 0.1), color: BRAND.muted };
-    return { bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 11 };
+    return { bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 13.75 };
   };
 
   const recentOrders = orders.slice(0, 5);
@@ -268,13 +268,13 @@ export function AdminDashboard() {
             position: 'absolute',
             top: -80,
             right: -80,
-            width: 280,
-            height: 280,
+            width: 350,
+            height: 350,
             borderRadius: '50%',
             bgcolor: alpha(BRAND.white, 0.06),
           }}
         />
-        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1200, mx: 'auto' }}>
+        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1500, mx: 'auto' }}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
@@ -285,22 +285,22 @@ export function AdminDashboard() {
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
                 <Box
                   sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
+                    width: 55,
+                    height: 55,
+                    borderRadius: '15px',
                     bgcolor: alpha(BRAND.white, 0.15),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <AdminPanelSettings sx={{ fontSize: 26 }} />
+                  <AdminPanelSettings sx={{ fontSize: 32.5 }} />
                 </Box>
-                <Typography sx={{ fontSize: { xs: 24, md: 30 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontSize: { xs: 30, md: 37.5 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
                   Dashboard Administrateur
                 </Typography>
               </Stack>
-              <Typography sx={{ fontSize: 14, opacity: 0.9 }}>
+              <Typography sx={{ fontSize: 17.5, opacity: 0.9 }}>
                 Bienvenue{user?.full_name ? `, ${user.full_name}` : ''} — gérez votre boutique Dame Sarr
               </Typography>
             </Box>
@@ -312,7 +312,7 @@ export function AdminDashboard() {
               sx={{
                 color: BRAND.white,
                 borderColor: alpha(BRAND.white, 0.4),
-                borderRadius: '10px',
+                borderRadius: '12.5px',
                 textTransform: 'none',
                 fontWeight: 600,
                 alignSelf: { xs: 'flex-start', sm: 'center' },
@@ -325,12 +325,12 @@ export function AdminDashboard() {
         </Box>
       </Box>
 
-      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -2, position: 'relative', zIndex: 2 }}>
+      <Box sx={{ maxWidth: 1500, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -2, position: 'relative', zIndex: 2 }}>
         {/* Tabs */}
         <Paper
           elevation={0}
           sx={{
-            borderRadius: '14px',
+            borderRadius: '17.5px',
             border: `1px solid ${BRAND.border}`,
             bgcolor: BRAND.white,
             mb: 3,
@@ -347,26 +347,26 @@ export function AdminDashboard() {
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                fontSize: 13,
+                fontSize: 16.25,
                 color: BRAND.muted,
                 minHeight: 56,
               },
               '& .Mui-selected': { color: `${BRAND.primary} !important` },
-              '& .MuiTabs-indicator': { height: 3, bgcolor: BRAND.primary },
+              '& .MuiTabs-indicator': { height: 3.75, bgcolor: BRAND.primary },
             }}
           >
-            <Tab icon={<LayoutDashboard sx={{ fontSize: 20 }} />} iconPosition="start" label="Vue d'ensemble" />
-            <Tab icon={<Package sx={{ fontSize: 20 }} />} iconPosition="start" label="Produits" />
-            <Tab icon={<Category sx={{ fontSize: 20 }} />} iconPosition="start" label="Catégories" />
-            <Tab icon={<ShoppingCart sx={{ fontSize: 20 }} />} iconPosition="start" label="Commandes" />
-            <Tab icon={<Star sx={{ fontSize: 20 }} />} iconPosition="start" label="Avis" />
-            <Tab icon={<Users sx={{ fontSize: 20 }} />} iconPosition="start" label="Clients" />
-            <Tab icon={<Settings sx={{ fontSize: 20 }} />} iconPosition="start" label="Livraison" />
+            <Tab icon={<LayoutDashboard sx={{ fontSize: 25 }} />} iconPosition="start" label="Vue d'ensemble" />
+            <Tab icon={<Package sx={{ fontSize: 25 }} />} iconPosition="start" label="Produits" />
+            <Tab icon={<Category sx={{ fontSize: 25 }} />} iconPosition="start" label="Catégories" />
+            <Tab icon={<ShoppingCart sx={{ fontSize: 25 }} />} iconPosition="start" label="Commandes" />
+            <Tab icon={<Star sx={{ fontSize: 25 }} />} iconPosition="start" label="Avis" />
+            <Tab icon={<Users sx={{ fontSize: 25 }} />} iconPosition="start" label="Clients" />
+            <Tab icon={<Settings sx={{ fontSize: 25 }} />} iconPosition="start" label="Livraison" />
           </Tabs>
         </Paper>
 
         {ordersError && (
-          <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setOrdersError(null)}>
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: '15px' }} onClose={() => setOrdersError(null)}>
             {ordersError}
           </Alert>
         )}
@@ -416,10 +416,10 @@ export function AdminDashboard() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Paper
                 elevation={0}
-                sx={{ borderRadius: '16px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
               >
                 <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
                     Commandes récentes
                   </Typography>
                 </Box>
@@ -429,7 +429,7 @@ export function AdminDashboard() {
                       <CircularProgress size={32} sx={{ color: BRAND.primary }} />
                     </Box>
                   ) : recentOrders.length === 0 ? (
-                    <Typography sx={{ fontSize: 14, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
                       Aucune commande pour le moment
                     </Typography>
                   ) : (
@@ -439,23 +439,23 @@ export function AdminDashboard() {
                           key={order.id}
                           sx={{
                             p: 1.5,
-                            borderRadius: '10px',
+                            borderRadius: '12.5px',
                             border: `1px solid ${BRAND.border}`,
                             bgcolor: BRAND.surface,
                           }}
                         >
                           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                             <Box>
-                              <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark }}>
+                              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
                                 {getOrderCustomerName(order)}
                               </Typography>
-                              <Typography sx={{ fontSize: 12, color: BRAND.muted }}>
+                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
                                 {order.order_number} · {new Date(order.created_at).toLocaleDateString('fr-FR')}
                               </Typography>
                             </Box>
                             <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
                           </Stack>
-                          <Typography sx={{ fontSize: 14, fontWeight: 700, color: BRAND.primary, mt: 0.75 }}>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, mt: 0.75 }}>
                             {formatFcfa(Number(order.total_amount) || 0)}
                           </Typography>
                         </Box>
@@ -469,10 +469,10 @@ export function AdminDashboard() {
             <Grid size={{ xs: 12, lg: 6 }}>
               <Paper
                 elevation={0}
-                sx={{ borderRadius: '16px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
               >
                 <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
                     Produits populaires
                   </Typography>
                 </Box>
@@ -482,7 +482,7 @@ export function AdminDashboard() {
                       <CircularProgress size={32} sx={{ color: BRAND.primary }} />
                     </Box>
                   ) : popularProducts.length === 0 ? (
-                    <Typography sx={{ fontSize: 14, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
                       Aucun produit mis en avant
                     </Typography>
                   ) : (
@@ -492,7 +492,7 @@ export function AdminDashboard() {
                           key={product.id}
                           sx={{
                             p: 1.5,
-                            borderRadius: '10px',
+                            borderRadius: '12.5px',
                             border: `1px solid ${BRAND.border}`,
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -501,14 +501,14 @@ export function AdminDashboard() {
                           }}
                         >
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark }} noWrap>
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }} noWrap>
                               {product.name}
                             </Typography>
-                            <Typography sx={{ fontSize: 12, color: BRAND.muted }}>
+                            <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
                               Stock : {product.inventory_quantity ?? '—'}
                             </Typography>
                           </Box>
-                          <Typography sx={{ fontSize: 14, fontWeight: 700, color: BRAND.primary, flexShrink: 0 }}>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, flexShrink: 0 }}>
                             {formatFcfa(Number(product.price) || 0)}
                           </Typography>
                         </Box>
@@ -522,9 +522,9 @@ export function AdminDashboard() {
 
           <Paper
             elevation={0}
-            sx={{ mt: 2.5, p: 2.5, borderRadius: '16px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white }}
+            sx={{ mt: 2.5, p: 2.5, borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white }}
           >
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+            <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
               Raccourcis
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
@@ -534,7 +534,7 @@ export function AdminDashboard() {
                 variant="outlined"
                 startIcon={<LocalShippingOutlined />}
                 sx={{
-                  borderRadius: '10px',
+                  borderRadius: '12.5px',
                   textTransform: 'none',
                   fontWeight: 600,
                   borderColor: BRAND.border,
@@ -549,7 +549,7 @@ export function AdminDashboard() {
                 onClick={() => setActiveTab(1)}
                 startIcon={<Package />}
                 sx={{
-                  borderRadius: '10px',
+                  borderRadius: '12.5px',
                   textTransform: 'none',
                   fontWeight: 600,
                   borderColor: BRAND.border,
@@ -575,13 +575,13 @@ export function AdminDashboard() {
         <CustomTabPanel value={activeTab} index={3}>
           <Paper
             elevation={0}
-            sx={{ borderRadius: '16px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+            sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
           >
             <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark }}>
+              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
                 Toutes les commandes
               </Typography>
-              <Typography sx={{ fontSize: 13, color: BRAND.muted }}>
+              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
                 Données issues de l&apos;API · {orders.length} commande{orders.length !== 1 ? 's' : ''}
               </Typography>
             </Box>
@@ -591,7 +591,7 @@ export function AdminDashboard() {
               </Box>
             ) : orders.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
-                <ShoppingCart sx={{ fontSize: 48, color: BRAND.border, mb: 1 }} />
+                <ShoppingCart sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
                 <Typography sx={{ color: BRAND.muted }}>Aucune commande enregistrée</Typography>
               </Box>
             ) : (
@@ -604,7 +604,7 @@ export function AdminDashboard() {
                         '& th': {
                           color: BRAND.white,
                           fontWeight: 600,
-                          fontSize: 12,
+                          fontSize: 15,
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
                           py: 1.5,
@@ -630,17 +630,17 @@ export function AdminDashboard() {
                         }}
                       >
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, fontWeight: 700, color: BRAND.primary }}>
+                          <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary }}>
                             {order.order_number}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 14, color: BRAND.dark }}>
+                          <Typography sx={{ fontSize: 17.5, color: BRAND.dark }}>
                             {getOrderCustomerName(order)}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark }}>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
                             {formatFcfa(Number(order.total_amount) || 0)}
                           </Typography>
                         </TableCell>
@@ -648,7 +648,7 @@ export function AdminDashboard() {
                           <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, color: BRAND.muted }}>
+                          <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
                             {new Date(order.created_at).toLocaleDateString('fr-FR')}
                           </Typography>
                         </TableCell>
@@ -668,16 +668,16 @@ export function AdminDashboard() {
             sx={{
               p: 4,
               textAlign: 'center',
-              borderRadius: '16px',
+              borderRadius: '20px',
               border: `1px solid ${BRAND.border}`,
               bgcolor: BRAND.white,
             }}
           >
-            <Star sx={{ fontSize: 48, color: BRAND.border, mb: 1 }} />
-            <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+            <Star sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
+            <Typography sx={{ fontSize: 20, fontWeight: 600, color: BRAND.dark }}>
               Module avis clients
             </Typography>
-            <Typography sx={{ fontSize: 14, color: BRAND.muted, mt: 0.5 }}>
+            <Typography sx={{ fontSize: 17.5, color: BRAND.muted, mt: 0.5 }}>
               Bientôt disponible
             </Typography>
           </Paper>
@@ -687,13 +687,13 @@ export function AdminDashboard() {
         <CustomTabPanel value={activeTab} index={5}>
           <Paper
             elevation={0}
-            sx={{ borderRadius: '16px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+            sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
           >
             <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark }}>
+              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
                 Clients
               </Typography>
-              <Typography sx={{ fontSize: 13, color: BRAND.muted }}>
+              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
                 Dérivés des commandes ({derivedCustomers.length} client{derivedCustomers.length !== 1 ? 's' : ''})
               </Typography>
             </Box>
@@ -703,7 +703,7 @@ export function AdminDashboard() {
               </Box>
             ) : derivedCustomers.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Users sx={{ fontSize: 48, color: BRAND.border, mb: 1 }} />
+                <Users sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
                 <Typography sx={{ color: BRAND.muted }}>Aucun client identifié via les commandes</Typography>
               </Box>
             ) : (
@@ -716,7 +716,7 @@ export function AdminDashboard() {
                         '& th': {
                           color: BRAND.white,
                           fontWeight: 600,
-                          fontSize: 12,
+                          fontSize: 15,
                           py: 1.5,
                           borderBottom: 'none',
                         },
@@ -738,18 +738,18 @@ export function AdminDashboard() {
                         }}
                       >
                         <TableCell>
-                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark }}>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
                             {customer.name}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, color: BRAND.muted }}>{customer.email}</Typography>
+                          <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{customer.email}</Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{customer.totalOrders}</Typography>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 600 }}>{customer.totalOrders}</Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.primary }}>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.primary }}>
                             {formatFcfa(customer.totalSpent)}
                           </Typography>
                         </TableCell>

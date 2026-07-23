@@ -132,7 +132,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
         variant={loading ? 'indeterminate' : 'determinate'}
         value={strength ? (strength.score / 4) * 100 : 0}
         sx={{
-          height: 8,
+          height: 10,
           borderRadius: 4,
           backgroundColor: theme.palette.grey[200],
           '& .MuiLinearProgress-bar': {
@@ -151,7 +151,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
             {strength.feedback.suggestions.map((suggestion, index) => (
               <ListItem key={index} sx={{ py: 0, px: 0 }}>
                 <ListItemIcon sx={{ minWidth: 24 }}>
-                  <CloseIcon sx={{ fontSize: 16, color: theme.palette.error.main }} />
+                  <CloseIcon sx={{ fontSize: 20, color: theme.palette.error.main }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={suggestion}
@@ -165,7 +165,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
 
       {strength && strength.score >= 3 && (
         <Box display="flex" alignItems="center" mt={1}>
-          <CheckIcon sx={{ fontSize: 16, color: theme.palette.success.main, mr: 1 }} />
+          <CheckIcon sx={{ fontSize: 20, color: theme.palette.success.main, mr: 1 }} />
           <Typography variant="body2" color={theme.palette.success.main}>
             Mot de passe sécurisé
           </Typography>

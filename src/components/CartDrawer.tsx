@@ -81,7 +81,7 @@ export function CartDrawer() {
       open={isCartOpen}
       onClose={() => toggleCart(false)}
       PaperProps={{
-        sx: { width: '100%', maxWidth: 450, border: 'none' },
+        sx: { width: '100%', maxWidth: 562.5, border: 'none' },
       }}
     >
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
@@ -102,7 +102,7 @@ export function CartDrawer() {
               {itemCount} article{itemCount > 1 ? 's' : ''}
             </Typography>
           </Box>
-          <IconButton onClick={() => toggleCart(false)} sx={{ borderRadius: 2 }}>
+          <IconButton onClick={() => toggleCart(false)} sx={{ borderRadius: 2.5 }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -117,8 +117,8 @@ export function CartDrawer() {
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2.5, p: 4 }}>
             <Box
               sx={{
-                width: 80,
-                height: 80,
+                width: 100,
+                height: 100,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -126,7 +126,7 @@ export function CartDrawer() {
                 bgcolor: alpha(golden, 0.08),
               }}
             >
-              <ShoppingBag sx={{ fontSize: 36, color: golden }} />
+              <ShoppingBag sx={{ fontSize: 45, color: golden }} />
             </Box>
             <Typography variant="body1" fontWeight={600}>
               {cartLoading ? 'Chargement...' : 'Votre panier est vide'}
@@ -138,7 +138,7 @@ export function CartDrawer() {
                   toggleCart(false);
                   window.location.href = '/shop';
                 }}
-                sx={{ borderRadius: 2, fontWeight: 600 }}
+                sx={{ borderRadius: 2.5, fontWeight: 600 }}
               >
                 Continuer mes achats
               </Button>
@@ -160,7 +160,7 @@ export function CartDrawer() {
                         display: 'flex',
                         gap: 2,
                         p: 1.5,
-                        borderRadius: 2,
+                        borderRadius: 2.5,
                         bgcolor: 'background.paper',
                         border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                         transition: 'border-color 0.2s ease',
@@ -169,9 +169,9 @@ export function CartDrawer() {
                     >
                       <Box
                         sx={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: 1.5,
+                          width: 100,
+                          height: 100,
+                          borderRadius: 1.875,
                           overflow: 'hidden',
                           bgcolor: 'action.hover',
                           flexShrink: 0,
@@ -186,7 +186,7 @@ export function CartDrawer() {
                           />
                         ) : (
                           <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <ShoppingBag sx={{ fontSize: 28, color: 'text.disabled' }} />
+                            <ShoppingBag sx={{ fontSize: 35, color: 'text.disabled' }} />
                           </Box>
                         )}
                       </Box>
@@ -198,20 +198,20 @@ export function CartDrawer() {
                           {price.toLocaleString('fr-FR')} FCFA
                         </Typography>
                         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.75 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1.875 }}>
                             <IconButton
                               size="small"
-                              sx={{ borderRadius: 1.5, p: 0.5 }}
+                              sx={{ borderRadius: 1.875, p: 0.5 }}
                               onClick={() => updateQuantity(item.product_id.toString(), Math.max(1, item.quantity - 1))}
                             >
                               <Minus fontSize="small" />
                             </IconButton>
-                            <Typography variant="body2" sx={{ width: 24, textAlign: 'center', fontWeight: 600 }}>
+                            <Typography variant="body2" sx={{ width: 30, textAlign: 'center', fontWeight: 600 }}>
                               {item.quantity}
                             </Typography>
                             <IconButton
                               size="small"
-                              sx={{ borderRadius: 1.5, p: 0.5 }}
+                              sx={{ borderRadius: 1.875, p: 0.5 }}
                               onClick={() => updateQuantity(item.product_id.toString(), item.quantity + 1)}
                             >
                               <Plus fontSize="small" />
@@ -247,7 +247,7 @@ export function CartDrawer() {
                   <Chip
                     label="Gratuite"
                     size="small"
-                    sx={{ height: 22, fontSize: 11, fontWeight: 600, bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main', border: 'none' }}
+                    sx={{ height: 27.5, fontSize: 13.75, fontWeight: 600, bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main', border: 'none' }}
                   />
                 </Box>
                 <Divider />
@@ -263,7 +263,7 @@ export function CartDrawer() {
                   fullWidth
                   onClick={handleCheckout}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 2.5,
                     py: 1.5,
                     fontWeight: 700,
                     boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
@@ -275,7 +275,7 @@ export function CartDrawer() {
                   variant="outlined"
                   fullWidth
                   onClick={() => toggleCart(false)}
-                  sx={{ borderRadius: 2, fontWeight: 600 }}
+                  sx={{ borderRadius: 2.5, fontWeight: 600 }}
                 >
                   Continuer mes achats
                 </Button>

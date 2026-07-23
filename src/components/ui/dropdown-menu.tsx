@@ -275,7 +275,7 @@ function DropdownMenuSubTrigger({ inset, children, className, sx, ...props }: Re
       {...props}
     >
       {children}
-      <ChevronRightIcon sx={{ fontSize: 16, ml: 1 }} />
+      <ChevronRightIcon sx={{ fontSize: 20, ml: 1 }} />
     </MenuItem>
   );
 }

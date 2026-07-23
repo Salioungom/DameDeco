@@ -109,8 +109,8 @@ const FavoriteButton = muiStyled(IconButton)(() => ({
   top: 10,
   right: 10,
   zIndex: 3,
-  width: 36,
-  height: 36,
+  width: 45,
+  height: 45,
   // Glassmorphism premium
   backgroundColor: 'rgba(255, 255, 255, 0.18)',
   backdropFilter: 'blur(12px) saturate(180%)',
@@ -305,7 +305,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 color: 'text.disabled',
               }}
             >
-              <InfoIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+              <InfoIcon sx={{ fontSize: 50, opacity: 0.4 }} />
               <Typography variant="caption" sx={{ opacity: 0.5, fontSize: '0.65rem' }}>
                 Image non disponible
               </Typography>
@@ -365,8 +365,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
               aria-pressed={isFavorite}
             >
               {isFavorite
-                ? <Favorite sx={{ fontSize: 18, color: '#ff4d6d' }} />
-                : <FavoriteBorder sx={{ fontSize: 18, color: 'rgba(255,255,255,0.95)' }} />
+                ? <Favorite sx={{ fontSize: 22.5, color: '#ff4d6d' }} />
+                : <FavoriteBorder sx={{ fontSize: 22.5, color: 'rgba(255,255,255,0.95)' }} />
               }
             </FavoriteButton>
           </Tooltip>
@@ -457,7 +457,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     color: 'white',
                     fontWeight: 600,
                     fontSize: '0.7rem',
-                    height: 20,
+                    height: 25,
                   }}
                 />
                 <Typography variant="caption" color="success.main" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>

@@ -9,7 +9,7 @@ function Breadcrumb({ className, sx, ...props }: React.ComponentProps<"nav"> & {
 function BreadcrumbList({ className, children, sx, ...props }: React.ComponentProps<typeof Breadcrumbs>) {
   return (
     <Breadcrumbs
-      separator={<ChevronRight sx={{ fontSize: 16 }} />}
+      separator={<ChevronRight sx={{ fontSize: 20 }} />}
       sx={{
         "& .MuiBreadcrumbs-ol": {
           flexWrap: "wrap",
@@ -89,7 +89,7 @@ function BreadcrumbSeparator({ children, className, sx, ...props }: React.Compon
       sx={{
         display: "flex",
         alignItems: "center",
-        "& > svg": { fontSize: 16 },
+        "& > svg": { fontSize: 20 },
         ...sx,
       }}
       {...props}
@@ -107,15 +107,15 @@ function BreadcrumbEllipsis({ className, sx, ...props }: React.ComponentProps<"s
       aria-hidden="true"
       sx={{
         display: "flex",
-        width: 36,
-        height: 36,
+        width: 45,
+        height: 45,
         alignItems: "center",
         justifyContent: "center",
         ...sx,
       }}
       {...props}
     >
-      <MoreHorizontal sx={{ fontSize: 16 }} />
+      <MoreHorizontal sx={{ fontSize: 20 }} />
       <span className="sr-only">More</span>
     </Box>
   );

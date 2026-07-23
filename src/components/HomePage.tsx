@@ -60,7 +60,7 @@ const formatPrice = (amount: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount);
 
 const sectionLabelSx = {
-  fontSize: 11,
+  fontSize: 13.75,
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
@@ -78,10 +78,10 @@ const sectionTitleSx = {
 };
 
 const sectionDescSx = {
-  fontSize: { xs: 14, md: 15 },
+  fontSize: { xs: 17.5, md: 18.75 },
   color: C.text,
   lineHeight: 1.75,
-  maxWidth: 520,
+  maxWidth: 650,
 };
 
 const FEATURES = [
@@ -134,7 +134,7 @@ function SectionHeader({
         textAlign: centered ? 'center' : 'left',
       }}
     >
-      <Box sx={{ maxWidth: centered ? 640 : 560, ...(centered && { mx: 'auto' }) }}>
+      <Box sx={{ maxWidth: centered ? 800 : 700, ...(centered && { mx: 'auto' }) }}>
         <Typography sx={sectionLabelSx}>{label}</Typography>
         <Typography component="h2" sx={sectionTitleSx}>
           {title}
@@ -153,9 +153,9 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
   return (
     <Box
       sx={{
-        width: 56,
-        height: 56,
-        borderRadius: '12px',
+        width: 70,
+        height: 70,
+        borderRadius: '15px',
         flexShrink: 0,
         overflow: 'hidden',
         display: 'flex',
@@ -164,7 +164,7 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
         background: imgSrc ? 'transparent' : `linear-gradient(145deg, ${C.primary} 0%, ${C.dark} 100%)`,
         color: '#fff',
         fontWeight: 800,
-        fontSize: 22,
+        fontSize: 27.5,
         letterSpacing: '-0.02em',
         boxShadow: imgSrc
           ? `0 4px 14px ${alpha(C.dark, 0.2)}`
@@ -322,7 +322,7 @@ export function HomePage({
           sx={{
             position: 'relative',
             zIndex: 1,
-            px: { xs: 2.5, sm: 4, md: 6 },
+            px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 5, sm: 7, lg: 8 },
           }}
         >
@@ -333,7 +333,7 @@ export function HomePage({
             sx={{ minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Box sx={{ maxWidth: 580 }}>
+              <Box sx={{ maxWidth: 725 }}>
                 <Box
                   sx={{
                     display: 'inline-flex',
@@ -348,9 +348,9 @@ export function HomePage({
                     boxShadow: '0 2px 12px rgba(4, 44, 83, 0.06)',
                   }}
                 >
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
-                  <PlaceIcon sx={{ fontSize: 15, color: C.primary }} />
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
+                  <Box sx={{ width: 8.75, height: 8.75, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
+                  <PlaceIcon sx={{ fontSize: 18.75, color: C.primary }} />
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
                     Dakar · Import premium depuis la Chine
                   </Typography>
                 </Box>
@@ -383,11 +383,11 @@ export function HomePage({
 
                 <Typography
                   sx={{
-                    fontSize: { xs: 15, md: 16 },
+                    fontSize: { xs: 18.75, md: 20 },
                     color: C.text,
                     lineHeight: 1.75,
                     mb: 3,
-                    maxWidth: 480,
+                    maxWidth: 600,
                   }}
                 >
                   Meubles, décoration et textile sélectionnés par Dame Sarr — import direct,
@@ -401,8 +401,8 @@ export function HomePage({
                     'Suivi de commande et livraison express',
                   ].map((pt) => (
                     <Stack key={pt} direction="row" spacing={1.25} alignItems="flex-start">
-                      <CheckCircle sx={{ fontSize: 17, color: C.primary, mt: 0.25, flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 13.5, color: C.text, lineHeight: 1.5 }}>{pt}</Typography>
+                      <CheckCircle sx={{ fontSize: 21.25, color: C.primary, mt: 0.25, flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 16.875, color: C.text, lineHeight: 1.5 }}>{pt}</Typography>
                     </Stack>
                   ))}
                 </Stack>
@@ -416,10 +416,10 @@ export function HomePage({
                     sx={{
                       bgcolor: C.primary,
                       color: '#fff',
-                      borderRadius: '10px',
+                      borderRadius: '12.5px',
                       px: 3.5,
                       py: 1.375,
-                      fontSize: 14,
+                      fontSize: 17.5,
                       fontWeight: 700,
                       textTransform: 'none',
                       boxShadow: `0 8px 28px ${alpha(C.primary, 0.35)}`,
@@ -441,10 +441,10 @@ export function HomePage({
                       borderColor: C.border,
                       color: C.primary,
                       bgcolor: '#fff',
-                      borderRadius: '10px',
+                      borderRadius: '12.5px',
                       px: 3,
                       py: 1.375,
-                      fontSize: 14,
+                      fontSize: 17.5,
                       fontWeight: 600,
                       textTransform: 'none',
                       '&:hover': { bgcolor: C.light, borderColor: C.mid },
@@ -472,7 +472,7 @@ export function HomePage({
                       <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.2rem', md: '1.45rem' }, color: C.dark, letterSpacing: '-0.02em' }}>
                         {s.num}
                       </Typography>
-                      <Typography sx={{ fontSize: 11.5, color: C.muted, mt: 0.25 }}>{s.label}</Typography>
+                      <Typography sx={{ fontSize: 14.375, color: C.muted, mt: 0.25 }}>{s.label}</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -480,16 +480,16 @@ export function HomePage({
             </Grid>
 
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: 480, lg: 560 } }}>
+              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: 600, lg: 700 } }}>
                 <Box sx={{ position: 'relative' }}>
                   <Box
                     sx={{
                       position: 'relative',
-                      borderRadius: { xs: '20px', md: '24px' },
+                      borderRadius: { xs: '25px', md: '30px' },
                       overflow: 'hidden',
                       aspectRatio: '16/9',
-                      minHeight: { xs: 200, sm: 260, lg: 300 },
-                      maxHeight: { lg: 340 },
+                      minHeight: { xs: 250, sm: 325, lg: 375 },
+                      maxHeight: { lg: 425 },
                       bgcolor: C.light,
                       boxShadow: '0 24px 80px rgba(4, 44, 83, 0.18)',
                       border: `1px solid ${C.border}`,
@@ -511,7 +511,7 @@ export function HomePage({
                       }}
                     />
                     <Chip
-                      icon={<StarIcon sx={{ fontSize: '14px !important', color: '#fbbf24 !important' }} />}
+                      icon={<StarIcon sx={{ fontSize: '17.5px !important', color: '#fbbf24 !important' }} />}
                       label="4,9 · 2 300+ avis"
                       size="small"
                       sx={{
@@ -520,7 +520,7 @@ export function HomePage({
                         right: 16,
                         bgcolor: alpha('#fff', 0.95),
                         fontWeight: 700,
-                        fontSize: 11,
+                        fontSize: 13.75,
                         color: C.dark,
                         border: `1px solid ${C.border}`,
                       }}
@@ -536,16 +536,16 @@ export function HomePage({
                         gap: 1,
                         px: 1.75,
                         py: 1,
-                        borderRadius: '12px',
+                        borderRadius: '15px',
                         bgcolor: C.dark,
                         color: '#fff',
                         boxShadow: '0 8px 24px rgba(4, 44, 83, 0.3)',
                       }}
                     >
-                      <Truck sx={{ fontSize: 17, color: C.mid }} />
+                      <Truck sx={{ fontSize: 21.25, color: C.mid }} />
                       <Box>
-                        <Typography sx={{ fontSize: 9, color: alpha('#fff', 0.65), lineHeight: 1.2 }}>Livraison express</Typography>
-                        <Typography sx={{ fontSize: 11, fontWeight: 700 }}>Dakar & banlieue</Typography>
+                        <Typography sx={{ fontSize: 11.25, color: alpha('#fff', 0.65), lineHeight: 1.2 }}>Livraison express</Typography>
+                        <Typography sx={{ fontSize: 13.75, fontWeight: 700 }}>Dakar & banlieue</Typography>
                       </Box>
                     </Paper>
                   </Box>
@@ -568,7 +568,7 @@ export function HomePage({
                           alignItems: 'center',
                           px: 1.5,
                           py: 0.75,
-                          borderRadius: '10px',
+                          borderRadius: '12.5px',
                           bgcolor: '#fff',
                           border: `1px solid ${C.border}`,
                           cursor: 'pointer',
@@ -581,7 +581,7 @@ export function HomePage({
                           },
                         }}
                       >
-                        <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontSize: 14.375, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
                           {cat.name}
                         </Typography>
                       </Box>
@@ -594,7 +594,7 @@ export function HomePage({
                       gap: 0.5,
                       px: 1.5,
                       py: 0.75,
-                      borderRadius: '10px',
+                      borderRadius: '12.5px',
                       bgcolor: alpha(C.primary, 0.06),
                       border: `1px dashed ${alpha(C.primary, 0.3)}`,
                       cursor: 'pointer',
@@ -605,8 +605,8 @@ export function HomePage({
                       },
                     }}
                   >
-                    <AddIcon sx={{ fontSize: 14, color: C.primary }} />
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
+                    <AddIcon sx={{ fontSize: 17.5, color: C.primary }} />
+                    <Typography sx={{ fontSize: 14.375, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
                       Plus
                     </Typography>
                   </Box>
@@ -618,7 +618,7 @@ export function HomePage({
                   sx={{
                     mt: 2,
                     p: 2,
-                    borderRadius: '16px',
+              borderRadius: '25px',
                     bgcolor: '#fff',
                     border: `1px solid ${C.border}`,
                     boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
@@ -634,11 +634,11 @@ export function HomePage({
                 >
                   {loading ? (
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Skeleton variant="rounded" width={56} height={56} sx={{ borderRadius: '12px' }} />
+                      <Skeleton variant="rounded" width={70} height={70} sx={{ borderRadius: '15px' }} />
                       <Box sx={{ flex: 1 }}>
-                        <Skeleton width="50%" height={10} sx={{ mb: 1 }} />
-                        <Skeleton width="75%" height={16} sx={{ mb: 0.75 }} />
-                        <Skeleton width="35%" height={14} />
+                        <Skeleton width="50%" height={12.5} sx={{ mb: 1 }} />
+                        <Skeleton width="75%" height={20} sx={{ mb: 0.75 }} />
+                        <Skeleton width="35%" height={17.5} />
                       </Box>
                     </Stack>
                   ) : (
@@ -646,17 +646,17 @@ export function HomePage({
                       <HeroProductThumb name={featuredProduct?.name} coverImage={featuredProduct?.cover_image_url} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
+                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
                             Sélection du moment
                           </Typography>
                           {featuredDiscount != null && (
-                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: '#fef2f2', color: '#b91c1c' }} />
+                            <Chip label={`-${featuredDiscount}%`} size="small" sx={{ height: 22.5, fontSize: 12.5, fontWeight: 800, bgcolor: '#fef2f2', color: '#b91c1c' }} />
                           )}
                         </Stack>
                         <Typography
                           sx={{
                             fontWeight: 700,
-                            fontSize: 15,
+                            fontSize: 18.75,
                             color: C.dark,
                             lineHeight: 1.3,
                             overflow: 'hidden',
@@ -668,11 +668,11 @@ export function HomePage({
                           {featuredProduct?.name || 'Découvrir la boutique'}
                         </Typography>
                         <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mt: 0.5 }}>
-                          <Typography sx={{ fontSize: 15, fontWeight: 800, color: C.primary }}>
+                          <Typography sx={{ fontSize: 18.75, fontWeight: 800, color: C.primary }}>
                             {featuredProduct ? formatPrice(featuredProduct.price) : 'Voir les prix'}
                           </Typography>
                           {featuredProduct?.compare_price && featuredProduct.compare_price > featuredProduct.price && (
-                            <Typography sx={{ fontSize: 12, color: C.muted, textDecoration: 'line-through' }}>
+                            <Typography sx={{ fontSize: 15, color: C.muted, textDecoration: 'line-through' }}>
                               {formatPrice(featuredProduct.compare_price)}
                             </Typography>
                           )}
@@ -680,9 +680,9 @@ export function HomePage({
                       </Box>
                       <Box
                         sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '10px',
+                          width: 45,
+                          height: 45,
+                          borderRadius: '12.5px',
                           bgcolor: C.light,
                           display: 'flex',
                           alignItems: 'center',
@@ -690,7 +690,7 @@ export function HomePage({
                           flexShrink: 0,
                         }}
                       >
-                        <ArrowRight sx={{ color: C.primary, fontSize: 20 }} />
+                        <ArrowRight sx={{ color: C.primary, fontSize: 25 }} />
                       </Box>
                     </Stack>
                   )}
@@ -708,7 +708,7 @@ export function HomePage({
         component="section"
         sx={{ py: { xs: 8, md: 11 }, bgcolor: '#fff', borderTop: `1px solid ${C.border}` }}
       >
-        <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <SectionHeader
             centered
             label="Nos avantages"
@@ -732,7 +732,7 @@ export function HomePage({
                   sx={{
                     p: { xs: 3, md: 3.5 },
                     height: '100%',
-                    borderRadius: '18px',
+                    borderRadius: '22.5px',
                     border: `1px solid ${C.border}`,
                     bgcolor: C.surface,
                     display: 'flex',
@@ -748,9 +748,9 @@ export function HomePage({
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2.5 }}>
                     <Box
                       sx={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: '14px',
+                        width: 65,
+                        height: 65,
+                        borderRadius: '17.5px',
                         bgcolor: '#fff',
                         border: `1px solid ${C.border}`,
                         display: 'flex',
@@ -758,11 +758,11 @@ export function HomePage({
                         justifyContent: 'center',
                       }}
                     >
-                      <Icon sx={{ fontSize: 26, color: C.primary }} />
+                      <Icon sx={{ fontSize: 32.5, color: C.primary }} />
                     </Box>
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 15,
                         fontWeight: 800,
                         color: alpha(C.primary, 0.35),
                         letterSpacing: '0.06em',
@@ -772,10 +772,10 @@ export function HomePage({
                     </Typography>
                   </Stack>
 
-                  <Typography component="h3" sx={{ fontSize: 18, fontWeight: 800, color: C.dark, mb: 1.25, letterSpacing: '-0.02em' }}>
+                  <Typography component="h3" sx={{ fontSize: 22.5, fontWeight: 800, color: C.dark, mb: 1.25, letterSpacing: '-0.02em' }}>
                     {feature.title}
                   </Typography>
-                  <Typography sx={{ fontSize: 14, color: C.text, lineHeight: 1.75, flex: 1 }}>
+                  <Typography sx={{ fontSize: 17.5, color: C.text, lineHeight: 1.75, flex: 1 }}>
                     {feature.description}
                   </Typography>
 
@@ -787,7 +787,7 @@ export function HomePage({
                         borderTop: `1px solid ${C.border}`,
                       }}
                     >
-                      <Typography sx={{ fontSize: 11, fontWeight: 700, color: C.muted, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      <Typography sx={{ fontSize: 13.75, fontWeight: 700, color: C.muted, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                         Moyens acceptés
                       </Typography>
                       <PaymentIcons size="sm" showLabels />
@@ -802,7 +802,7 @@ export function HomePage({
 
       {/* Catégories */}
       <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.surface }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <SectionHeader
             label="Catalogue"
             title="Nos catégories"
@@ -815,10 +815,10 @@ export function HomePage({
                 sx={{
                   borderColor: C.border,
                   color: C.primary,
-                  borderRadius: '10px',
+                  borderRadius: '12.5px',
                   px: 2.5,
                   py: 1,
-                  fontSize: 13,
+                  fontSize: 16.25,
                   fontWeight: 600,
                   textTransform: 'none',
                   flexShrink: 0,
@@ -839,7 +839,7 @@ export function HomePage({
               <CarouselContent>
                 {[1, 2, 3, 4].map((i) => (
                   <CarouselItem key={i} sx={{ flex: { xs: '0 0 100%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' } }}>
-                    <Skeleton variant="rounded" sx={{ borderRadius: '18px', aspectRatio: '16/10' }} />
+                    <Skeleton variant="rounded" sx={{ borderRadius: '22.5px', aspectRatio: '16/10' }} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -850,12 +850,12 @@ export function HomePage({
               sx={{
                 p: 5,
                 textAlign: 'center',
-                borderRadius: '18px',
+                borderRadius: '22.5px',
                 border: `1px dashed ${C.border}`,
                 bgcolor: '#fff',
               }}
             >
-              <Typography sx={{ color: C.muted, fontSize: 14 }}>Les catégories seront bientôt disponibles.</Typography>
+              <Typography sx={{ color: C.muted, fontSize: 17.5 }}>Les catégories seront bientôt disponibles.</Typography>
             </Paper>
           ) : (
             <Box
@@ -880,7 +880,7 @@ export function HomePage({
                         onClick={() => (onViewCategory ? onViewCategory(category.id) : handleNavigate('shop'))}
                         sx={{
                           position: 'relative',
-                          borderRadius: '18px',
+                          borderRadius: '22.5px',
                           overflow: 'hidden',
                           cursor: 'pointer',
                           aspectRatio: '16/10',
@@ -946,7 +946,7 @@ export function HomePage({
                                 sx={{
                                   color: '#fff',
                                   fontWeight: 800,
-                                  fontSize: { xs: 16, md: 18 },
+                                  fontSize: { xs: 20, md: 22.5 },
                                   letterSpacing: '-0.02em',
                                   lineHeight: 1.25,
                                 }}
@@ -954,7 +954,7 @@ export function HomePage({
                                 {category.name}
                               </Typography>
                               {category.product_count !== undefined && (
-                                <Typography sx={{ color: alpha('#fff', 0.72), fontSize: 12, mt: 0.5 }}>
+                                <Typography sx={{ color: alpha('#fff', 0.72), fontSize: 15, mt: 0.5 }}>
                                   {category.product_count} produit{category.product_count > 1 ? 's' : ''}
                                 </Typography>
                               )}
@@ -962,7 +962,7 @@ export function HomePage({
                             <Typography
                               className="cat-cta"
                               sx={{
-                                fontSize: 12,
+                                fontSize: 15,
                                 fontWeight: 700,
                                 color: '#fff',
                                 opacity: 0,
@@ -986,8 +986,8 @@ export function HomePage({
                     border: `1px solid ${C.border}`,
                     color: C.dark,
                     boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
-                    width: { xs: 36, md: 42 },
-                    height: { xs: 36, md: 42 },
+                    width: { xs: 45, md: 52.5 },
+                    height: { xs: 45, md: 52.5 },
                     '&:hover': { bgcolor: C.light },
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
@@ -999,8 +999,8 @@ export function HomePage({
                     border: `1px solid ${C.border}`,
                     color: C.dark,
                     boxShadow: `0 4px 16px ${alpha(C.dark, 0.12)}`,
-                    width: { xs: 36, md: 42 },
-                    height: { xs: 36, md: 42 },
+                    width: { xs: 45, md: 52.5 },
+                    height: { xs: 45, md: 52.5 },
                     '&:hover': { bgcolor: C.light },
                     '&.Mui-disabled': { opacity: 0.3 },
                   }}
@@ -1013,7 +1013,7 @@ export function HomePage({
 
       {/* Produits populaires */}
       <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#fff' }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <SectionHeader
             label="Sélection"
             title="Produits populaires"
@@ -1025,10 +1025,10 @@ export function HomePage({
                 onClick={() => handleNavigate('shop')}
                 sx={{
                   bgcolor: C.primary,
-                  borderRadius: '10px',
+                  borderRadius: '12.5px',
                   px: 2.5,
                   py: 1,
-                  fontSize: 13,
+                  fontSize: 16.25,
                   fontWeight: 700,
                   textTransform: 'none',
                   boxShadow: `0 6px 20px ${alpha(C.primary, 0.3)}`,
@@ -1044,7 +1044,7 @@ export function HomePage({
           {loading ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} variant="rounded" height={380} sx={{ borderRadius: '14px' }} />
+                <Skeleton key={i} variant="rounded" height={475} sx={{ borderRadius: '17.5px' }} />
               ))}
             </Box>
           ) : popularProducts.length === 0 ? (
@@ -1053,12 +1053,12 @@ export function HomePage({
               sx={{
                 p: 5,
                 textAlign: 'center',
-                borderRadius: '18px',
+                borderRadius: '22.5px',
                 border: `1px dashed ${C.border}`,
                 bgcolor: C.surface,
               }}
             >
-              <Typography sx={{ color: C.muted, fontSize: 14 }}>Aucun produit à afficher pour le moment.</Typography>
+              <Typography sx={{ color: C.muted, fontSize: 17.5 }}>Aucun produit à afficher pour le moment.</Typography>
             </Paper>
           ) : (
             <Box
@@ -1087,14 +1087,14 @@ export function HomePage({
 
       {/* CTA grossiste */}
       <Box component="section" sx={{ pb: { xs: 6, md: 10 }, pt: { xs: 0, md: 2 } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box
             sx={{
-              borderRadius: '20px',
+              borderRadius: '25px',
               overflow: 'hidden',
               position: 'relative',
               bgcolor: C.dark,
-              px: { xs: 3, sm: 5, md: 8 },
+              px: { xs: 2, sm: 3.5, md: 5 },
               py: { xs: 5, md: 7 },
               display: 'flex',
               alignItems: 'center',
@@ -1108,8 +1108,8 @@ export function HomePage({
                 position: 'absolute',
                 top: '-80px',
                 right: '-40px',
-                width: 320,
-                height: 320,
+                width: 400,
+                height: 400,
                 borderRadius: '50%',
                 background: alpha(C.mid, 0.2),
                 filter: 'blur(70px)',
@@ -1117,7 +1117,7 @@ export function HomePage({
               },
             }}
           >
-            <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 540 }}>
+            <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 675 }}>
               <Typography sx={{ ...sectionLabelSx, color: C.mid, mb: 1.5 }}>Achat en gros</Typography>
               <Typography
                 component="h2"
@@ -1132,7 +1132,7 @@ export function HomePage({
               >
                 Vous commandez en grande quantité ?
               </Typography>
-              <Typography sx={{ fontSize: { xs: 14, md: 15 }, color: alpha('#fff', 0.72), lineHeight: 1.75, maxWidth: 480 }}>
+              <Typography sx={{ fontSize: { xs: 17.5, md: 18.75 }, color: alpha('#fff', 0.72), lineHeight: 1.75, maxWidth: 600 }}>
                 Tarifs dégressifs pour les professionnels, devis personnalisé sous 24h et accompagnement dédié.
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 3 }}>
@@ -1145,7 +1145,7 @@ export function HomePage({
                       bgcolor: alpha('#fff', 0.1),
                       color: alpha('#fff', 0.9),
                       fontWeight: 600,
-                      fontSize: 11,
+                      fontSize: 13.75,
                       border: `1px solid ${alpha('#fff', 0.15)}`,
                     }}
                   />
@@ -1163,10 +1163,10 @@ export function HomePage({
                   bgcolor: '#fff',
                   color: C.dark,
                   fontWeight: 800,
-                  fontSize: 14,
+                  fontSize: 17.5,
                   px: 4,
                   py: 1.75,
-                  borderRadius: '12px',
+                  borderRadius: '15px',
                   textTransform: 'none',
                   whiteSpace: 'nowrap',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.2)',

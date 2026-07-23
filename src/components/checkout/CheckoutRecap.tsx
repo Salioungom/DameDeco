@@ -71,7 +71,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
     return (
       <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ textAlign: 'center' }}>
-          <ShoppingCartOutlined sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+          <ShoppingCartOutlined sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
             Votre panier est vide
           </Typography>
@@ -120,8 +120,8 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                   >
                     <Box
                       sx={{
-                        width: 90,
-                        height: 90,
+                        width: 112.5,
+                        height: 112.5,
                         borderRadius: 2,
                         overflow: 'hidden',
                         bgcolor: 'action.hover',
@@ -176,12 +176,12 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                               size="small"
                               onClick={() => handleQuantityChange(item, -1)}
                               disabled={item.quantity <= 1}
-                              sx={{ width: 32, height: 32, borderRadius: 0 }}
+                              sx={{ width: 40, height: 40, borderRadius: 0 }}
                             >
                               <Remove fontSize="small" />
                             </IconButton>
                           </ClientOnly>
-                          <Typography variant="body2" fontWeight={600} sx={{ px: 1.5, minWidth: 24, textAlign: 'center' }}>
+                          <Typography variant="body2" fontWeight={600} sx={{ px: 1.5, minWidth: 30, textAlign: 'center' }}>
                             {item.quantity}
                           </Typography>
                           <ClientOnly>
@@ -189,7 +189,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                               size="small"
                               onClick={() => handleQuantityChange(item, 1)}
                               disabled={item.quantity >= (item.product.stock_quantity || 99)}
-                              sx={{ width: 32, height: 32, borderRadius: 0 }}
+                              sx={{ width: 40, height: 40, borderRadius: 0 }}
                             >
                               <Add fontSize="small" />
                             </IconButton>
@@ -281,7 +281,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                       borderRadius: 2,
                       py: 1.6,
                       fontWeight: 700,
-                      fontSize: 15,
+                      fontSize: 18.75,
                       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
                     }}
                   >

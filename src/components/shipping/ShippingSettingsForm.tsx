@@ -29,9 +29,9 @@ const BRAND = {
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '10px',
+    borderRadius: '12.5px',
     bgcolor: BRAND.white,
-    maxWidth: 360,
+    maxWidth: 450,
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: BRAND.primary,
       borderWidth: 2,
@@ -99,7 +99,7 @@ export default function ShippingSettingsForm() {
   return (
     <Box component="form" onSubmit={handleSubmit}>
       {error && (
-        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '15px' }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -107,15 +107,15 @@ export default function ShippingSettingsForm() {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.white,
           overflow: 'hidden',
-          maxWidth: 640,
+          maxWidth: 800,
         }}
       >
         <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.surface, borderBottom: `1px solid ${BRAND.border}` }}>
-          <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
             Paramètres de livraison
           </Typography>
         </Box>
@@ -123,7 +123,7 @@ export default function ShippingSettingsForm() {
         <Box sx={{ p: 2.5 }}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark, mb: 1 }}>
+              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark, mb: 1 }}>
                 Seuil livraison gratuite
               </Typography>
               <TextField
@@ -138,13 +138,13 @@ export default function ShippingSettingsForm() {
                   endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
                 }}
               />
-              <Typography sx={{ fontSize: 12, color: BRAND.muted, mt: 0.75 }}>
+              <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.75 }}>
                 Montant minimum du panier pour la livraison gratuite
               </Typography>
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: BRAND.dark, mb: 1 }}>
+              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark, mb: 1 }}>
                 Coût livraison standard
               </Typography>
               <TextField
@@ -159,7 +159,7 @@ export default function ShippingSettingsForm() {
                   endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
                 }}
               />
-              <Typography sx={{ fontSize: 12, color: BRAND.muted, mt: 0.75 }}>
+              <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.75 }}>
                 Frais appliqués aux commandes sous le seuil gratuit
               </Typography>
             </Grid>
@@ -169,11 +169,11 @@ export default function ShippingSettingsForm() {
             type="submit"
             variant="contained"
             disabled={saving}
-            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+            startIcon={saving ? <CircularProgress size={22.5} color="inherit" /> : <SaveIcon />}
             sx={{
               mt: 3,
               bgcolor: BRAND.primary,
-              borderRadius: '10px',
+              borderRadius: '12.5px',
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
@@ -193,25 +193,25 @@ export default function ShippingSettingsForm() {
           sx={{
             mt: 2.5,
             p: 2.5,
-            maxWidth: 640,
-            borderRadius: '16px',
+            maxWidth: 800,
+            borderRadius: '20px',
             border: `1px solid ${BRAND.border}`,
             bgcolor: alpha(BRAND.primary, 0.04),
           }}
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 700, color: BRAND.dark, mb: 1.5 }}>
+          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.dark, mb: 1.5 }}>
             Récapitulatif actuel
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography sx={{ fontSize: 13, color: BRAND.muted }}>Seuil gratuit</Typography>
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.primary }}>
+              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>Seuil gratuit</Typography>
+              <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.primary }}>
                 {Number(settings.freeShippingThreshold).toLocaleString('fr-FR')} FCFA
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography sx={{ fontSize: 13, color: BRAND.muted }}>Coût standard</Typography>
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.primary }}>
+              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>Coût standard</Typography>
+              <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.primary }}>
                 {Number(settings.standardShippingCost).toLocaleString('fr-FR')} FCFA
               </Typography>
             </Grid>

@@ -74,7 +74,7 @@ const BRAND = {
 
 const primaryBtnSx = {
   bgcolor: BRAND.primary,
-  borderRadius: '10px',
+  borderRadius: '13px',
   textTransform: 'none' as const,
   fontWeight: 600,
   boxShadow: 'none',
@@ -83,7 +83,7 @@ const primaryBtnSx = {
 
 const dialogPaperProps = {
   sx: {
-    borderRadius: '20px',
+    borderRadius: '25px',
     overflow: 'hidden',
     border: `1px solid ${BRAND.border}`,
     boxShadow: `0 24px 64px ${alpha(BRAND.dark, 0.2)}`,
@@ -94,7 +94,7 @@ const dialogPaperProps = {
 };
 
 const fieldSx = {
-  '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: BRAND.white },
+  '& .MuiOutlinedInput-root': { borderRadius: '13px', bgcolor: BRAND.white },
 };
 
 function CategoryDialogHeader({
@@ -124,9 +124,9 @@ function CategoryDialogHeader({
       <Stack direction="row" spacing={1.5} alignItems="center">
         <Box
           sx={{
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
+            width: 55,
+            height: 55,
+            borderRadius: '15px',
             bgcolor: alpha(BRAND.white, 0.12),
             display: 'flex',
             alignItems: 'center',
@@ -137,7 +137,7 @@ function CategoryDialogHeader({
         </Box>
         <Box>
           <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>{title}</Typography>
-          <Typography sx={{ fontSize: 13, color: alpha(BRAND.white, 0.72), mt: 0.25 }}>{subtitle}</Typography>
+          <Typography sx={{ fontSize: 16, color: alpha(BRAND.white, 0.72), mt: 0.25 }}>{subtitle}</Typography>
         </Box>
       </Stack>
       <IconButton onClick={onClose} aria-label="Fermer" size="small" sx={{ color: alpha(BRAND.white, 0.8), '&:hover': { bgcolor: alpha(BRAND.white, 0.1) } }}>
@@ -162,7 +162,7 @@ function CategoryImageUpload({
     <Box
       sx={{
         p: 2.5,
-        borderRadius: '14px',
+        borderRadius: '18px',
         border: `1px dashed ${alpha(BRAND.primary, 0.35)}`,
         bgcolor: BRAND.surface,
         display: 'flex',
@@ -173,9 +173,9 @@ function CategoryImageUpload({
     >
       <Box
         sx={{
-          width: 120,
-          height: 120,
-          borderRadius: '14px',
+          width: 150,
+          height: 150,
+          borderRadius: '18px',
           overflow: 'hidden',
           flexShrink: 0,
           bgcolor: BRAND.white,
@@ -188,14 +188,14 @@ function CategoryImageUpload({
         {previewUrl ? (
           <Box component="img" src={previewUrl} alt="Aperçu" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <ImageIcon sx={{ fontSize: 40, color: alpha(BRAND.muted, 0.4) }} />
+          <ImageIcon sx={{ fontSize: 50, color: alpha(BRAND.muted, 0.4) }} />
         )}
       </Box>
       <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
-        <Typography sx={{ fontWeight: 700, fontSize: 14, color: BRAND.dark, mb: 0.5 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 18, color: BRAND.dark, mb: 0.5 }}>
           Image de couverture
         </Typography>
-        <Typography sx={{ fontSize: 12, color: BRAND.muted, mb: 1.5 }}>
+        <Typography sx={{ fontSize: 15, color: BRAND.muted, mb: 1.5 }}>
           {existingLabel || 'JPG ou PNG · recommandé 800×600 px'}
         </Typography>
         <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small" sx={{ ...primaryBtnSx, borderColor: BRAND.border, color: BRAND.primary, bgcolor: BRAND.white }}>
@@ -549,7 +549,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         sx={{
           mb: 2.5,
           p: { xs: 2, sm: 2.5 },
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.light,
           display: 'flex',
@@ -560,10 +560,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 700, color: BRAND.dark, lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: { xs: 25, sm: 30 }, fontWeight: 700, color: BRAND.dark, lineHeight: 1.2 }}>
             Gestion des catégories
           </Typography>
-          <Typography sx={{ fontSize: 14, color: BRAND.muted, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 18, color: BRAND.muted, mt: 0.5 }}>
             Gérez votre catalogue de catégories de produits
           </Typography>
         </Box>
@@ -585,7 +585,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         {showStats && (
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '12px' }}>
+              <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.pagination.total}
@@ -597,7 +597,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '12px' }}>
+              <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.is_active).length}
@@ -609,7 +609,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '12px' }}>
+              <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => !c.is_active).length}
@@ -621,7 +621,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '12px' }}>
+              <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
                     {state.categories.filter(c => c.cover_image_url).length}
@@ -637,7 +637,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       </Box>
 
       {state.error && (
-        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>
+        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '15px' }}>
           {state.error}
         </Alert>
       )}
@@ -646,7 +646,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         elevation={0}
         sx={{
           mb: 2.5,
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.white,
           overflow: 'hidden',
@@ -654,8 +654,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       >
         <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
           <Box display="flex" alignItems="center" gap={1.5}>
-            <FilterIcon sx={{ color: BRAND.primary, fontSize: 20 }} />
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>
+            <FilterIcon sx={{ color: BRAND.primary, fontSize: 25 }} />
+            <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
             </Typography>
             <Box flexGrow={1} />
@@ -687,7 +687,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     </InputAdornment>
                   ),
                   sx: {
-                    borderRadius: '10px',
+                    borderRadius: '13px',
                     bgcolor: BRAND.surface,
                     '&.Mui-focused': {
                       boxShadow: `0 0 0 2px ${alpha(BRAND.primary, 0.15)}`,
@@ -734,7 +734,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   sx={{
                     ...(state.filters.is_active === null
                       ? primaryBtnSx
-                      : { borderColor: BRAND.border, color: BRAND.dark, borderRadius: '8px', textTransform: 'none', fontWeight: 600 }),
+                      : { borderColor: BRAND.border, color: BRAND.dark, borderRadius: '10px', textTransform: 'none', fontWeight: 600 }),
                   }}
                 >
                   Toutes
@@ -748,7 +748,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   }))}
                   size="small"
                   sx={{
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     textTransform: 'none',
                     fontWeight: 600,
                     ...(state.filters.is_active === true
@@ -767,7 +767,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   }))}
                   size="small"
                   sx={{
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     textTransform: 'none',
                     fontWeight: 600,
                     ...(state.filters.is_active === false
@@ -786,7 +786,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       <Paper
         elevation={0}
         sx={{
-          borderRadius: '16px',
+          borderRadius: '20px',
           border: `1px solid ${BRAND.border}`,
           bgcolor: BRAND.white,
           overflow: 'hidden',
@@ -797,7 +797,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <LinearProgress />
           </Box>
         )}
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 750 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow
@@ -806,13 +806,13 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                     bgcolor: BRAND.dark,
                     color: BRAND.white,
                     fontWeight: 600,
-                    fontSize: 12,
+                    fontSize: 15,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     py: 1.75,
                     borderBottom: 'none',
                   },
-                  '& .MuiTypography-root': { color: BRAND.white, fontSize: 12 },
+                  '& .MuiTypography-root': { color: BRAND.white, fontSize: 15 },
                   '& .MuiSvgIcon-root': { color: alpha(BRAND.white, 0.85) },
                   '& th > div > div': { bgcolor: alpha(BRAND.white, 0.12) },
                 }}
@@ -990,7 +990,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Box>
-                      <CategoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                      <CategoryIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
                       <Typography variant="h6" color="text.secondary" mb={1}>
                         Aucune catégorie trouvée
                       </Typography>
@@ -1034,8 +1034,8 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                           alt={category.name}
                           variant="rounded"
                           sx={{
-                            width: 56,
-                            height: 56,
+                            width: 70,
+                            height: 70,
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                             border: category.cover_image_url ? 'none' : `2px dashed ${alpha(theme.palette.divider, 0.5)}`,
                           }}
@@ -1227,10 +1227,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '10px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 56, display: 'flex', alignItems: 'center' }}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
-                    label={<Typography sx={{ fontWeight: 600, fontSize: 14 }}>Visible sur la boutique</Typography>}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
                 </Paper>
               </Grid>
@@ -1283,10 +1283,10 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '10px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 56, display: 'flex', alignItems: 'center' }}>
+                <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
-                    label={<Typography sx={{ fontWeight: 600, fontSize: 14 }}>Visible sur la boutique</Typography>}
+                    label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
                 </Paper>
               </Grid>
