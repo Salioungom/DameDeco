@@ -4,7 +4,8 @@ import { cartService } from '@/services/cart.service';
 import { cartLog, cartError } from '@/lib/cart-logger';
 
 export function useCartSync() {
-    const { user, loadCart } = useStore();
+    const user = useStore((s) => s.user);
+    const loadCart = useStore((s) => s.loadCart);
     const prevUserRef = useRef(user);
 
     useEffect(() => {

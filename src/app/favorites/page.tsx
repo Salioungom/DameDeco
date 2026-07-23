@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Box,
     Container,
@@ -15,6 +15,7 @@ import {
     FavoriteBorder,
     FavoriteRounded,
     ArrowForward,
+    LockOutlined,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { FavoriteService, Favorite } from '@/services/favorite.service';
@@ -30,26 +31,27 @@ export default function FavoritesPage() {
     const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { addToCart, userType, favorites: storeFavorites, toggleFavorite, loadFavorites: loadStoreFavorites } = useStore();
+    const { addToCart, userType, favorites: storeFavorites, toggleFavorite, user } = useStore();
     const router = useRouter();
     const brandBlue = '#185FA5';
-    const brandDark = '#042C53';
 
     useEffect(() => {
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
         const loadFavorites = async () => {
             try {
                 setLoading(true);
-                const favoritesData = await FavoriteService.getUserFavorites(0, 20);
+                const favoritesData = await FavoriteService.getUserFavorites(0, 100);
                 setFavorites(favoritesData.items);
-
-                await loadStoreFavorites();
 
                 const productPromises = favoritesData.items.map(async (favorite) => {
                     try {
                         const product = await productService.getProductById(favorite.product.id.toString());
                         return product;
-                    } catch (err) {
-                        console.error('Erreur récupération produit:', favorite.product.id, err);
+                    } catch {
                         return null;
                     }
                 });
@@ -57,8 +59,7 @@ export default function FavoritesPage() {
                 const products = await Promise.all(productPromises);
                 const validProducts = products.filter(p => p !== null) as Product[];
                 setFavoriteProducts(validProducts);
-            } catch (err) {
-                console.error("Error loading favorites", err);
+            } catch {
                 setError("Impossible de charger vos favoris.");
                 setFavorites([]);
                 setFavoriteProducts([]);
@@ -68,37 +69,40 @@ export default function FavoritesPage() {
         };
 
         loadFavorites();
-    }, [loadStoreFavorites]);
+    }, [user]);
 
+    // Sync local list when store favorites change (instant add/remove)
+    const prevCountRef = useRef(0);
     useEffect(() => {
-        const reloadFavorites = async () => {
-            try {
-                const favoritesData = await FavoriteService.getUserFavorites(0, 20);
-                setFavorites(favoritesData.items);
+        if (!user || loading) return;
+        const storeIds = storeFavorites ?? [];
+        const prevCount = prevCountRef.current;
+        prevCountRef.current = storeIds.length;
 
-                const productPromises = favoritesData.items.map(async (favorite) => {
-                    try {
-                        const product = await productService.getProductById(favorite.product.id.toString());
-                        return product;
-                    } catch (err) {
-                        console.error('Erreur récupération produit:', favorite.product.id, err);
-                        return null;
-                    }
-                });
-
-                const products = await Promise.all(productPromises);
-                const validProducts = products.filter(p => p !== null) as Product[];
-                setFavoriteProducts(validProducts);
-            } catch (err) {
-                console.error("Error reloading favorites", err);
-                setFavoriteProducts([]);
-            }
-        };
-
-        if (!loading) {
-            reloadFavorites();
+        if (storeIds.length < prevCount) {
+            // Item removed: filter instantly without network call
+            setFavoriteProducts(prev => prev.filter(p => storeIds.includes(String(p.id))));
+            setFavorites(prev => prev.filter(f => storeIds.includes(String(f.product.id))));
+        } else if (storeIds.length > prevCount) {
+            // Item added from another page: re-fetch to get full product data
+            const loadNew = async () => {
+                try {
+                    const data = await FavoriteService.getUserFavorites(0, 100);
+                    setFavorites(data.items);
+                    const products = await Promise.all(
+                        data.items.map(async (fav) => {
+                            try { return await productService.getProductById(fav.product.id.toString()); }
+                            catch { return null; }
+                        })
+                    );
+                    setFavoriteProducts(products.filter(Boolean) as Product[]);
+                } catch { /* keep existing list */ }
+            };
+            loadNew();
         }
-    }, [storeFavorites, loading]);
+    }, [storeFavorites, user, loading]);
+
+
 
     const productCount = favoriteProducts?.length ?? 0;
 
@@ -130,6 +134,73 @@ export default function FavoritesPage() {
         );
     }
 
+    if (!user) {
+        return (
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                <Container maxWidth="lg" sx={{ pt: 14, pb: 8 }}>
+                    <Box
+                        sx={{
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: 4,
+                            background: `linear-gradient(135deg, ${alpha(brandBlue, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                            border: `1px solid ${alpha(brandBlue, 0.15)}`,
+                            textAlign: 'center',
+                            py: { xs: 10, md: 14 },
+                            px: 4,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 100,
+                                height: 100,
+                                borderRadius: '50%',
+                                mx: 'auto',
+                                mb: 3,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.15)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`,
+                                border: `2px solid ${alpha(brandBlue, 0.2)}`,
+                            }}
+                        >
+                            <LockOutlined sx={{ fontSize: 44, color: brandBlue }} />
+                        </Box>
+                        <Typography
+                            variant="h4"
+                            fontWeight={700}
+                            sx={{ mb: 1.5, color: 'text.primary' }}
+                        >
+                            Connexion requise
+                        </Typography>
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            sx={{ maxWidth: 460, mx: 'auto', mb: 4, lineHeight: 1.7 }}
+                        >
+                            Connectez-vous à votre compte pour accéder à vos favoris et gérer votre collection de produits préférés.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            component={Link}
+                            href="/login"
+                            size="large"
+                            sx={{
+                                borderRadius: 3,
+                                px: 5,
+                                py: 1.5,
+                                fontWeight: 600,
+                                boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                            }}
+                        >
+                            Se connecter
+                        </Button>
+                    </Box>
+                </Container>
+            </Box>
+        );
+    }
+
     if (productCount === 0) {
         return (
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -141,7 +212,6 @@ export default function FavoritesPage() {
                             borderRadius: 4,
                             background: `linear-gradient(135deg, ${alpha(brandBlue, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
                             border: `1px solid ${alpha(brandBlue, 0.15)}`,
-                            backdropFilter: 'blur(8px)',
                             textAlign: 'center',
                             py: { xs: 10, md: 14 },
                             px: 4,
@@ -287,7 +357,7 @@ export default function FavoritesPage() {
                             onAddToCart={addToCart}
                             onViewDetails={(p) => router.push(`/product/${p.id}`)}
                             userType={userType}
-                            isFavorite={true}
+                            isFavorite={storeFavorites?.includes(String(product.id)) ?? false}
                             onToggleFavorite={toggleFavorite}
                         />
                     ))}

@@ -7,7 +7,7 @@ import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
 import { Toaster } from 'sonner';
 import { useStore } from '@/store/useStore';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import { cartLog } from '@/lib/cart-logger';
@@ -51,12 +51,20 @@ function CartInitializer() {
 }
 
 function FavoritesInitializer() {
-  const { loadFavorites, setUser } = useStore();
+  const setUser = useStore((s) => s.setUser);
+  const loadFavorites = useStore((s) => s.loadFavorites);
+  const storeUser = useStore((s) => s.user);
   const { user, isAuthenticated } = useAuth();
+  const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const storeUser = {
+    if (!isAuthenticated || !user) return;
+
+    if (syncedUserIdRef.current === user.id) return;
+    syncedUserIdRef.current = user.id;
+
+    if (storeUser?.id !== user.id) {
+      setUser({
         id: user.id,
         name: user.full_name,
         email: user.email || '',
@@ -64,13 +72,11 @@ function FavoritesInitializer() {
         type: 'retail' as const,
         avatar: user.avatar,
         phone: user.phone,
-      };
-      setUser(storeUser);
-      loadFavorites();
-    } else if (!isAuthenticated) {
-      setUser(null);
+      });
     }
-  }, [isAuthenticated, user, loadFavorites, setUser]);
+
+    loadFavorites();
+  }, [isAuthenticated, user, setUser, loadFavorites, storeUser]);
 
   return null;
 }

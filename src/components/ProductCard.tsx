@@ -176,7 +176,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 
   const handleToggleFavorite = useCallback(
-    (e: React.MouseEvent) => { e.stopPropagation(); onToggleFavorite?.(product.id); },
+    (e: React.MouseEvent) => { e.stopPropagation(); onToggleFavorite?.(String(product.id)); },
     [onToggleFavorite, product.id],
   );
 

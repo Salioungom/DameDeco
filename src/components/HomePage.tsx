@@ -22,11 +22,13 @@ import {
   Place as PlaceIcon,
   Star as StarIcon,
   CheckCircle,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 import { homeService } from '../services/home.service';
 import { productService } from '../services/product.service';
+import { getImageUrl } from '@/lib/imageUtils';
 import ProductCard from './ProductCard';
 import Autoplay from 'embla-carousel-autoplay';
 import {
@@ -145,8 +147,10 @@ function SectionHeader({
   );
 }
 
-function HeroProductThumb({ name }: { name?: string }) {
+function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: string }) {
   const initial = (name?.trim().charAt(0) || 'D').toUpperCase();
+  const imgSrc = coverImage ? getImageUrl(coverImage) : null;
+
   return (
     <Box
       sx={{
@@ -154,18 +158,29 @@ function HeroProductThumb({ name }: { name?: string }) {
         height: 56,
         borderRadius: '12px',
         flexShrink: 0,
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: `linear-gradient(145deg, ${C.primary} 0%, ${C.dark} 100%)`,
+        background: imgSrc ? 'transparent' : `linear-gradient(145deg, ${C.primary} 0%, ${C.dark} 100%)`,
         color: '#fff',
         fontWeight: 800,
         fontSize: 22,
         letterSpacing: '-0.02em',
-        boxShadow: `0 4px 14px ${alpha(C.primary, 0.35)}`,
+        boxShadow: imgSrc
+          ? `0 4px 14px ${alpha(C.dark, 0.2)}`
+          : `0 4px 14px ${alpha(C.primary, 0.35)}`,
       }}
     >
-      {initial}
+      {imgSrc ? (
+        <img
+          src={imgSrc}
+          alt={name || 'Produit'}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        initial
+      )}
     </Box>
   );
 }
@@ -266,9 +281,9 @@ export function HomePage({
 
   const heroCategoryTags = useMemo(() => {
     if (categories.length > 0) {
-      return categories.slice(0, 4).map((c) => c.name);
+      return categories.slice(0, 6);
     }
-    return ['Meubles', 'Décoration', 'Textile', 'Luminaires'];
+    return [] as Category[];
   }, [categories]);
 
   const featuredDiscount =
@@ -537,25 +552,66 @@ export function HomePage({
                   </Box>
                 </Box>
 
-                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
-                  {heroCategoryTags.map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      size="small"
-                      onClick={() => handleNavigate('shop')}
-                      sx={{
-                        bgcolor: '#fff',
-                        color: C.dark,
-                        fontWeight: 600,
-                        fontSize: 11,
-                        border: `1px solid ${C.border}`,
-                        cursor: 'pointer',
-                        '&:hover': { bgcolor: C.light, borderColor: C.mid },
-                      }}
-                    />
-                  ))}
-                </Stack>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    mt: 2,
+                  }}
+                >
+                  {heroCategoryTags.map((cat) => (
+                      <Box
+                        key={cat.id}
+                        onClick={() => (onViewCategory ? onViewCategory(cat.id) : handleNavigate('shop'))}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          px: 1.5,
+                          py: 0.75,
+                          borderRadius: '10px',
+                          bgcolor: '#fff',
+                          border: `1px solid ${C.border}`,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            bgcolor: C.light,
+                            borderColor: C.primary,
+                            transform: 'translateY(-1px)',
+                            boxShadow: `0 4px 12px ${alpha(C.primary, 0.12)}`,
+                          },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
+                          {cat.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  <Box
+                    onClick={() => handleNavigate('shop')}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: '10px',
+                      bgcolor: alpha(C.primary, 0.06),
+                      border: `1px dashed ${alpha(C.primary, 0.3)}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: alpha(C.primary, 0.1),
+                        borderColor: C.primary,
+                      },
+                    }}
+                  >
+                    <AddIcon sx={{ fontSize: 14, color: C.primary }} />
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
+                      Plus
+                    </Typography>
+                  </Box>
+                </Box>
 
                 <Paper
                   elevation={0}
@@ -588,7 +644,7 @@ export function HomePage({
                     </Stack>
                   ) : (
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <HeroProductThumb name={featuredProduct?.name} />
+                      <HeroProductThumb name={featuredProduct?.name} coverImage={featuredProduct?.cover_image_url} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                           <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>

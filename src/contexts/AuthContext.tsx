@@ -7,7 +7,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, apiUtils } from '@/lib/api';
 import { useCartSync } from '@/hooks/useCartSync';
@@ -430,7 +430,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const contextValue: AuthContextType = {
+    const contextValue: AuthContextType = useMemo(() => ({
         ...state,
         loading,
         login,
@@ -439,7 +439,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshAccessToken,
         verifyOTP,
         refetchUser,
-    };
+    }), [state, loading, login, register, logout, refreshAccessToken, verifyOTP, refetchUser]);
 
     return (
         <AuthContext.Provider value={contextValue}>

@@ -457,11 +457,11 @@ export function Navigation() {
         {user ? (
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Avatar src={user.avatar} sx={{ width: 42, height: 42, bgcolor: 'primary.main' }}>
-              {user.full_name?.charAt(0)}
+              {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
             </Avatar>
             <Box>
               <Typography fontWeight={600} fontSize={14}>
-                {user.full_name}
+                {user.name || user.email}
               </Typography>
               <Typography fontSize={12} color="text.secondary">
                 {user.email}
@@ -470,25 +470,66 @@ export function Navigation() {
           </Stack>
         ) : (
           <Stack spacing={1}>
+            <Box sx={{ textAlign: 'center', mb: 0.5 }}>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1,
+                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.25)}`,
+                }}
+              >
+                <PersonOutline sx={{ fontSize: 22, color: '#fff' }} />
+              </Box>
+              <Typography fontSize={14} fontWeight={700} color="text.primary">
+                Bienvenue !
+              </Typography>
+              <Typography fontSize={12} color="text.secondary" sx={{ mt: 0.5 }}>
+                Suivez vos commandes et vos favoris
+              </Typography>
+            </Box>
             <Button
               fullWidth
               variant="contained"
               component={Link}
               href="/login"
               onClick={() => setMobileOpen(false)}
-              sx={{ borderRadius: '10px', py: 1.1, fontWeight: 600, boxShadow: 'none' }}
+              disableElevation
+              sx={{
+                py: 1.2,
+                borderRadius: '10px',
+                fontWeight: 700,
+                textTransform: 'none',
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
+              }}
             >
               Se connecter
             </Button>
             <Button
               fullWidth
-              variant="outlined"
+              variant="text"
               component={Link}
               href="/register"
               onClick={() => setMobileOpen(false)}
-              sx={{ borderRadius: '10px', py: 1.1, fontWeight: 500 }}
+              sx={{
+                py: 1,
+                borderRadius: '10px',
+                fontWeight: 600,
+                fontSize: 13,
+                textTransform: 'none',
+                color: theme.palette.primary.main,
+              }}
             >
-              Créer un compte
+              Pas encore de compte ?{' '}
+              <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                Créer
+              </Box>
             </Button>
           </Stack>
         )}
@@ -530,12 +571,12 @@ export function Navigation() {
         <Avatar sx={{ width: 28, height: 28, bgcolor: 'action.hover' }} />
       ) : user ? (
         <>
-          <Avatar sx={{ width: 28, height: 28, bgcolor: 'primary.main', fontSize: 12, fontWeight: 700 }}>
-            {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+              <Avatar sx={{ width: 28, height: 28, bgcolor: 'primary.main', fontSize: 12, fontWeight: 700 }}>
+            {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
           </Avatar>
           {!isMobile && (
             <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary', maxWidth: 88 }} noWrap>
-              {user.full_name?.split(' ')[0] || 'Compte'}
+              {user.name?.split(' ')[0] || 'Compte'}
             </Typography>
           )}
           <KeyboardArrowDown
@@ -765,32 +806,17 @@ export function Navigation() {
           >
             <Stack direction="row" spacing={1.25} alignItems="center">
               <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
-                {user.full_name?.charAt(0) || 'U'}
+                {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
               </Avatar>
               <Box sx={{ minWidth: 0 }}>
                 <Typography fontWeight={600} fontSize={14} noWrap>
-                  {user.full_name || 'Utilisateur'}
+                  {user.name || user.email}
                 </Typography>
                 <Typography fontSize={12} color="text.secondary" noWrap>
                   {user.email}
                 </Typography>
               </Box>
             </Stack>
-            {user.role && (
-              <Chip
-                size="small"
-                label={
-                  user.role === 'superadmin'
-                    ? 'SuperAdmin'
-                    : user.role === 'admin'
-                      ? 'Admin'
-                      : 'Client'
-                }
-                sx={{ mt: 1, height: 22, fontSize: 11, fontWeight: 600 }}
-                color={user.role === 'client' ? 'default' : 'primary'}
-                variant="outlined"
-              />
-            )}
           </Box>
         )}
         {user && <Divider sx={{ my: 0.5 }} />}
@@ -815,33 +841,88 @@ export function Navigation() {
         {!user && (
           <Box
             component="li"
-            sx={{ listStyle: 'none', px: 2, py: 1.5, minWidth: 220 }}
+            sx={{ listStyle: 'none', p: 0, minWidth: 280 }}
           >
-            <Typography fontSize={13} color="text.secondary" textAlign="center" sx={{ mb: 1.5 }}>
-              Connectez-vous pour accéder à votre compte
-            </Typography>
-            <Stack spacing={1}>
+            <Box
+              sx={{
+                px: 3,
+                pt: 3,
+                pb: 2.5,
+                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1.5,
+                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
+                }}
+              >
+                <PersonOutline sx={{ fontSize: 24, color: '#fff' }} />
+              </Box>
+              <Typography fontSize={15} fontWeight={700} color="text.primary" lineHeight={1.3} sx={{ mb: 0.5 }}>
+                Bienvenue !
+              </Typography>
+              <Typography fontSize={12.5} color="text.secondary" lineHeight={1.5}>
+                Connectez-vous pour suivre vos commandes, gérer vos favoris et profiter d&apos;offres exclusives.
+              </Typography>
+            </Box>
+            <Box sx={{ px: 2.5, py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Button
                 fullWidth
                 variant="contained"
                 component={Link}
                 href="/login"
                 onClick={closeProfileMenu}
-                sx={{ borderRadius: '10px', fontWeight: 600, boxShadow: 'none' }}
+                disableElevation
+                sx={{
+                  py: 1.2,
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  textTransform: 'none',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                  boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+                    transform: 'translateY(-1px)',
+                  },
+                }}
               >
                 Se connecter
               </Button>
               <Button
                 fullWidth
-                variant="outlined"
+                variant="text"
                 component={Link}
                 href="/register"
                 onClick={closeProfileMenu}
-                sx={{ borderRadius: '10px', fontWeight: 500 }}
+                sx={{
+                  py: 1.1,
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  textTransform: 'none',
+                  color: theme.palette.primary.main,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                  },
+                }}
               >
-                Créer un compte
+                Pas encore de compte ?{' '}
+                <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                  Créer
+                </Box>
               </Button>
-            </Stack>
+            </Box>
           </Box>
         )}
       </Menu>

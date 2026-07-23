@@ -10,6 +10,7 @@ import {
   Checkbox,
   FormControlLabel,
   Slider,
+  alpha,
   Drawer,
   Select,
   MenuItem,
@@ -49,6 +50,177 @@ const C = {
   muted:   '#888780',
   text:    '#5F5E5A',
 } as const;
+
+// ─── FilterSidebar (extracted outside ShopPage to prevent Slider remount crash) ──
+interface FilterSidebarProps {
+  categories: Category[];
+  selectedCategories: string[];
+  toggleCategory: (id: string) => void;
+  priceRange: number[];
+  setPriceRange: (v: number[]) => void;
+  activeFiltersCount: number;
+  resetFilters: () => void;
+}
+
+const FilterSidebar = ({ categories, selectedCategories, toggleCategory, priceRange, setPriceRange, activeFiltersCount, resetFilters }: FilterSidebarProps) => (
+  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${C.border}` }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TuneIcon sx={{ fontSize: 17, color: C.primary }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: C.dark }}>
+            Filtres
+          </Typography>
+          {activeFiltersCount > 0 && (
+            <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {activeFiltersCount}
+            </Box>
+          )}
+        </Box>
+        {activeFiltersCount > 0 && (
+          <Typography
+            onClick={resetFilters}
+            sx={{ fontSize: 12, color: C.primary, cursor: 'pointer', fontWeight: 500, '&:hover': { color: C.dark } }}
+          >
+            Réinitialiser
+          </Typography>
+        )}
+      </Box>
+    </Box>
+    <Box sx={{ flex: 1, overflowY: 'auto', px: 3, py: 2 }}>
+      <Box sx={{ mb: 3.5 }}>
+        <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
+          Catégories
+        </Typography>
+        <Stack spacing={0.25}>
+          {categories.slice(0, 8).map((cat) => {
+            const active = selectedCategories.includes(cat.id);
+            return (
+              <Box
+                key={cat.id}
+                onClick={() => toggleCategory(cat.id)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: 1.25,
+                  py: 0.875,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  bgcolor: active ? alpha(C.primary, 0.08) : 'transparent',
+                  border: `1px solid ${active ? alpha(C.primary, 0.3) : 'transparent'}`,
+                  transition: 'all 0.15s',
+                  '&:hover': { bgcolor: active ? alpha(C.primary, 0.1) : alpha(C.primary, 0.04) },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                  <Box
+                    sx={{
+                      width: 20, height: 20,
+                      borderRadius: '5px',
+                      border: `2px solid ${active ? C.primary : '#C4C3BF'}`,
+                      bgcolor: active ? C.primary : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, transition: 'all 0.15s',
+                      '&:hover': { borderColor: C.primary },
+                    }}
+                  >
+                    {active && (
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </Box>
+                  <Typography sx={{ fontSize: 13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 500 }}>
+                    {cat.name}
+                  </Typography>
+                </Box>
+                {cat.product_count !== undefined && (
+                  <Typography sx={{ fontSize: 11, color: C.muted }}>{cat.product_count}</Typography>
+                )}
+              </Box>
+            );
+          })}
+        </Stack>
+      </Box>
+      <Divider sx={{ borderColor: C.border, mb: 3 }} />
+      <Box>
+        <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
+          Prix (F CFA)
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, gap: 1 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontSize: 10, color: C.muted, mb: 0.25 }}>Min</Typography>
+            <Box
+              component="input"
+              type="text"
+              inputMode="numeric"
+              value={priceRange[0].toLocaleString('fr-FR')}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const raw = e.target.value.replace(/\D/g, '');
+                const v = raw ? Math.min(Number(raw), priceRange[1]) : 0;
+                setPriceRange([v, priceRange[1]]);
+              }}
+              sx={{
+                width: '100%',
+                border: `1px solid ${C.border}`,
+                borderRadius: '7px',
+                px: 1,
+                py: 0.5,
+                fontSize: 12,
+                fontWeight: 600,
+                color: C.dark,
+                textAlign: 'center',
+                outline: 'none',
+                '&:focus': { borderColor: C.primary, boxShadow: `0 0 0 2px ${alpha(C.primary, 0.1)}` },
+              }}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontSize: 10, color: C.muted, mb: 0.25 }}>Max</Typography>
+            <Box
+              component="input"
+              type="text"
+              inputMode="numeric"
+              value={priceRange[1].toLocaleString('fr-FR')}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const raw = e.target.value.replace(/\D/g, '');
+                const v = raw ? Math.min(Math.max(Number(raw), priceRange[0]), 150000) : 0;
+                setPriceRange([priceRange[0], v]);
+              }}
+              sx={{
+                width: '100%',
+                border: `1px solid ${C.border}`,
+                borderRadius: '7px',
+                px: 1,
+                py: 0.5,
+                fontSize: 12,
+                fontWeight: 600,
+                color: C.dark,
+                textAlign: 'center',
+                outline: 'none',
+                '&:focus': { borderColor: C.primary, boxShadow: `0 0 0 2px ${alpha(C.primary, 0.1)}` },
+              }}
+            />
+          </Box>
+        </Box>
+        <Slider
+          min={0}
+          max={150000}
+          step={5000}
+          value={priceRange}
+          onChange={(_: Event, v: number | number[]) => setPriceRange(v as number[])}
+          sx={{
+            color: C.primary,
+            '& .MuiSlider-thumb': { width: 16, height: 16, border: `2px solid ${C.primary}`, bgcolor: '#fff', '&:hover': { boxShadow: `0 0 0 6px rgba(24,95,165,0.12)` } },
+            '& .MuiSlider-track': { height: 3 },
+            '& .MuiSlider-rail': { height: 3, bgcolor: C.border },
+          }}
+        />
+      </Box>
+    </Box>
+  </Box>
+);
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface ShopPageProps {
@@ -142,124 +314,6 @@ export function ShopPage({
   }, [filteredProducts, sortBy, userType]);
 
   // ── Sidebar filtre ────────────────────────────────────────────────────────
-  const FilterSidebar = () => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-
-      {/* Header sidebar */}
-      <Box sx={{ px: 3, py: 2.5, borderBottom: `1px solid ${C.border}` }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TuneIcon sx={{ fontSize: 17, color: C.primary }} />
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: C.dark }}>
-              Filtres
-            </Typography>
-            {activeFiltersCount > 0 && (
-              <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: C.primary, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {activeFiltersCount}
-              </Box>
-            )}
-          </Box>
-          {activeFiltersCount > 0 && (
-            <Typography
-              onClick={resetFilters}
-              sx={{ fontSize: 12, color: C.primary, cursor: 'pointer', fontWeight: 500, '&:hover': { color: C.dark } }}
-            >
-              Réinitialiser
-            </Typography>
-          )}
-        </Box>
-      </Box>
-
-      {/* Filtres body */}
-      <Box sx={{ flex: 1, overflowY: 'auto', px: 3, py: 2 }}>
-
-        {/* Catégories */}
-        <Box sx={{ mb: 3.5 }}>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
-            Catégories
-          </Typography>
-          <Stack spacing={0.25}>
-            {categories.slice(0, 8).map((cat) => {
-              const active = selectedCategories.includes(cat.id);
-              return (
-                <Box
-                  key={cat.id}
-                  onClick={() => toggleCategory(cat.id)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    px: 1.25,
-                    py: 0.875,
-                    borderRadius: '7px',
-                    cursor: 'pointer',
-                    bgcolor: active ? C.light : 'transparent',
-                    transition: 'all 0.15s',
-                    '&:hover': { bgcolor: active ? C.light : C.surface },
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 16, height: 16,
-                        borderRadius: '4px',
-                        border: `1.5px solid ${active ? C.primary : C.border}`,
-                        bgcolor: active ? C.primary : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, transition: 'all 0.15s',
-                      }}
-                    >
-                      {active && (
-                        <Box component="span" sx={{ color: '#fff', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</Box>
-                      )}
-                    </Box>
-                    <Typography sx={{ fontSize: 13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400 }}>
-                      {cat.name}
-                    </Typography>
-                  </Box>
-                  {cat.product_count !== undefined && (
-                    <Typography sx={{ fontSize: 11, color: C.muted }}>{cat.product_count}</Typography>
-                  )}
-                </Box>
-              );
-            })}
-          </Stack>
-        </Box>
-
-        <Divider sx={{ borderColor: C.border, mb: 3 }} />
-
-        {/* Prix */}
-        <Box>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: '0.8px', textTransform: 'uppercase', mb: 2 }}>
-            Prix (F CFA)
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Box sx={{ border: `1px solid ${C.border}`, borderRadius: '7px', px: 1.25, py: 0.5, minWidth: 80, textAlign: 'center' }}>
-              <Typography sx={{ fontSize: 10, color: C.muted }}>Min</Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: C.dark }}>{priceRange[0].toLocaleString('fr-FR')}</Typography>
-            </Box>
-            <Box sx={{ border: `1px solid ${C.border}`, borderRadius: '7px', px: 1.25, py: 0.5, minWidth: 80, textAlign: 'center' }}>
-              <Typography sx={{ fontSize: 10, color: C.muted }}>Max</Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: C.dark }}>{priceRange[1].toLocaleString('fr-FR')}</Typography>
-            </Box>
-          </Box>
-          <Slider
-            min={0}
-            max={150000}
-            step={5000}
-            value={priceRange}
-            onChange={(_: Event, v: number | number[]) => setPriceRange(v as number[])}
-            sx={{
-              color: C.primary,
-              '& .MuiSlider-thumb': { width: 16, height: 16, border: `2px solid ${C.primary}`, bgcolor: '#fff', '&:hover': { boxShadow: `0 0 0 6px rgba(24,95,165,0.12)` } },
-              '& .MuiSlider-track': { height: 3 },
-              '& .MuiSlider-rail': { height: 3, bgcolor: C.border },
-            }}
-          />
-        </Box>
-      </Box>
-    </Box>
-  );
 
   // ── Loading initial ────────────────────────────────────────────────────────
   if (!mounted) {
@@ -397,7 +451,15 @@ export function ShopPage({
               bgcolor: '#fff',
             }}
           >
-            <FilterSidebar />
+            <FilterSidebar
+              categories={categories}
+              selectedCategories={selectedCategories}
+              toggleCategory={toggleCategory}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
+              activeFiltersCount={activeFiltersCount}
+              resetFilters={resetFilters}
+            />
           </Box>
         )}
 
@@ -509,7 +571,15 @@ export function ShopPage({
             <CloseIcon sx={{ fontSize: 15, color: C.text }} />
           </IconButton>
         </Box>
-        <FilterSidebar />
+        <FilterSidebar
+          categories={categories}
+          selectedCategories={selectedCategories}
+          toggleCategory={toggleCategory}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          activeFiltersCount={activeFiltersCount}
+          resetFilters={resetFilters}
+        />
       </Drawer>
     </Box>
   );

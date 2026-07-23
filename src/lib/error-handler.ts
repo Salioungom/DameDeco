@@ -74,12 +74,18 @@ export class ApiErrorHandler {
       return apiError;
     }
 
+    // Non-Axios errors: extract .status if present (api.ts interceptor adds it)
+    const maybeStatus = (error as any)?.status;
+    const is4xx = typeof maybeStatus === 'number' && maybeStatus >= 400 && maybeStatus < 500;
+    const is5xx = typeof maybeStatus === 'number' && maybeStatus >= 500;
+
     return {
       message,
+      status: maybeStatus,
       isNetworkError: false,
       isTimeout: false,
-      isServerError: false,
-      isClientError: false,
+      isServerError: is5xx,
+      isClientError: is4xx,
     };
   }
 
@@ -98,7 +104,9 @@ export class ApiErrorHandler {
     if (this.isAxiosError(error)) {
       return error.response?.status === 401 || error.response?.status === 403;
     }
-    return false;
+    // api.ts interceptor adds .status to plain Error objects
+    const s = (error as any)?.status;
+    return s === 401 || s === 403;
   }
 }
 
@@ -143,15 +151,11 @@ export async function safeApiCall<T>(
     apiError.message = customErrorHandler(lastError);
   }
 
-  // Handle auth errors automatically
+  // Handle auth errors: clear stale tokens (callers decide navigation)
   if (ApiErrorHandler.isAuthError(lastError)) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
-      // Redirect to login page (but avoid infinite redirects)
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
     }
   }
 

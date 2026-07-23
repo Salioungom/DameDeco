@@ -67,6 +67,7 @@ const qtyDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 let loadCartPromise: Promise<void> | null = null;
 
+
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 interface StoreState {
@@ -202,6 +203,23 @@ export const useStore = create<StoreState>()(
                         }
 
                         if (result.error) {
+                            // 401 = token expired → clear auth, fall back to guest cart
+                            if ((result.error as any)?.status === 401 || (result.error as any)?.status === 403) {
+                                cartWarn('Auth expired during cart load — switching to guest');
+                                // Clear stale auth state
+                                set({ user: null, favorites: [], cart: [], cartLoading: false, isLoaded: true, lastLoadedAt: Date.now() });
+                                try {
+                                    localStorage.removeItem('accessToken');
+                                    localStorage.removeItem('token');
+                                } catch { /* noop */ }
+                                // Init guest session and reload cart as guest
+                                await get().initGuestSession();
+                                const guestResult = await cartService.getGuestCart();
+                                const guestItems = guestResult.data?.items || [];
+                                set({ cart: guestItems, cartLoading: false, isLoaded: true, lastLoadedAt: Date.now() });
+                                cartLog('Fell back to guest cart', `${guestItems.length} item(s)`);
+                                return;
+                            }
                             set({ cartError: 'Impossible de charger le panier', cartLoading: false });
                             cartWarn('Load failed', String(result.error));
                             return;
@@ -269,7 +287,6 @@ export const useStore = create<StoreState>()(
                     set({ favorites: favoriteIds });
                 } catch (error) {
                     console.error('Erreur lors du chargement des favoris:', error);
-                    set({ favorites: [] });
                 }
             },
 
@@ -564,33 +581,44 @@ export const useStore = create<StoreState>()(
 
             setUser: (user) => {
                 const previousUser = get().user;
+                const userChanged = previousUser?.id !== user?.id;
                 set({ user });
                 if (user) {
-                    if (previousUser && previousUser.id !== user.id) {
+                    if (userChanged) {
                         set({ cart: [], isLoaded: false, lastLoadedAt: 0 });
+                        get().loadFavorites();
                     }
-                    get().loadFavorites();
                 } else if (previousUser && !user) {
-                    set({ cart: [], cartError: null, sessionId: '', isLoaded: false, lastLoadedAt: 0 });
+                    set({ cart: [], favorites: [], cartError: null, sessionId: '', isLoaded: false, lastLoadedAt: 0 });
                     if (typeof window !== 'undefined') {
                         localStorage.removeItem('guest_session_id');
                     }
                     get().initGuestSession();
-                    cartLog('User logged out — guest session reset');
+                    cartLog('User logged out — cart cleared, guest session reset');
                 }
             },
 
             // ─── Favorites ─────────────────────────────────────────────────
 
             toggleFavorite: async (productId) => {
+                const user = get().user;
+                if (!user) {
+                    toast.error('Connectez-vous pour gérer vos favoris');
+                    return;
+                }
+
+                const productIdStr = productId.toString();
+                const isFavorite = get().favorites.includes(productIdStr);
+                const previousFavorites = get().favorites;
+
+                // Optimistic update
+                if (isFavorite) {
+                    set({ favorites: previousFavorites.filter(id => id !== productIdStr) });
+                } else {
+                    set({ favorites: [...previousFavorites, productIdStr] });
+                }
+
                 try {
-                    const user = get().user;
-                    if (!user) {
-                        toast.error('Connectez-vous pour gérer vos favoris');
-                        return;
-                    }
-                    const productIdStr = productId.toString();
-                    const isFavorite = get().favorites.includes(productIdStr);
                     if (isFavorite) {
                         await FavoriteService.removeFavorite(Number(productId));
                     } else {
@@ -598,7 +626,12 @@ export const useStore = create<StoreState>()(
                     }
                     await get().loadFavorites();
                 } catch (error) {
-                    console.error('Erreur lors du basculement du favori:', error);
+                    // Rollback on error
+                    set({ favorites: previousFavorites });
+                    toast.error(isFavorite
+                        ? 'Impossible de retirer des favoris'
+                        : 'Impossible d\'ajouter aux favoris',
+                    );
                 }
             },
 
