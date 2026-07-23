@@ -54,8 +54,7 @@ const C = {
   text: '#5F5E5A',
 } as const;
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1400&q=85';
+const HERO_IMAGE = '/banner.png';
 
 const formatPrice = (amount: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount);
@@ -488,9 +487,9 @@ export function HomePage({
                       position: 'relative',
                       borderRadius: { xs: '20px', md: '24px' },
                       overflow: 'hidden',
-                      aspectRatio: '4/5',
-                      minHeight: { xs: 360, sm: 420, lg: 480 },
-                      maxHeight: { lg: 560 },
+                      aspectRatio: '16/9',
+                      minHeight: { xs: 200, sm: 260, lg: 300 },
+                      maxHeight: { lg: 340 },
                       bgcolor: C.light,
                       boxShadow: '0 24px 80px rgba(4, 44, 83, 0.18)',
                       border: `1px solid ${C.border}`,
