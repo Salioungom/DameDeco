@@ -27,13 +27,14 @@ interface AuthState {
     accessToken: string | null;
     isAuthenticated: boolean;
     requires2FA: boolean;
+    mustChangePassword: boolean;
     roles: ('admin' | 'superadmin' | 'client')[];
     status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated' | 'pending_2fa';
 }
 
 interface AuthContextType extends AuthState {
     loading: boolean;
-    login: (identifier: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; error?: string; user?: User }>;
+    login: (identifier: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; mustChangePassword?: boolean; error?: string; user?: User }>;
     register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
     refreshAccessToken: () => Promise<boolean>;
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         accessToken: null,
         isAuthenticated: false,
         requires2FA: false,
+        mustChangePassword: false,
         roles: [],
         status: 'idle',
     });
@@ -144,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: null,
                 isAuthenticated: false,
                 requires2FA: false,
+                mustChangePassword: false,
                 roles: [],
                 status: 'unauthenticated',
             });
@@ -191,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: token,
                 isAuthenticated: true,
                 requires2FA: response.data.requires2FA || false,
+                mustChangePassword: response.data.must_change_password === true,
                 roles: user.role ? [user.role] : [],
                 status: 'authenticated',
             });
@@ -234,6 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: null,
                 isAuthenticated: false,
                 requires2FA: false,
+                mustChangePassword: false,
                 roles: [],
                 status: 'unauthenticated',
             });
@@ -243,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // Connexion
-    const login = async (identifier: string, password: string): Promise<{ success: boolean; requires2FA?: boolean; error?: string; user?: User }> => {
+    const login = async (identifier: string, password: string): Promise<{ success: boolean; requires2FA?: boolean; mustChangePassword?: boolean; error?: string; user?: User }> => {
         if (typeof window === 'undefined') {
             return { success: false, error: 'Login not available server-side' };
         }
@@ -270,6 +275,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { success: true, requires2FA: true, user: response.data.user };
             }
 
+            // Vérification changement de mot de passe obligatoire
+            const mustChangePassword = response.data.must_change_password === true;
+
             // Stockage du token
             const token = response.data.access_token || response.data.token;
             if (token) {
@@ -284,12 +292,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: token,
                 isAuthenticated: true,
                 requires2FA: false,
+                mustChangePassword,
                 roles: response.data.user?.role ? [response.data.user.role] : [],
                 status: 'authenticated',
             });
 
             console.log('✅ AuthContext - Login successful:', response.data.user?.full_name);
-            return { success: true, user: response.data.user };
+            return { success: true, user: response.data.user, mustChangePassword };
 
         } catch (error: any) {
             const errorMessage = handleAuthError(error, 'login');
@@ -341,6 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: null,
                 isAuthenticated: false,
                 requires2FA: false,
+                mustChangePassword: false,
                 roles: [],
                 status: 'unauthenticated',
             });

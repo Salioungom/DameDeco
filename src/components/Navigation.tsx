@@ -333,7 +333,7 @@ export function Navigation() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (searchQuery.trim()) {
-        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        router.push(`/shop?q=${encodeURIComponent(searchQuery.trim())}`);
         setSearchQuery('');
         setSearchOpen(false);
       }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -32,11 +32,25 @@ export default function CartPage() {
     const router = useRouter();
     const { removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
     const { cart: cartWithProducts, loading: productsLoading } = useCartWithProducts();
+    const [shippingSettings, setShippingSettings] = useState<any>(null);
     const brandBlue = '#185FA5';
 
     useEffect(() => {
         loadCart();
     }, [loadCart]);
+
+    useEffect(() => {
+        const loadShippingSettings = async () => {
+            try {
+                const result = await fetch('/api/v1/shipping/settings');
+                const data = await result.json();
+                setShippingSettings(data);
+            } catch (error) {
+                console.error('Erreur lors du chargement des settings de livraison:', error);
+            }
+        };
+        loadShippingSettings();
+    }, []);
 
     const total = useMemo(() =>
         (cartWithProducts || []).reduce((sum, item) => {
@@ -314,9 +328,17 @@ export default function CartPage() {
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                                 Sous-total
                             </Typography>
-                            <Typography variant="h4" fontWeight={800} sx={{ mb: 2 }}>
+                            <Typography variant="h4" fontWeight={800} sx={{ mb: 1 }}>
                                 {total.toLocaleString('fr-FR')} FCFA
                             </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: 'italic' }}>
+                                Livraison calculée selon le mode de livraison choisi
+                            </Typography>
+                            {shippingSettings?.free_shipping_threshold != null && (
+                                <Typography variant="caption" color="info.main" sx={{ display: 'block', mb: 1, fontWeight: 600, bgcolor: alpha(theme.palette.info.main, 0.06), px: 1.5, py: 0.75, borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.info.main, 0.15)}` }}>
+                                    Seuil livraison gratuite : {Number(shippingSettings.free_shipping_threshold).toLocaleString('fr-FR')} FCFA
+                                </Typography>
+                            )}
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
                                 <Button
                                     variant="outlined"

@@ -10,6 +10,7 @@ function ShopContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialCategory = searchParams.get('category') || undefined;
+    const searchQuery = searchParams.get('q') || undefined;
 
     return (
         <ShopPage
@@ -17,6 +18,7 @@ function ShopContent() {
             onViewProduct={(product) => router.push(`/product/${product.id}`)}
             userType={userType}
             initialCategory={initialCategory}
+            searchQuery={searchQuery}
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
         />

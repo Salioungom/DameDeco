@@ -228,6 +228,7 @@ interface ShopPageProps {
   onViewProduct: (product: Product) => void;
   userType: 'retail' | 'wholesale';
   initialCategory?: string;
+  searchQuery?: string;
   favorites: string[];
   onToggleFavorite: (productId: string) => void;
 }
@@ -238,6 +239,7 @@ export function ShopPage({
   onViewProduct,
   userType,
   initialCategory,
+  searchQuery,
   favorites,
   onToggleFavorite,
 }: ShopPageProps) {
@@ -294,13 +296,18 @@ export function ShopPage({
 
   const filteredProducts = useMemo(() => {
     if (!products.length) return [];
+    const query = (searchQuery || '').trim().toLowerCase();
     return products.filter((p) => {
+      if (query) {
+        const hay = `${p.name} ${p.description || ''} ${p.short_description || ''} ${p.category_name || ''} ${p.sku}`.toLowerCase();
+        if (!hay.includes(query)) return false;
+      }
       if (selectedCategories.length > 0 && !selectedCategories.includes(p.category_id.toString())) return false;
       const price = userType === 'wholesale' && p.wholesale_price ? p.wholesale_price : p.price;
       if (price < priceRange[0] || price > priceRange[1]) return false;
       return true;
     });
-  }, [products, selectedCategories, priceRange, userType]);
+  }, [products, selectedCategories, priceRange, userType, searchQuery]);
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
@@ -341,13 +348,18 @@ export function ShopPage({
             }}
           >
             {/* Titre + compteur */}
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Typography
                 component="h1"
                 sx={{ fontSize: { xs: 22.5, md: 27.5 }, fontWeight: 700, color: C.dark, letterSpacing: '-0.375px' }}
               >
-                Boutique
+                {searchQuery ? 'Résultats' : 'Boutique'}
               </Typography>
+              {searchQuery && (
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, bgcolor: alpha(C.primary, 0.08), color: C.primary, px: 1.25, py: 0.25, borderRadius: '100px', fontSize: 15, fontWeight: 600 }}>
+                  « {searchQuery} »
+                </Box>
+              )}
               {!loading && (
                 <Typography sx={{ fontSize: 16.25, color: C.muted }}>
                   {sortedProducts.length} produit{sortedProducts.length > 1 ? 's' : ''}

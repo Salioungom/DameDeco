@@ -11,7 +11,6 @@ import {
   Divider,
   useTheme,
   alpha,
-  Chip,
 } from '@mui/material';
 import {
   Remove as Minus,
@@ -244,12 +243,29 @@ export function CartDrawer() {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography color="text.secondary">Livraison</Typography>
-                  <Chip
-                    label="Gratuite"
-                    size="small"
-                    sx={{ height: 27.5, fontSize: 13.75, fontWeight: 600, bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main', border: 'none' }}
-                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', fontSize: 13 }}>
+                    Calculée à la livraison
+                  </Typography>
                 </Box>
+                {shippingSettings?.free_shipping_threshold != null && (
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: 1.5,
+                    bgcolor: alpha(theme.palette.info.main, 0.06),
+                    border: `1px solid ${alpha(theme.palette.info.main, 0.15)}`,
+                  }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Seuil livraison gratuite
+                    </Typography>
+                    <Typography variant="caption" fontWeight={700} color="info.main">
+                      {Number(shippingSettings.free_shipping_threshold).toLocaleString('fr-FR')} FCFA
+                    </Typography>
+                  </Box>
+                )}
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" fontWeight={800}>Total</Typography>

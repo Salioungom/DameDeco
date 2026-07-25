@@ -16,6 +16,7 @@ import {
     FavoriteRounded,
     ArrowForward,
     LockOutlined,
+    Add,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { FavoriteService, Favorite } from '@/services/favorite.service';
@@ -310,22 +311,44 @@ export default function FavoritesPage() {
                                 {productCount} produit{productCount > 1 ? 's' : ''} dans votre collection
                             </Typography>
                         </Box>
-                        <Box
-                            sx={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                px: 3,
-                                py: 1.25,
-                                borderRadius: 3,
-                                background: `linear-gradient(135deg, ${alpha(brandBlue, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
-                                border: `1px solid ${alpha(brandBlue, 0.18)}`,
-                            }}
-                        >
-                            <FavoriteRounded sx={{ fontSize: 20, color: brandBlue }} />
-                            <Typography fontWeight={700} fontSize={18} color={brandBlue}>
-                                {productCount}
-                            </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box
+                                sx={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    px: 3,
+                                    py: 1.25,
+                                    borderRadius: 3,
+                                    background: `linear-gradient(135deg, ${alpha(brandBlue, 0.12)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
+                                    border: `1px solid ${alpha(brandBlue, 0.18)}`,
+                                }}
+                            >
+                                <FavoriteRounded sx={{ fontSize: 20, color: brandBlue }} />
+                                <Typography fontWeight={700} fontSize={18} color={brandBlue}>
+                                    {productCount}
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="contained"
+                                component={Link}
+                                href="/shop"
+                                startIcon={<Add />}
+                                sx={{
+                                    borderRadius: 3,
+                                    px: 3,
+                                    py: 1.25,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    boxShadow: `0 4px 16px ${alpha(brandBlue, 0.3)}`,
+                                    bgcolor: brandBlue,
+                                    '&:hover': {
+                                        bgcolor: alpha(brandBlue, 0.85),
+                                    },
+                                }}
+                            >
+                                Produits
+                            </Button>
                         </Box>
                     </Box>
                     {error && (

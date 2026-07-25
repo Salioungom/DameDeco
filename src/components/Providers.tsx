@@ -18,8 +18,11 @@ interface ProvidersProps {
 
 function CartInitializer() {
   const { loadCart, initGuestSession, flushOfflineQueue } = useStore();
+  const { loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (authLoading) return;
+
     const init = async () => {
       await initGuestSession();
       await loadCart();
@@ -45,7 +48,7 @@ function CartInitializer() {
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('online', onOnline);
     };
-  }, [loadCart, initGuestSession, flushOfflineQueue]);
+  }, [authLoading, loadCart, initGuestSession, flushOfflineQueue]);
 
   return null;
 }

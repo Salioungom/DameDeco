@@ -20,6 +20,12 @@ import {
   alpha,
   CircularProgress,
   Alert,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  TablePagination,
 } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
@@ -33,12 +39,15 @@ import {
   Refresh as RefreshIcon,
   AdminPanelSettings,
   LocalShippingOutlined,
+  CheckCircle,
+  Block,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
 
-import { Product, Order } from '@/lib/types';
+import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
-import { getAdminOrders } from '@/lib/api';
+import { api } from '@/lib/api';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
 import ShippingManagement from './shipping/ShippingManagement';
@@ -54,12 +63,38 @@ const BRAND = {
   muted: '#5F6B7A',
 } as const;
 
-interface DerivedCustomer {
-  id: string | number;
-  name: string;
-  email: string;
-  totalOrders: number;
-  totalSpent: number;
+interface OrderWithCustomer {
+  id: number;
+  order_number: string;
+  customer_id: number | null;
+  status: string;
+  payment_status: string;
+  payment_method: string;
+  mode: string;
+  subtotal: number;
+  tax_amount: number;
+  shipping_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  currency: string;
+  source: string;
+  shipping_address: { full_name: string; phone: string; address: string; city: string } | null;
+  customer: { id: number; name: string; email: string | null; phone: string | null } | null;
+  items: any[];
+  created_at: string;
+}
+
+interface ClientWithStats {
+  id: number;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  is_active: boolean;
+  created_at: string;
+  total_orders: number;
+  total_spent: number;
+  pending_orders: number;
+  last_order_date: string | null;
 }
 
 function StatCard({
@@ -138,15 +173,11 @@ function CustomTabPanel({ children, value, index }: TabPanelProps) {
   return <Box sx={{ py: 3 }}>{children}</Box>;
 }
 
-function getOrderCustomerName(order: Order & { customer?: { full_name?: string; name?: string; email?: string } }) {
-  const customer = (order as { customer?: { full_name?: string; name?: string } }).customer;
-  if (customer?.full_name) return customer.full_name;
-  if (customer?.name) return customer.name;
-  const addr = order.shipping_address as { first_name?: string; last_name?: string } | undefined;
-  if (addr?.first_name || addr?.last_name) {
-    return [addr.first_name, addr.last_name].filter(Boolean).join(' ');
-  }
-  return `Commande ${order.order_number || order.id}`;
+function getOrderCustomerName(order: OrderWithCustomer) {
+  if (order.customer?.name) return order.customer.name;
+  const addr = order.shipping_address;
+  if (addr?.full_name) return addr.full_name;
+  return 'Client invité';
 }
 
 function formatFcfa(amount: number) {
@@ -158,14 +189,26 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState(0);
   const [productsCount, setProductsCount] = useState(0);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
+  const [clients, setClients] = useState<ClientWithStats[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadingClients, setLoadingClients] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [orderPage, setOrderPage] = useState(0);
+  const [orderRowsPerPage, setOrderRowsPerPage] = useState(10);
+
+  const [clientSearch, setClientSearch] = useState('');
+  const [clientStatusFilter, setClientStatusFilter] = useState('all');
+  const [clientPage, setClientPage] = useState(0);
+  const [clientRowsPerPage, setClientRowsPerPage] = useState(10);
 
   const stats = useMemo(() => {
     const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-    const whatsappOrders = orders.filter((o) => (o as { source?: string }).source === 'whatsapp').length;
+    const whatsappOrders = orders.filter((o) => o.source === 'whatsapp').length;
     const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing').length;
     return {
       totalRevenue,
@@ -175,64 +218,101 @@ export function AdminDashboard() {
     };
   }, [orders]);
 
-  const derivedCustomers = useMemo((): DerivedCustomer[] => {
-    const map = new Map<string | number, DerivedCustomer>();
-    orders.forEach((order) => {
-      const key = (order as { customer_id?: number }).customer_id ?? `order-${order.id}`;
-      const name = getOrderCustomerName(order);
-      const email =
-        (order as { customer?: { email?: string } }).customer?.email ||
-        (order.shipping_address as { phone?: string })?.phone ||
-        '—';
-      const amount = Number(order.total_amount) || 0;
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+    if (orderStatusFilter !== 'all') {
+      result = result.filter((o) => o.status === orderStatusFilter);
+    }
+    if (orderSearch.trim()) {
+      const q = orderSearch.toLowerCase();
+      result = result.filter((o) =>
+        o.order_number.toLowerCase().includes(q) ||
+        getOrderCustomerName(o).toLowerCase().includes(q) ||
+        (o.customer?.email || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [orders, orderStatusFilter, orderSearch]);
 
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.totalOrders += 1;
-        existing.totalSpent += amount;
-      } else {
-        map.set(key, {
-          id: key,
-          name,
-          email,
-          totalOrders: 1,
-          totalSpent: amount,
-        });
-      }
-    });
-    return Array.from(map.values());
-  }, [orders]);
+  const paginatedOrders = useMemo(() => {
+    const start = orderPage * orderRowsPerPage;
+    return filteredOrders.slice(start, start + orderRowsPerPage);
+  }, [filteredOrders, orderPage, orderRowsPerPage]);
+
+  const filteredClients = useMemo(() => {
+    let result = clients;
+    if (clientStatusFilter !== 'all') {
+      const isActive = clientStatusFilter === 'active';
+      result = result.filter((c) => c.is_active === isActive);
+    }
+    if (clientSearch.trim()) {
+      const q = clientSearch.toLowerCase();
+      result = result.filter((c) =>
+        (c.full_name || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [clients, clientStatusFilter, clientSearch]);
+
+  const paginatedClients = useMemo(() => {
+    const start = clientPage * clientRowsPerPage;
+    return filteredClients.slice(start, start + clientRowsPerPage);
+  }, [filteredClients, clientPage, clientRowsPerPage]);
 
   const fetchDashboardData = async () => {
     setLoadingStats(true);
     setLoadingOrders(true);
+    setLoadingClients(true);
     setOrdersError(null);
 
     try {
-      const [countRes, popularRes, ordersData] = await Promise.all([
+      const [countRes, popularRes, ordersRes, clientsRes] = await Promise.all([
         productService.getProducts({ limit: 1 }),
         productService.getProducts({ limit: 5, sort_by: 'is_featured', sort_order: 'desc' }),
-        getAdminOrders(0, 100).catch((err) => {
+        api.get('/api/v1/orders/admin', { params: { skip: 0, limit: 100 } }).catch((err) => {
           setOrdersError(err instanceof Error ? err.message : 'Impossible de charger les commandes');
-          return [] as Order[];
+          return { data: [] };
         }),
+        api.get('/api/v1/users/clients', { params: { skip: 0, limit: 100 } }).catch(() => ({ data: { items: [] } })),
       ]);
 
       setProductsCount(countRes.error ? 0 : countRes.data?.total || 0);
       setPopularProducts(popularRes.error ? [] : popularRes.data?.items || []);
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
+
+      const ordersData: OrderWithCustomer[] = Array.isArray(ordersRes.data)
+        ? ordersRes.data
+        : [];
+      setOrders(ordersData);
+
+      const clientsData: ClientWithStats[] = Array.isArray(clientsRes.data?.items)
+        ? clientsRes.data.items
+        : Array.isArray(clientsRes.data)
+          ? clientsRes.data
+          : [];
+      setClients(clientsData);
     } catch {
       setPopularProducts([]);
       setProductsCount(0);
     } finally {
       setLoadingStats(false);
       setLoadingOrders(false);
+      setLoadingClients(false);
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    setOrderPage(0);
+  }, [orderSearch, orderStatusFilter]);
+
+  useEffect(() => {
+    setClientPage(0);
+  }, [clientSearch, clientStatusFilter]);
 
   const getStatusChipSx = (status: string) => {
     const colors: Record<string, { bg: string; color: string }> = {
@@ -252,7 +332,6 @@ export function AdminDashboard() {
 
   return (
     <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
-      {/* Hero */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${BRAND.dark} 0%, ${BRAND.primary} 100%)`,
@@ -308,7 +387,7 @@ export function AdminDashboard() {
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={fetchDashboardData}
-              disabled={loadingStats || loadingOrders}
+              disabled={loadingStats || loadingOrders || loadingClients}
               sx={{
                 color: BRAND.white,
                 borderColor: alpha(BRAND.white, 0.4),
@@ -326,7 +405,6 @@ export function AdminDashboard() {
       </Box>
 
       <Box sx={{ maxWidth: 1500, mx: 'auto', px: { xs: 2, sm: 3 }, mt: -2, position: 'relative', zIndex: 2 }}>
-        {/* Tabs */}
         <Paper
           elevation={0}
           sx={{
@@ -582,81 +660,139 @@ export function AdminDashboard() {
                 Toutes les commandes
               </Typography>
               <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
-                Données issues de l&apos;API · {orders.length} commande{orders.length !== 1 ? 's' : ''}
+                {filteredOrders.length} commande{filteredOrders.length !== 1 ? 's' : ''} sur {orders.length}
               </Typography>
             </Box>
+
+            <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <TextField
+                size="small"
+                placeholder="Rechercher une commande..."
+                value={orderSearch}
+                onChange={(e) => setOrderSearch(e.target.value)}
+                sx={{ flex: 1, minWidth: 220 }}
+                slotProps={{
+                  input: {
+                    startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
+                  },
+                }}
+              />
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel sx={{ color: BRAND.muted }}>Statut</InputLabel>
+                <Select
+                  value={orderStatusFilter}
+                  label="Statut"
+                  onChange={(e) => setOrderStatusFilter(e.target.value)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  <MenuItem value="all">Tous les statuts</MenuItem>
+                  <MenuItem value="pending">En attente</MenuItem>
+                  <MenuItem value="confirmed">Confirmée</MenuItem>
+                  <MenuItem value="processing">En traitement</MenuItem>
+                  <MenuItem value="shipped">Expédiée</MenuItem>
+                  <MenuItem value="delivered">Livrée</MenuItem>
+                  <MenuItem value="cancelled">Annulée</MenuItem>
+                  <MenuItem value="refunded">Remboursée</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
             {loadingOrders ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                 <CircularProgress sx={{ color: BRAND.primary }} />
               </Box>
-            ) : orders.length === 0 ? (
+            ) : filteredOrders.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <ShoppingCart sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
-                <Typography sx={{ color: BRAND.muted }}>Aucune commande enregistrée</Typography>
+                <Typography sx={{ color: BRAND.muted }}>
+                  {orders.length === 0 ? 'Aucune commande enregistrée' : 'Aucune commande ne correspond aux filtres'}
+                </Typography>
               </Box>
             ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow
-                      sx={{
-                        bgcolor: BRAND.dark,
-                        '& th': {
-                          color: BRAND.white,
-                          fontWeight: 600,
-                          fontSize: 15,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          py: 1.5,
-                          borderBottom: 'none',
-                        },
-                      }}
-                    >
-                      <TableCell>N° commande</TableCell>
-                      <TableCell>Client</TableCell>
-                      <TableCell>Total</TableCell>
-                      <TableCell>Statut</TableCell>
-                      <TableCell>Date</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {orders.map((order, i) => (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
                       <TableRow
-                        key={order.id}
-                        hover
                         sx={{
-                          bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
-                          '& td': { borderColor: BRAND.border, py: 1.5 },
+                          bgcolor: BRAND.dark,
+                          '& th': {
+                            color: BRAND.white,
+                            fontWeight: 600,
+                            fontSize: 15,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            py: 1.5,
+                            borderBottom: 'none',
+                          },
                         }}
                       >
-                        <TableCell>
-                          <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary }}>
-                            {order.order_number}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: 17.5, color: BRAND.dark }}>
-                            {getOrderCustomerName(order)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
-                            {formatFcfa(Number(order.total_amount) || 0)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
-                            {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                          </Typography>
-                        </TableCell>
+                        <TableCell>N° commande</TableCell>
+                        <TableCell>Client</TableCell>
+                        <TableCell>Total</TableCell>
+                        <TableCell>Statut</TableCell>
+                        <TableCell>Date</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {paginatedOrders.map((order, i) => (
+                        <TableRow
+                          key={order.id}
+                          hover
+                          sx={{
+                            bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
+                            '& td': { borderColor: BRAND.border, py: 1.5 },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary }}>
+                              {order.order_number}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 17.5, color: BRAND.dark }}>
+                              {getOrderCustomerName(order)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
+                              {formatFcfa(Number(order.total_amount) || 0)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
+                              {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  component="div"
+                  count={filteredOrders.length}
+                  page={orderPage}
+                  onPageChange={(_e, p) => setOrderPage(p)}
+                  rowsPerPage={orderRowsPerPage}
+                  onRowsPerPageChange={(e) => { setOrderRowsPerPage(Number(e.target.value)); setOrderPage(0); }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Lignes par page"
+                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+                  sx={{
+                    borderTop: `1px solid ${BRAND.border}`,
+                    '& .MuiTablePagination-toolbar': { minHeight: 52 },
+                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                      color: BRAND.muted,
+                      fontSize: 15,
+                    },
+                    '& .MuiIconButton-root': { color: BRAND.primary },
+                  }}
+                />
+              </>
             )}
           </Paper>
         </CustomTabPanel>
@@ -694,70 +830,157 @@ export function AdminDashboard() {
                 Clients
               </Typography>
               <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
-                Dérivés des commandes ({derivedCustomers.length} client{derivedCustomers.length !== 1 ? 's' : ''})
+                {loadingClients
+                  ? 'Chargement…'
+                  : `${filteredClients.length} client${filteredClients.length !== 1 ? 's' : ''} sur ${clients.length}`}
               </Typography>
             </Box>
-            {loadingOrders ? (
+
+            <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <TextField
+                size="small"
+                placeholder="Rechercher un client..."
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                sx={{ flex: 1, minWidth: 220 }}
+                slotProps={{
+                  input: {
+                    startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
+                  },
+                }}
+              />
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel sx={{ color: BRAND.muted }}>Statut</InputLabel>
+                <Select
+                  value={clientStatusFilter}
+                  label="Statut"
+                  onChange={(e) => setClientStatusFilter(e.target.value)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  <MenuItem value="all">Tous les statuts</MenuItem>
+                  <MenuItem value="active">Actif</MenuItem>
+                  <MenuItem value="inactive">Inactif</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {loadingClients ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                 <CircularProgress sx={{ color: BRAND.primary }} />
               </Box>
-            ) : derivedCustomers.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Users sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
-                <Typography sx={{ color: BRAND.muted }}>Aucun client identifié via les commandes</Typography>
+                <Typography sx={{ color: BRAND.muted }}>
+                  {clients.length === 0 ? 'Aucun client enregistré' : 'Aucun client ne correspond aux filtres'}
+                </Typography>
               </Box>
             ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow
-                      sx={{
-                        bgcolor: BRAND.dark,
-                        '& th': {
-                          color: BRAND.white,
-                          fontWeight: 600,
-                          fontSize: 15,
-                          py: 1.5,
-                          borderBottom: 'none',
-                        },
-                      }}
-                    >
-                      <TableCell>Nom</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell align="right">Commandes</TableCell>
-                      <TableCell align="right">Total dépensé</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {derivedCustomers.map((customer, i) => (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
                       <TableRow
-                        key={String(customer.id)}
                         sx={{
-                          bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
-                          '& td': { borderColor: BRAND.border, py: 1.5 },
+                          bgcolor: BRAND.dark,
+                          '& th': {
+                            color: BRAND.white,
+                            fontWeight: 600,
+                            fontSize: 15,
+                            py: 1.5,
+                            borderBottom: 'none',
+                          },
                         }}
                       >
-                        <TableCell>
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
-                            {customer.name}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{customer.email}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 600 }}>{customer.totalOrders}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.primary }}>
-                            {formatFcfa(customer.totalSpent)}
-                          </Typography>
-                        </TableCell>
+                        <TableCell>Nom</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Téléphone</TableCell>
+                        <TableCell>Statut</TableCell>
+                        <TableCell align="right">Commandes</TableCell>
+                        <TableCell align="right">En cours</TableCell>
+                        <TableCell align="right">Total dépensé</TableCell>
+                        <TableCell>Dernière commande</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {paginatedClients.map((client, i) => (
+                        <TableRow
+                          key={client.id}
+                          sx={{
+                            bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
+                            '& td': { borderColor: BRAND.border, py: 1.5 },
+                          }}
+                        >
+                          <TableCell>
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
+                              {client.full_name || '—'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{client.email || '—'}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{client.phone || '—'}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              icon={client.is_active ? <CheckCircle sx={{ fontSize: 16 }} /> : <Block sx={{ fontSize: 16 }} />}
+                              label={client.is_active ? 'Actif' : 'Inactif'}
+                              size="small"
+                              sx={{
+                                bgcolor: client.is_active ? alpha('#0D7A4A', 0.1) : alpha('#DC2626', 0.1),
+                                color: client.is_active ? '#0D7A4A' : '#DC2626',
+                                fontWeight: 600,
+                                fontSize: 13.75,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600 }}>{client.total_orders}</Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: client.pending_orders > 0 ? '#B45309' : BRAND.muted }}>
+                              {client.pending_orders}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.primary }}>
+                              {formatFcfa(client.total_spent)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
+                              {client.last_order_date
+                                ? new Date(client.last_order_date).toLocaleDateString('fr-FR')
+                                : '—'}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  component="div"
+                  count={filteredClients.length}
+                  page={clientPage}
+                  onPageChange={(_e, p) => setClientPage(p)}
+                  rowsPerPage={clientRowsPerPage}
+                  onRowsPerPageChange={(e) => { setClientRowsPerPage(Number(e.target.value)); setClientPage(0); }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Lignes par page"
+                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+                  sx={{
+                    borderTop: `1px solid ${BRAND.border}`,
+                    '& .MuiTablePagination-toolbar': { minHeight: 52 },
+                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                      color: BRAND.muted,
+                      fontSize: 15,
+                    },
+                    '& .MuiIconButton-root': { color: BRAND.primary },
+                  }}
+                />
+              </>
             )}
           </Paper>
         </CustomTabPanel>

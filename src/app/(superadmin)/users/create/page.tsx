@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ChangeEvent, MouseEvent } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Paper,
@@ -9,15 +9,10 @@ import {
   Button,
   Alert,
   Box,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
   Grid,
   CircularProgress,
   Stack,
   InputAdornment,
-  IconButton,
-  FormHelperText,
   alpha,
 } from '@mui/material';
 import {
@@ -27,13 +22,11 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   AdminPanelSettings as AdminIcon,
-  Visibility,
-  VisibilityOff,
   PersonOutline,
-  BadgeOutlined,
 } from '@mui/icons-material';
 import { RequireRole } from '@/components/RequireRole';
 import { useAuth } from '@/contexts/AuthContext';
+import { validatePhone } from '@/utils/phoneValidation';
 
 const BRAND = {
   primary: '#185FA5',
@@ -64,51 +57,52 @@ export default function CreateAdminPage() {
   const { accessToken } = useAuth();
 
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
     full_name: '',
+    email: '',
     phone: '',
-    role: 'admin' as const,
-    is_active: true,
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ full_name?: string; email?: string; phone?: string }>({});
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name as string]: value,
+      [name]: value,
     }));
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
-  const validateForm = () => {
-    if (!formData.username.trim()) {
-      setError("Le nom d'utilisateur est requis");
-      return false;
+  const validateForm = (): boolean => {
+    const errors: { full_name?: string; email?: string; phone?: string } = {};
+
+    if (!formData.full_name.trim()) {
+      errors.full_name = 'Le nom complet est requis';
+    } else if (formData.full_name.trim().length < 2) {
+      errors.full_name = 'Le nom complet doit contenir au moins 2 caractères';
     }
-    if (formData.username.length < 3) {
-      setError("Le nom d'utilisateur doit contenir au moins 3 caractères");
-      return false;
+
+    if (!formData.email.trim()) {
+      errors.email = 'L\'adresse email est requise';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'Format d\'email invalide';
     }
-    if (!formData.password) {
-      setError('Le mot de passe est requis');
-      return false;
+
+    if (!formData.phone.trim()) {
+      errors.phone = 'Le numéro de téléphone est requis';
+    } else {
+      const phoneError = validatePhone(formData.phone.trim());
+      if (phoneError) {
+        errors.phone = phoneError;
+      }
     }
-    if (formData.password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères');
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return false;
-    }
-    return true;
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -129,16 +123,12 @@ export default function CreateAdminPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
       const userData = {
-        username: formData.username.trim(),
-        email: formData.email.trim() || undefined,
-        password: formData.password,
-        full_name: formData.full_name.trim() || undefined,
-        phone: formData.phone.trim() || undefined,
-        role: 'admin',
-        is_active: true,
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
       };
 
-      const res = await fetch(`${apiUrl}/api/v1/users/`, {
+      const res = await fetch(`${apiUrl}/api/v1/auth/create-admin`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -164,27 +154,35 @@ export default function CreateAdminPage() {
           }
           throw new Error(errorData.detail || errorData.message || 'Données invalides');
         }
+        if (res.status === 409) {
+          const errorData = await res.json();
+          throw new Error(errorData.detail || errorData.message || 'Cette adresse e-mail ou ce numéro de téléphone est déjà utilisé.');
+        }
+        if (res.status === 422) {
+          const errorData = await res.json();
+          if (errorData.detail && Array.isArray(errorData.detail)) {
+            const errorMessages = errorData.detail
+              .map((err: { loc?: string[]; msg: string }) => `${err.loc?.join('.')} : ${err.msg}`)
+              .join(', ');
+            throw new Error(errorMessages);
+          }
+          throw new Error(errorData.detail || 'Données de validation invalides');
+        }
         throw new Error(`Erreur ${res.status}: ${res.statusText}`);
       }
 
-      setSuccess('Administrateur créé avec succès !');
+      setSuccess(
+        "Un email avec le mot de passe temporaire a été envoyé à l'adresse e-mail de l'administrateur."
+      );
 
-      setFormData({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        full_name: '',
-        phone: '',
-        role: 'admin',
-        is_active: true,
-      });
+      setFormData({ full_name: '', email: '', phone: '' });
+      setFieldErrors({});
 
       setTimeout(() => {
         router.push('/dashboards');
-      }, 2000);
+      }, 3000);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erreur lors de la création de l'utilisateur";
+      const message = err instanceof Error ? err.message : "Erreur lors de l'invitation de l'administrateur";
       setError(message);
     } finally {
       setLoading(false);
@@ -248,10 +246,10 @@ export default function CreateAdminPage() {
               </Box>
               <Box>
                 <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 700, letterSpacing: '-0.02em' }}>
-                  Créer un administrateur
+                  Inviter un administrateur
                 </Typography>
                 <Typography sx={{ fontSize: 14, opacity: 0.9, mt: 0.5 }}>
-                  Ajoutez un nouveau compte admin à la plateforme Dame Sarr
+                  Envoyez une invitation à un nouveau compte admin sur Dame Sarr
                 </Typography>
               </Box>
             </Stack>
@@ -307,16 +305,19 @@ export default function CreateAdminPage() {
                 </Alert>
               )}
 
-              <Box component="form" onSubmit={handleSubmit}>
+              <Box component="form" onSubmit={handleSubmit} noValidate>
                 <Grid container spacing={2.5}>
                   <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
-                      label="Nom complet"
+                      label="Nom complet *"
                       name="full_name"
                       value={formData.full_name}
                       onChange={handleChange}
                       disabled={loading}
+                      autoFocus
+                      error={!!fieldErrors.full_name}
+                      helperText={fieldErrors.full_name}
                       sx={fieldSx}
                       InputProps={{
                         startAdornment: (
@@ -328,17 +329,18 @@ export default function CreateAdminPage() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
-                      label="Email"
+                      label="Email *"
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
                       disabled={loading}
+                      error={!!fieldErrors.email}
+                      helperText={fieldErrors.email}
                       sx={fieldSx}
-                      helperText="Optionnel — doit être unique"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -349,14 +351,16 @@ export default function CreateAdminPage() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
-                      label="Téléphone"
+                      label="Téléphone *"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       disabled={loading}
+                      error={!!fieldErrors.phone}
+                      helperText={fieldErrors.phone}
                       sx={fieldSx}
                       InputProps={{
                         startAdornment: (
@@ -366,84 +370,6 @@ export default function CreateAdminPage() {
                         ),
                       }}
                     />
-                  </Grid>
-
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Nom d'utilisateur *"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                      sx={fieldSx}
-                      helperText="Unique, minimum 3 caractères"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <BadgeOutlined sx={{ color: BRAND.muted, fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FormControl fullWidth sx={fieldSx}>
-                      <InputLabel>Mot de passe *</InputLabel>
-                      <OutlinedInput
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                        label="Mot de passe *"
-                        endAdornment={
-                          <InputAdornment position="end">
-                            <IconButton
-                              aria-label="Afficher le mot de passe"
-                              onClick={() => setShowPassword(!showPassword)}
-                              onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
-                              edge="end"
-                              size="small"
-                            >
-                              {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </InputAdornment>
-                        }
-                      />
-                      <FormHelperText>Minimum 8 caractères</FormHelperText>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FormControl fullWidth sx={fieldSx}>
-                      <InputLabel>Confirmer le mot de passe *</InputLabel>
-                      <OutlinedInput
-                        name="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                        label="Confirmer le mot de passe *"
-                        endAdornment={
-                          <InputAdornment position="end">
-                            <IconButton
-                              aria-label="Afficher la confirmation"
-                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              onMouseDown={(e: MouseEvent<HTMLButtonElement>) => e.preventDefault()}
-                              edge="end"
-                              size="small"
-                            >
-                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </InputAdornment>
-                        }
-                      />
-                    </FormControl>
                   </Grid>
                 </Grid>
 
@@ -489,10 +415,10 @@ export default function CreateAdminPage() {
                     {loading ? (
                       <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
                         <CircularProgress size={20} sx={{ color: BRAND.white }} />
-                        <span>Création en cours…</span>
+                        <span>Envoi en cours…</span>
                       </Stack>
                     ) : (
-                      "Créer l'administrateur"
+                      "Inviter l'administrateur"
                     )}
                   </Button>
                 </Stack>

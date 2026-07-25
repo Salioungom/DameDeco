@@ -66,19 +66,20 @@ export default function LoginPage() {
             const result = await login(email.trim(), password);
 
             if (result.success) {
-                const storedToken = localStorage.getItem('accessToken');
-                
                 setTimeout(() => {
-                    const user = result.user;
-                    
-                    if (redirectTo) {
+                    if (result.mustChangePassword) {
+                        router.push('/change-password');
+                    } else if (redirectTo) {
                         router.push(redirectTo);
-                    } else if (user?.role === 'superadmin') {
-                        router.push('/dashboards');
-                    } else if (user?.role === 'admin') {
-                        router.push('/dashboard');
                     } else {
-                        router.push('/account');
+                        const user = result.user;
+                        if (user?.role === 'superadmin') {
+                            router.push('/dashboards');
+                        } else if (user?.role === 'admin') {
+                            router.push('/dashboard');
+                        } else {
+                            router.push('/account');
+                        }
                     }
                     router.refresh();
                 }, 200);
