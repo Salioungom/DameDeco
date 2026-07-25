@@ -26,6 +26,8 @@ import {
   FormControl,
   InputLabel,
   TablePagination,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Dashboard as LayoutDashboard,
@@ -38,12 +40,12 @@ import {
   Star,
   Refresh as RefreshIcon,
   AdminPanelSettings,
-  LocalShippingOutlined,
   CheckCircle,
   Block,
   Search as SearchIcon,
+  Visibility,
 } from '@mui/icons-material';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
@@ -185,6 +187,7 @@ function formatFcfa(amount: number) {
 }
 
 export function AdminDashboard() {
+  const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [productsCount, setProductsCount] = useState(0);
@@ -597,48 +600,6 @@ export function AdminDashboard() {
               </Paper>
             </Grid>
           </Grid>
-
-          <Paper
-            elevation={0}
-            sx={{ mt: 2.5, p: 2.5, borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white }}
-          >
-            <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
-              Raccourcis
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <Button
-                component={Link}
-                href="/admin/shipping"
-                variant="outlined"
-                startIcon={<LocalShippingOutlined />}
-                sx={{
-                  borderRadius: '12.5px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  borderColor: BRAND.border,
-                  color: BRAND.dark,
-                  '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
-                }}
-              >
-                Paramètres livraison
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => setActiveTab(1)}
-                startIcon={<Package />}
-                sx={{
-                  borderRadius: '12.5px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  borderColor: BRAND.border,
-                  color: BRAND.dark,
-                  '&:hover': { borderColor: BRAND.primary, bgcolor: alpha(BRAND.primary, 0.04) },
-                }}
-              >
-                Gérer les produits
-              </Button>
-            </Stack>
-          </Paper>
         </CustomTabPanel>
 
         <CustomTabPanel value={activeTab} index={1}>
@@ -895,11 +856,8 @@ export function AdminDashboard() {
                         <TableCell>Nom</TableCell>
                         <TableCell>Email</TableCell>
                         <TableCell>Téléphone</TableCell>
-                        <TableCell>Statut</TableCell>
-                        <TableCell align="right">Commandes</TableCell>
-                        <TableCell align="right">En cours</TableCell>
                         <TableCell align="right">Total dépensé</TableCell>
-                        <TableCell>Dernière commande</TableCell>
+                        <TableCell align="center">Action</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -922,38 +880,23 @@ export function AdminDashboard() {
                           <TableCell>
                             <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>{client.phone || '—'}</Typography>
                           </TableCell>
-                          <TableCell>
-                            <Chip
-                              icon={client.is_active ? <CheckCircle sx={{ fontSize: 16 }} /> : <Block sx={{ fontSize: 16 }} />}
-                              label={client.is_active ? 'Actif' : 'Inactif'}
-                              size="small"
-                              sx={{
-                                bgcolor: client.is_active ? alpha('#0D7A4A', 0.1) : alpha('#DC2626', 0.1),
-                                color: client.is_active ? '#0D7A4A' : '#DC2626',
-                                fontWeight: 600,
-                                fontSize: 13.75,
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography sx={{ fontSize: 17.5, fontWeight: 600 }}>{client.total_orders}</Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: client.pending_orders > 0 ? '#B45309' : BRAND.muted }}>
-                              {client.pending_orders}
-                            </Typography>
-                          </TableCell>
                           <TableCell align="right">
                             <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.primary }}>
                               {formatFcfa(client.total_spent)}
                             </Typography>
                           </TableCell>
-                          <TableCell>
-                            <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
-                              {client.last_order_date
-                                ? new Date(client.last_order_date).toLocaleDateString('fr-FR')
-                                : '—'}
-                            </Typography>
+                          <TableCell align="center">
+                            <Tooltip title="Voir les commandes">
+                              <IconButton
+                                onClick={() => {
+                                  setActiveTab(3);
+                                  setOrderSearch(client.full_name || client.email || '');
+                                }}
+                                sx={{ color: BRAND.primary }}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))}

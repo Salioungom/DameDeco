@@ -31,7 +31,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Pagination,
+  TablePagination,
   Tooltip,
   Alert,
   FormControlLabel,
@@ -219,9 +219,10 @@ export default function SuperAdminDashboardPage() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const usersPerPage = 10;
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [editForm, setEditForm] = useState({
     name: '',
@@ -232,6 +233,27 @@ export default function SuperAdminDashboardPage() {
 
   const activeCount = useMemo(() => users.filter((u) => u.is_active).length, [users]);
   const inactiveCount = useMemo(() => users.filter((u) => !u.is_active).length, [users]);
+
+  const filteredUsers = useMemo(() => {
+    let result = users;
+    if (searchFilter) {
+      const q = searchFilter.toLowerCase();
+      result = result.filter(
+        (u) =>
+          u.username?.toLowerCase().includes(q) ||
+          u.full_name?.toLowerCase().includes(q) ||
+          u.email?.toLowerCase().includes(q),
+      );
+    }
+    if (statusFilter === 'active') result = result.filter((u) => u.is_active);
+    else if (statusFilter === 'inactive') result = result.filter((u) => !u.is_active);
+    return result;
+  }, [users, searchFilter, statusFilter]);
+
+  const paginatedUsers = useMemo(
+    () => filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredUsers, page, rowsPerPage],
+  );
 
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
@@ -290,14 +312,13 @@ export default function SuperAdminDashboardPage() {
       }
 
       setUsers(usersData);
-      setTotalPages(data.pages || Math.ceil((data.total || usersData.length) / usersPerPage));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Impossible de charger les utilisateurs';
       setUsersError(message);
     } finally {
       setUsersLoading(false);
     }
-  }, [isAuthenticated, accessToken, router, usersPerPage]);
+  }, [isAuthenticated, accessToken, router]);
 
   const handleEditUser = (target: User) => {
     setUserToEdit(target);
@@ -786,7 +807,7 @@ export default function SuperAdminDashboardPage() {
                   Liste des administrateurs
                 </Typography>
                 <Typography sx={{ fontSize: 13, color: BRAND.muted, mt: 0.25 }}>
-                  {users.length} administrateur{users.length !== 1 ? 's' : ''} trouvé{users.length !== 1 ? 's' : ''}
+                  {filteredUsers.length} administrateur{filteredUsers.length !== 1 ? 's' : ''} trouvé{filteredUsers.length !== 1 ? 's' : ''}
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1}>
@@ -824,6 +845,53 @@ export default function SuperAdminDashboardPage() {
               </Stack>
             </Box>
 
+            {users.length > 0 && (
+              <Box
+                sx={{
+                  px: { xs: 1.5, sm: 2.5 },
+                  py: 2,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                  alignItems: 'center',
+                  borderBottom: `1px solid ${BRAND.border}`,
+                }}
+              >
+                <TextField
+                  size="small"
+                  placeholder="Rechercher un admin..."
+                  value={searchFilter}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setSearchFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  sx={{
+                    flex: '1 1 220px',
+                    '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13 },
+                  }}
+                />
+                <Stack direction="row" spacing={1}>
+                  {(['all', 'active', 'inactive'] as const).map((opt) => (
+                    <Chip
+                      key={opt}
+                      label={opt === 'all' ? 'Tous' : opt === 'active' ? 'Actifs' : 'Inactifs'}
+                      onClick={() => { setStatusFilter(opt); setPage(0); }}
+                      variant={statusFilter === opt ? 'filled' : 'outlined'}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: 12,
+                        borderRadius: '8px',
+                        bgcolor: statusFilter === opt ? BRAND.primary : 'transparent',
+                        color: statusFilter === opt ? BRAND.white : BRAND.muted,
+                        border: `1px solid ${statusFilter === opt ? BRAND.primary : BRAND.border}`,
+                        '&:hover': { bgcolor: statusFilter === opt ? BRAND.dark : alpha(BRAND.primary, 0.06) },
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
             {usersLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                 <CircularProgress sx={{ color: BRAND.primary }} />
@@ -839,6 +907,18 @@ export default function SuperAdminDashboardPage() {
                   sx={{ mt: 2, bgcolor: BRAND.primary, borderRadius: '10px', textTransform: 'none', fontWeight: 600, boxShadow: 'none' }}
                 >
                   Créer le premier admin
+                </Button>
+              </Box>
+            ) : filteredUsers.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
+                <PeopleIcon sx={{ fontSize: 48, color: BRAND.border, mb: 1 }} />
+                <Typography sx={{ color: BRAND.muted, fontWeight: 500 }}>Aucun résultat pour votre recherche</Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => { setSearchFilter(''); setStatusFilter('all'); }}
+                  sx={{ mt: 2, borderRadius: '10px', textTransform: 'none', fontWeight: 600, borderColor: BRAND.border, color: BRAND.dark }}
+                >
+                  Réinitialiser les filtres
                 </Button>
               </Box>
             ) : (
@@ -869,7 +949,7 @@ export default function SuperAdminDashboardPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {users.map((row, index) => (
+                      {paginatedUsers.map((row, index) => (
                         <TableRow
                           key={row.id}
                           hover
@@ -955,22 +1035,26 @@ export default function SuperAdminDashboardPage() {
                   </Table>
                 </TableContainer>
 
-                {totalPages > 1 && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                    <Pagination
-                      count={totalPages}
-                      page={page}
-                      onChange={(_e: React.ChangeEvent<unknown>, newPage: number) => setPage(newPage)}
-                      sx={{
-                        '& .MuiPaginationItem-root.Mui-selected': {
-                          bgcolor: BRAND.primary,
-                          color: BRAND.white,
-                          '&:hover': { bgcolor: BRAND.dark },
-                        },
-                      }}
-                    />
-                  </Box>
-                )}
+                <TablePagination
+                  component="div"
+                  count={filteredUsers.length}
+                  page={page}
+                  onPageChange={(_e: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => setPage(newPage)}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setRowsPerPage(parseInt(e.target.value, 10));
+                    setPage(0);
+                  }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Lignes par page"
+                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count !== -1 ? count : `plus de ${to}`}`}
+                  sx={{
+                    borderTop: `1px solid ${BRAND.border}`,
+                    '& .MuiTablePagination-toolbar': { minHeight: 52 },
+                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': { fontSize: 13, color: BRAND.muted },
+                    '& .MuiTablePagination-select': { fontSize: 13 },
+                  }}
+                />
               </Box>
             )}
           </Paper>

@@ -21,7 +21,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Pagination,
+  TablePagination,
   InputAdornment,
   Alert,
   Snackbar,
@@ -539,8 +539,6 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
       setPreviewUrl(url);
     }
   };
-
-  const totalPages = Math.ceil(state.pagination.total / state.pagination.limit);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -1178,23 +1176,35 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
-
-      {totalPages > 1 && (
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Pagination
-            count={totalPages}
-            page={Math.floor(state.pagination.skip / state.pagination.limit) + 1}
-            onChange={(event: React.ChangeEvent<unknown>, page: number) => setState(prev => ({
+        {state.pagination.total > 0 && (
+          <TablePagination
+            component="div"
+            count={state.pagination.total}
+            page={Math.floor(state.pagination.skip / state.pagination.limit)}
+            onPageChange={(_e, p) => setState(prev => ({
               ...prev,
-              pagination: {
-                ...prev.pagination,
-                skip: (page - 1) * prev.pagination.limit,
-              },
+              pagination: { ...prev.pagination, skip: p * prev.pagination.limit },
             }))}
+            rowsPerPage={state.pagination.limit}
+            onRowsPerPageChange={(e) => setState(prev => ({
+              ...prev,
+              pagination: { ...prev.pagination, limit: Number(e.target.value), skip: 0 },
+            }))}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Lignes par page"
+            labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+            sx={{
+              borderTop: `1px solid ${BRAND.border}`,
+              '& .MuiTablePagination-toolbar': { minHeight: 52 },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                color: BRAND.muted,
+                fontSize: 15,
+              },
+              '& .MuiIconButton-root': { color: BRAND.primary },
+            }}
           />
-        </Box>
-      )}
+        )}
+      </Paper>
 
       {/* Création catégorie */}
       <Dialog

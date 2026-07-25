@@ -24,7 +24,6 @@ import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ClientOnly } from '@/components/ClientOnly';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useStore } from '@/store/useStore';
-import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { getImageUrl } from '@/lib/imageUtils';
 
 interface CheckoutRecapProps {
@@ -39,7 +38,6 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
   const theme = useTheme();
   const brandBlue = '#185FA5';
   const { updateQuantity, removeFromCart } = useStore();
-  const { deliveryFee } = useCheckoutStore();
 
   const subtotal = useMemo(
     () =>
@@ -54,8 +52,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
     [items]
   );
 
-  const estimatedShipping = deliveryFee || 2000;
-  const total = subtotal + estimatedShipping;
+  const total = subtotal;
 
   const handleQuantityChange = async (item: CartItemWithProduct, delta: number) => {
     const newQty = item.quantity + delta;
@@ -231,19 +228,6 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                   <Typography variant="body2" fontWeight={600}>
                     {subtotal.toLocaleString('fr-FR')} FCFA
                   </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Livraison estimée
-                  </Typography>
-                  {shippingLoading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Typography variant="body2" fontWeight={600}>
-                      {deliveryFee === 0 ? 'Gratuite' : `${estimatedShipping.toLocaleString('fr-FR')} FCFA`}
-                    </Typography>
-                  )}
                 </Box>
 
                 <Divider />

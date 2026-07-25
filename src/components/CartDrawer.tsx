@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUtils';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 
 export function CartDrawer() {
@@ -34,7 +35,7 @@ export function CartDrawer() {
   const router = useRouter();
   const theme = useTheme();
   const { isAuthenticated, user } = useAuth();
-  const [shippingSettings, setShippingSettings] = useState<any>(null);
+  const { settings: shippingSettings, calculateShippingCost } = useShippingSettings();
 
   const golden = theme.palette.golden?.main || theme.palette.primary.main;
 
@@ -44,19 +45,6 @@ export function CartDrawer() {
     }
   }, [isCartOpen, cartWithProducts.length, loadCart]);
 
-  useEffect(() => {
-    const loadShippingSettings = async () => {
-      try {
-        const result = await fetch('/api/v1/shipping/settings');
-        const data = await result.json();
-        setShippingSettings(data);
-      } catch (error) {
-        console.error('Erreur lors du chargement des settings de livraison:', error);
-      }
-    };
-    loadShippingSettings();
-  }, []);
-
   const subtotal = useMemo(() =>
     (cartWithProducts || []).reduce((sum: number, item) => {
       const price = item.product 
@@ -65,6 +53,11 @@ export function CartDrawer() {
       return sum + price * item.quantity;
     }, 0),
   [cartWithProducts]);
+
+  const shippingCost = useMemo(() => {
+    if (!shippingSettings) return 0;
+    return calculateShippingCost(subtotal);
+  }, [subtotal, shippingSettings, calculateShippingCost]);
 
   const itemCount = cartWithProducts?.length ?? 0;
 
@@ -243,11 +236,17 @@ export function CartDrawer() {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography color="text.secondary">Livraison</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', fontSize: 13 }}>
-                    Calculée à la livraison
-                  </Typography>
+                  {shippingSettings?.freeShippingThreshold != null && subtotal >= Number(shippingSettings.freeShippingThreshold) ? (
+                    <Typography variant="body2" fontWeight={700} sx={{ color: theme.palette.success?.main || '#2e7d32' }}>
+                      Gratuite
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', fontSize: 13 }}>
+                      Frais calculés selon le mode de livraison
+                    </Typography>
+                  )}
                 </Box>
-                {shippingSettings?.free_shipping_threshold != null && (
+                {shippingSettings?.freeShippingThreshold != null && subtotal < Number(shippingSettings.freeShippingThreshold) && (
                   <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -255,14 +254,14 @@ export function CartDrawer() {
                     px: 1.5,
                     py: 1,
                     borderRadius: 1.5,
-                    bgcolor: alpha(theme.palette.info.main, 0.06),
-                    border: `1px solid ${alpha(theme.palette.info.main, 0.15)}`,
+                    bgcolor: alpha(theme.palette.warning?.main || '#ed6c02', 0.06),
+                    border: `1px solid ${alpha(theme.palette.warning?.main || '#ed6c02', 0.15)}`,
                   }}>
                     <Typography variant="caption" color="text.secondary">
-                      Seuil livraison gratuite
+                      Les frais seront gratuits pour les commandes supérieures à
                     </Typography>
-                    <Typography variant="caption" fontWeight={700} color="info.main">
-                      {Number(shippingSettings.free_shipping_threshold).toLocaleString('fr-FR')} FCFA
+                    <Typography variant="caption" fontWeight={700} color="warning.main">
+                       {Number(shippingSettings.freeShippingThreshold).toLocaleString('fr-FR')} FCFA
                     </Typography>
                   </Box>
                 )}
@@ -270,7 +269,7 @@ export function CartDrawer() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" fontWeight={800}>Total</Typography>
                   <Typography variant="subtitle1" fontWeight={800} color="primary">
-                    {subtotal.toLocaleString('fr-FR')} FCFA
+                    {(subtotal).toLocaleString('fr-FR')} FCFA
                   </Typography>
                 </Box>
                 <Button

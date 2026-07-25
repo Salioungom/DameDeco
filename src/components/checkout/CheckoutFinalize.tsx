@@ -36,6 +36,7 @@ import { ClientOnly } from '@/components/ClientOnly';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { getImageUrl } from '@/lib/imageUtils';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 type TabPanelProps = {
   children?: React.ReactNode;
@@ -85,8 +86,6 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
   } = useCheckoutStore();
 
   const [tabValue, setTabValue] = useState(0);
-  const [shippingSettings, setShippingSettings] = useState<any>(null);
-  const [shippingLoading, setShippingLoading] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -95,6 +94,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
   const [instructions, setInstructions] = useState('');
   const [paymentPhone, setPaymentPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { settings: shippingSettings, loading: settingsLoading } = useShippingSettings();
 
   const subtotal = useMemo(
     () =>
@@ -148,43 +149,22 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
     return true;
   })();
 
-  // Load shipping settings
+  // Calculate shipping locally based on delivery method and threshold
   useEffect(() => {
-    const loadShippingSettings = async () => {
-      try {
-        const result = await fetch('/api/v1/shipping/settings');
-        const data = await result.json();
-        setShippingSettings(data);
-      } catch (error) {
-        console.error('Erreur chargement settings livraison:', error);
-      }
-    };
-    loadShippingSettings();
-  }, []);
+    if (settingsLoading) return;
 
-  // Calculate shipping
-  useEffect(() => {
-    const calculateShipping = async () => {
-      if (!shippingSettings || subtotal === 0) return;
-      setShippingLoading(true);
-      try {
-        const result = await fetch('/api/v1/shipping/calculate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subtotal, deliveryMode: deliveryMethod }),
-        });
-        const data = await result.json();
-        setDeliveryFee(Number(data.shippingCost) || 0);
-        setEstimatedDays(data.estimatedDays || '');
-      } catch (error) {
-        console.error('Erreur calcul frais livraison:', error);
-        setDeliveryFee(deliveryMethod === 'pickup' ? 0 : 5000);
-      } finally {
-        setShippingLoading(false);
-      }
-    };
-    calculateShipping();
-  }, [subtotal, deliveryMethod, shippingSettings, setDeliveryFee, setEstimatedDays]);
+    if (deliveryMethod === 'pickup') {
+      setDeliveryFee(0);
+      setEstimatedDays('');
+      return;
+    }
+
+    const threshold = Number(shippingSettings?.freeShippingThreshold || 0);
+    const standardCost = Number(shippingSettings?.standardShippingCost || 0);
+    const cost = threshold > 0 && subtotal >= threshold ? 0 : standardCost;
+    setDeliveryFee(cost);
+    setEstimatedDays(cost === 0 ? '' : '2-5 jours ouvrables');
+  }, [subtotal, deliveryMethod, settingsLoading, shippingSettings, setDeliveryFee, setEstimatedDays]);
 
   const handlePlaceOrder = () => {
     if (isProcessing) return;
@@ -585,7 +565,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   <Typography variant="body2" color="text.secondary">
                     {deliveryMethod === 'pickup' ? 'Retrait' : 'Livraison'}
                   </Typography>
-                  {shippingLoading ? (
+                  {settingsLoading ? (
                     <CircularProgress size={16} />
                   ) : (
                     <Chip
