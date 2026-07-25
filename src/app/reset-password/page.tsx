@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
                 border: '1px solid rgba(255, 255, 255, 0.4)',
               }}
             >
-              <Alert severity="error" sx={{ borderRadius: '10px', mb: 3 }}>
+              <Alert severity="error" variant="outlined" sx={{ mb: 3, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
                 {error}
               </Alert>
               <Button
@@ -395,7 +395,7 @@ export default function ResetPasswordPage() {
                 />
 
                 {error && (
-                  <Alert severity="error" sx={{ mb: 3, borderRadius: '10px' }}>
+                  <Alert severity="error" variant="outlined" sx={{ mb: 3, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
                     {error}
                   </Alert>
                 )}

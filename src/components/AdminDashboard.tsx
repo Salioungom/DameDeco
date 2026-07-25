@@ -447,7 +447,7 @@ export function AdminDashboard() {
         </Paper>
 
         {ordersError && (
-          <Alert severity="warning" sx={{ mb: 2, borderRadius: '15px' }} onClose={() => setOrdersError(null)}>
+          <Alert severity="warning" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setOrdersError(null)}>
             {ordersError}
           </Alert>
         )}

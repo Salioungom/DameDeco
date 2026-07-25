@@ -687,7 +687,7 @@ export function ProductManagement() {
           <CircularProgress sx={{ color: BRAND.primary }} />
         </Box>
       ) : error ? (
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="error" variant="outlined" sx={{ animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{error}</Alert>
       ) : !Array.isArray(products) || products.length === 0 ? (
         <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '20px', border: `1px solid ${BRAND.border}` }}>
           <Package sx={{ fontSize: 70, color: BRAND.border, mb: 1 }} />

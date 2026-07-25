@@ -38,6 +38,7 @@ import { Product } from '../types/product';
 import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
 import { orderViaWhatsApp } from '../lib/whatsapp';
+import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
 
@@ -198,7 +199,7 @@ export function ProductDetailPage({
   const inStock = product.inventory_quantity > 0;
 
   const handleWhatsAppOrder = () => {
-    orderViaWhatsApp(product.name, price, quantity, displayImage, product.id);
+    toast.info('Cette fonctionnalité sera disponible bientôt');
   };
 
   const handlePrevImage = () => {
@@ -678,7 +679,7 @@ export function ProductDetailPage({
 
             <CustomTabPanel value={tabValue} index={3}>
               <Typography sx={{ fontSize: 17.5, color: C.text, mb: 2 }}>
-                Paiement sécurisé — Wave, Orange Money, PayPal ou paiement à la livraison.
+                Paiement sécurisé — Wave, Orange Money ou paiement à la livraison.
               </Typography>
               <PaymentIcons size="md" showLabels />
             </CustomTabPanel>

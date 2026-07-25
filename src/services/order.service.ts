@@ -32,8 +32,7 @@ export const PAYMENT_METHODS = {
   PAYDUNYA: 'paydunya' as const,
   WAVE: 'wave' as const,
   ORANGE_MONEY: 'orange-money' as const,
-  CASH: 'cash' as const,
-  PAYPAL: 'paypal' as const
+  CASH: 'cash' as const
 };
 
 // Types pour les réponses API

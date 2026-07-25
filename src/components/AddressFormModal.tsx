@@ -149,7 +149,7 @@ export function AddressFormModal({ address, open, onClose, onSuccess }: AddressF
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 1 }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
               {error}
             </Alert>
           )}

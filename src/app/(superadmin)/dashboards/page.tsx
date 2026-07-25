@@ -485,7 +485,7 @@ export default function SuperAdminDashboardPage() {
   if (error) {
     return (
       <Box sx={{ mt: 4, px: 2 }}>
-        <Alert severity="error" sx={{ borderRadius: '12px' }}>
+        <Alert severity="error" variant="outlined" sx={{ animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
           {error}
         </Alert>
       </Box>
@@ -624,12 +624,12 @@ export default function SuperAdminDashboardPage() {
         </Paper>
 
         {usersError && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setUsersError(null)}>
+          <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setUsersError(null)}>
             {usersError}
           </Alert>
         )}
         {success && (
-          <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setSuccess(null)}>
+          <Alert severity="success" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setSuccess(null)}>
             {success}
           </Alert>
         )}
@@ -1113,7 +1113,7 @@ export default function SuperAdminDashboardPage() {
             </strong>{' '}
             ({userToDelete?.email}) ?
           </Typography>
-          <Alert severity="warning" sx={{ borderRadius: '10px' }}>
+          <Alert severity="warning" variant="outlined">
             Cette action est irréversible.
           </Alert>
         </DialogContent>

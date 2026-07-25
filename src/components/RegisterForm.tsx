@@ -162,14 +162,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
             {/* Message d'erreur global */}
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
                     {error}
                 </Alert>
             )}
 
-            {/* Message de succès */}
             {success && (
-                <Alert severity="success" sx={{ mb: 2 }}>
+                <Alert severity="success" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>
                     {success}
                 </Alert>
             )}

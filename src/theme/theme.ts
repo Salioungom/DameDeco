@@ -1,6 +1,23 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
 
+const COLORS = {
+  primary: '#185FA5',
+  dark: '#042C53',
+  error: '#DC2626',
+  errorBg: '#FEF2F2',
+  errorBorder: '#FECACA',
+  success: '#16A34A',
+  successBg: '#F0FDF4',
+  successBorder: '#BBF7D0',
+  warning: '#D97706',
+  warningBg: '#FFFBEB',
+  warningBorder: '#FDE68A',
+  info: '#2563EB',
+  infoBg: '#EFF6FF',
+  infoBorder: '#BFDBFE',
+};
+
 declare module '@mui/material/styles' {
   interface Theme {
     status: {
@@ -116,6 +133,104 @@ let theme = createTheme({
       styleOverrides: {
         root: {
           marginBottom: '1rem',
+        },
+      },
+    },
+    MuiAlert: {
+      defaultProps: {
+        variant: 'filled',
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          fontWeight: 500,
+          fontSize: '0.875rem',
+          alignItems: 'center',
+          boxShadow: 'none',
+          lineHeight: 1.5,
+        },
+        standardError: {
+          bgcolor: COLORS.errorBg,
+          color: COLORS.error,
+          border: `1px solid ${COLORS.errorBorder}`,
+          '& .MuiAlert-icon': { color: COLORS.error },
+        },
+        filledError: {
+          bgcolor: COLORS.error,
+          color: '#fff',
+          '& .MuiAlert-icon': { color: '#fff' },
+        },
+        outlinedError: {
+          color: COLORS.error,
+          border: `1.5px solid ${COLORS.error}`,
+          bgcolor: COLORS.errorBg,
+          '& .MuiAlert-icon': { color: COLORS.error },
+        },
+        standardSuccess: {
+          bgcolor: COLORS.successBg,
+          color: COLORS.success,
+          border: `1px solid ${COLORS.successBorder}`,
+          '& .MuiAlert-icon': { color: COLORS.success },
+        },
+        filledSuccess: {
+          bgcolor: COLORS.success,
+          color: '#fff',
+          '& .MuiAlert-icon': { color: '#fff' },
+        },
+        outlinedSuccess: {
+          color: COLORS.success,
+          border: `1.5px solid ${COLORS.success}`,
+          bgcolor: COLORS.successBg,
+          '& .MuiAlert-icon': { color: COLORS.success },
+        },
+        standardWarning: {
+          bgcolor: COLORS.warningBg,
+          color: COLORS.warning,
+          border: `1px solid ${COLORS.warningBorder}`,
+          '& .MuiAlert-icon': { color: COLORS.warning },
+        },
+        filledWarning: {
+          bgcolor: COLORS.warning,
+          color: '#fff',
+          '& .MuiAlert-icon': { color: '#fff' },
+        },
+        outlinedWarning: {
+          color: COLORS.warning,
+          border: `1.5px solid ${COLORS.warning}`,
+          bgcolor: COLORS.warningBg,
+          '& .MuiAlert-icon': { color: COLORS.warning },
+        },
+        standardInfo: {
+          bgcolor: COLORS.infoBg,
+          color: COLORS.info,
+          border: `1px solid ${COLORS.infoBorder}`,
+          '& .MuiAlert-icon': { color: COLORS.info },
+        },
+        filledInfo: {
+          bgcolor: COLORS.info,
+          color: '#fff',
+          '& .MuiAlert-icon': { color: '#fff' },
+        },
+        outlinedInfo: {
+          color: COLORS.info,
+          border: `1.5px solid ${COLORS.info}`,
+          bgcolor: COLORS.infoBg,
+          '& .MuiAlert-icon': { color: COLORS.info },
+        },
+        message: {
+          py: 0.5,
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.78rem',
+          marginTop: 4,
+          lineHeight: 1.4,
+        },
+        contained: {
+          marginLeft: 0,
         },
       },
     },

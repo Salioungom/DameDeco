@@ -26,7 +26,47 @@ const Toaster = ({ ...props }: ToasterProps) => {
           backgroundColor: "var(--mui-palette-background-paper)",
           color: "var(--mui-palette-text-primary)",
           border: "1px solid var(--mui-palette-divider)",
-        }
+        },
+        success: {
+          style: {
+            backgroundColor: '#F0FDF4',
+            color: '#16A34A',
+            border: '1px solid #BBF7D0',
+          },
+          classNames: {
+            toast: '!bg-[#F0FDF4] !text-[#16A34A] !border-[#BBF7D0]',
+          },
+        },
+        error: {
+          style: {
+            backgroundColor: '#FEF2F2',
+            color: '#DC2626',
+            border: '1px solid #FECACA',
+          },
+          classNames: {
+            toast: '!bg-[#FEF2F2] !text-[#DC2626] !border-[#FECACA]',
+          },
+        },
+        warning: {
+          style: {
+            backgroundColor: '#FFFBEB',
+            color: '#D97706',
+            border: '1px solid #FDE68A',
+          },
+          classNames: {
+            toast: '!bg-[#FFFBEB] !text-[#D97706] !border-[#FDE68A]',
+          },
+        },
+        info: {
+          style: {
+            backgroundColor: '#EFF6FF',
+            color: '#2563EB',
+            border: '1px solid #BFDBFE',
+          },
+          classNames: {
+            toast: '!bg-[#EFF6FF] !text-[#2563EB] !border-[#BFDBFE]',
+          },
+        },
       }}
       {...props}
     />

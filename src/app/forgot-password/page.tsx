@@ -210,14 +210,13 @@ export default function ForgotPasswordPage() {
                 {error && (
                   <Alert
                     severity="error"
+                    variant="outlined"
                     sx={{
                       mb: 3,
-                      borderRadius: 2,
-                      animation: 'shake 0.5s',
-                      '@keyframes shake': {
-                        '0%, 100%': { transform: 'translateX(0)' },
-                        '25%': { transform: 'translateX(-10px)' },
-                        '75%': { transform: 'translateX(10px)' },
+                      animation: 'slideUp 0.35s ease-out',
+                      '@keyframes slideUp': {
+                        from: { opacity: 0, transform: 'translateY(-8px)' },
+                        to: { opacity: 1, transform: 'translateY(0)' },
                       },
                     }}
                   >

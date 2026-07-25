@@ -152,8 +152,6 @@ function getPaymentMethodIcon(method: string) {
             return <PhoneIcon />;
         case 'cash':
             return <CashIcon />;
-        case 'paypal':
-            return <BankIcon />;
         default:
             return <PaymentIcon />;
     }
@@ -425,7 +423,7 @@ function OrderDetailContent() {
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 TransitionComponent={Zoom}
             >
-                <Alert onClose={() => setError(null)} severity="error" variant="filled" sx={{ width: '100%', borderRadius: 2, boxShadow: 3 }}>
+                <Alert onClose={() => setError(null)} severity="error" variant="outlined" sx={{ width: '100%' }}>
                     {error}
                 </Alert>
             </Snackbar>

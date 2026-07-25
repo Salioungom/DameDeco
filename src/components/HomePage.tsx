@@ -60,25 +60,25 @@ const formatPrice = (amount: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount);
 
 const sectionLabelSx = {
-  fontSize: 13.75,
+  fontSize: { xs: 14, md: 15 },
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
   color: C.primary,
-  mb: 1,
+  mb: 1.5,
 };
 
 const sectionTitleSx = {
-  fontSize: { xs: '1.65rem', md: '2rem' },
+  fontSize: { xs: '1.9rem', md: '2.5rem' },
   fontWeight: 800,
   color: C.dark,
   letterSpacing: '-0.03em',
   lineHeight: 1.15,
-  mb: 1,
+  mb: 1.5,
 };
 
 const sectionDescSx = {
-  fontSize: { xs: 17.5, md: 18.75 },
+  fontSize: { xs: 18, md: 20 },
   color: C.text,
   lineHeight: 1.75,
   maxWidth: 650,
@@ -706,9 +706,26 @@ export function HomePage({
       <Box
         id="features"
         component="section"
-        sx={{ py: { xs: 8, md: 11 }, bgcolor: '#fff', borderTop: `1px solid ${C.border}` }}
+        sx={{
+          py: { xs: 10, md: 13 },
+          background: `linear-gradient(180deg, #fff 0%, ${C.light} 100%)`,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
       >
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -200,
+            right: -150,
+            width: 500,
+            height: 500,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${alpha(C.primary, 0.05)} 0%, transparent 70%)`,
+          }}
+        />
+
+        <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, sm: 3, md: 4 } }}>
           <SectionHeader
             centered
             label="Nos avantages"
@@ -720,80 +737,81 @@ export function HomePage({
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-              gap: 2.5,
+              gap: { xs: 3, md: 3.5 },
             }}
           >
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               return (
-                <Paper
+                <Box
                   key={feature.num}
-                  elevation={0}
                   sx={{
-                    p: { xs: 3, md: 3.5 },
+                    p: { xs: 3.5, md: 4 },
                     height: '100%',
-                    borderRadius: '22.5px',
-                    border: `1px solid ${C.border}`,
-                    bgcolor: C.surface,
+                    borderRadius: '20px',
+                    bgcolor: alpha('#fff', 0.85),
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: `0 1px 3px ${alpha(C.dark, 0.04)}`,
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.25s ease',
+                    transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      borderColor: C.mid,
-                      boxShadow: `0 20px 48px ${alpha(C.dark, 0.08)}`,
-                      transform: 'translateY(-4px)',
+                      boxShadow: `0 20px 56px ${alpha(C.dark, 0.1)}`,
+                      transform: 'translateY(-6px)',
+                      bgcolor: '#fff',
                     },
                   }}
                 >
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2.5 }}>
-                    <Box
-                      sx={{
-                        width: 65,
-                        height: 65,
-                        borderRadius: '17.5px',
-                        bgcolor: '#fff',
-                        border: `1px solid ${C.border}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Icon sx={{ fontSize: 32.5, color: C.primary }} />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontSize: 15,
-                        fontWeight: 800,
-                        color: alpha(C.primary, 0.35),
-                        letterSpacing: '0.06em',
-                      }}
-                    >
-                      {feature.num}
-                    </Typography>
-                  </Stack>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '14px',
+                      background: `linear-gradient(135deg, ${C.primary} 0%, ${C.dark} 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 3,
+                      boxShadow: `0 8px 24px ${alpha(C.primary, 0.3)}`,
+                    }}
+                  >
+                    <Icon sx={{ fontSize: 28, color: '#fff' }} />
+                  </Box>
 
-                  <Typography component="h3" sx={{ fontSize: 22.5, fontWeight: 800, color: C.dark, mb: 1.25, letterSpacing: '-0.02em' }}>
+                  <Typography
+                    component="h3"
+                    sx={{
+                      fontSize: { xs: 21, md: 23 },
+                      fontWeight: 700,
+                      color: C.dark,
+                      mb: 1.25,
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
                     {feature.title}
                   </Typography>
-                  <Typography sx={{ fontSize: 17.5, color: C.text, lineHeight: 1.75, flex: 1 }}>
+                  <Typography sx={{ fontSize: { xs: 16, md: 17 }, color: C.muted, lineHeight: 1.8, flex: 1 }}>
                     {feature.description}
                   </Typography>
 
                   {'paymentMethods' in feature && feature.paymentMethods && (
-                    <Box
-                      sx={{
-                        mt: 3,
-                        pt: 2.5,
-                        borderTop: `1px solid ${C.border}`,
-                      }}
-                    >
-                      <Typography sx={{ fontSize: 13.75, fontWeight: 700, color: C.muted, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    <Box sx={{ mt: 3, pt: 2.5, borderTop: `1px solid ${alpha(C.border, 0.6)}` }}>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: alpha(C.muted, 0.8),
+                          mb: 1.5,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                        }}
+                      >
                         Moyens acceptés
                       </Typography>
                       <PaymentIcons size="sm" showLabels />
                     </Box>
                   )}
-                </Paper>
+                </Box>
               );
             })}
           </Box>

@@ -49,7 +49,7 @@ export default function OrderConfirmationPage() {
         return (
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pt: 14 }}>
                 <Container maxWidth="sm">
-                    <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>{error}</Alert>
+                    <Alert severity="error" variant="outlined" sx={{ mb: 3, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{error}</Alert>
                     <Button variant="contained" onClick={() => router.push('/checkout')} sx={{ borderRadius: 2, fontWeight: 600 }}>
                         Retour au paiement
                     </Button>

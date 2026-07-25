@@ -23,7 +23,7 @@ import {
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { Product } from '../types/product';
-import { orderViaWhatsApp } from '../lib/whatsapp';
+import { toast } from 'sonner';
 import { getImageUrl } from '@/lib/imageUtils';
 
 // ─── Styled components ───────────────────────────────────────────────────────
@@ -183,16 +183,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const handleWhatsAppOrder = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      const price =
-        userType === 'wholesale' && (product.wholesale_price || product.cost_price)
-          ? Number(product.wholesale_price || product.cost_price)
-          : Number(product.price);
-      orderViaWhatsApp(
-        product.name, price, 1,
-        product.cover_image_url, product.id, product.description,
-      );
+      toast.info('Cette fonctionnalité sera disponible bientôt');
     },
-    [product, userType],
+    [],
   );
 
   const handleCardClick = useCallback(
@@ -507,7 +500,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </Tooltip>
 
             {showWhatsApp && (
-              <Tooltip title="Commander via WhatsApp">
+              <Tooltip title="Bientôt disponible">
                 <IconButton
                   color="success"
                   size="small"

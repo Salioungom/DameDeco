@@ -290,7 +290,7 @@ export default function CreateAdminPage() {
 
             <Box sx={{ p: { xs: 2.5, sm: 3 } }}>
               {error && (
-                <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setError(null)}>
+                <Alert severity="error" variant="outlined" sx={{ mb: 2.5, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setError(null)}>
                   {error}
                 </Alert>
               )}
@@ -298,8 +298,9 @@ export default function CreateAdminPage() {
               {success && (
                 <Alert
                   severity="success"
+                  variant="outlined"
                   icon={<CheckCircleIcon />}
-                  sx={{ mb: 2.5, borderRadius: '12px' }}
+                  sx={{ mb: 2.5, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}
                 >
                   {success}
                 </Alert>

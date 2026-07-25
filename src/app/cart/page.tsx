@@ -174,7 +174,7 @@ export default function CartPage() {
 
             <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
                 {cartError && (
-                    <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{cartError}</Alert>
+                    <Alert severity="error" variant="outlined" sx={{ mb: 3, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }}>{cartError}</Alert>
                 )}
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
