@@ -5,6 +5,7 @@ import { Box } from '@mui/material';
 import { Navigation, NAVBAR_HEIGHT } from './Navigation';
 import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
+import { ErrorBoundary } from './ErrorBoundary';
 import { Toaster } from 'sonner';
 import { useStore } from '@/store/useStore';
 import { useEffect, useRef } from 'react';
@@ -61,7 +62,11 @@ function FavoritesInitializer() {
   const syncedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user) {
+      if (storeUser) setUser(null);
+      syncedUserIdRef.current = null;
+      return;
+    }
 
     if (syncedUserIdRef.current === user.id) return;
     syncedUserIdRef.current = user.id;
@@ -116,7 +121,9 @@ export function Providers({ children }: ProvidersProps) {
             pt: isAuthPage ? 0 : `${NAVBAR_HEIGHT}px`,
           }}
         >
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </Box>
         {!isAuthPage && <Footer />}
         <CartDrawer />

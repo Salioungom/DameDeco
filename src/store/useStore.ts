@@ -105,7 +105,14 @@ interface StoreState {
 }
 
 function isGuest(state: { user: User | null }): boolean {
-    return !state.user;
+    if (state.user) return false;
+    // Also check for a stored token — if none, definitely a guest
+    try {
+        return !(typeof window !== 'undefined' &&
+            (localStorage.getItem('accessToken') || localStorage.getItem('token')));
+    } catch {
+        return true;
+    }
 }
 
 function isOnline(): boolean {
@@ -203,23 +210,6 @@ export const useStore = create<StoreState>()(
                         }
 
                         if (result.error) {
-                            // 401 = token expired → clear auth, fall back to guest cart
-                            if ((result.error as any)?.status === 401 || (result.error as any)?.status === 403) {
-                                cartWarn('Auth expired during cart load — switching to guest');
-                                // Clear stale auth state
-                                set({ user: null, favorites: [], cart: [], cartLoading: false, isLoaded: true, lastLoadedAt: Date.now() });
-                                try {
-                                    localStorage.removeItem('accessToken');
-                                    localStorage.removeItem('token');
-                                } catch { /* noop */ }
-                                // Init guest session and reload cart as guest
-                                await get().initGuestSession();
-                                const guestResult = await cartService.getGuestCart();
-                                const guestItems = guestResult.data?.items || [];
-                                set({ cart: guestItems, cartLoading: false, isLoaded: true, lastLoadedAt: Date.now() });
-                                cartLog('Fell back to guest cart', `${guestItems.length} item(s)`);
-                                return;
-                            }
                             set({ cartError: 'Impossible de charger le panier', cartLoading: false });
                             cartWarn('Load failed', String(result.error));
                             return;

@@ -95,6 +95,7 @@ export default function CheckoutFinalizePage() {
         paymentMethodMap[data.paymentMethod] || data.paymentMethod,
         'XOF',
         deliveryMethodMap[data.deliveryMethod] || data.deliveryMethod,
+        data.paymentPhone,
       );
 
       redirectRef.current = true;
@@ -103,7 +104,6 @@ export default function CheckoutFinalizePage() {
       resetCheckout();
       router.push('/checkout/success');
     } catch (err: any) {
-      console.error('Erreur création commande:', err);
       setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setIsProcessing(false);

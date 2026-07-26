@@ -20,6 +20,7 @@ import {
   Timeline,
 } from '@mui/icons-material';
 import { securityAPI } from '@/lib/security';
+import { RequireRole } from '@/components/RequireRole';
 
 interface SecuritySummary {
   totalUsers: number;
@@ -70,6 +71,7 @@ export default function SecuritySummaryPage() {
   }
 
   return (
+    <RequireRole allowedRoles={['admin', 'superadmin']}>
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
         Tableau de Bord Sécurité
@@ -149,5 +151,6 @@ export default function SecuritySummaryPage() {
         </Grid>
       </Grid>
     </Container>
+    </RequireRole>
   );
 }

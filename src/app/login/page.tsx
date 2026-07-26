@@ -26,13 +26,14 @@ import {
 import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClientOnly } from '@/components/ClientOnly';
+import { sanitizeRedirect } from '@/lib/sanitize-redirect';
 
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const theme = useTheme();
     const { login } = useAuth();
-    const redirectTo = searchParams.get('redirect');
+    const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -66,23 +67,20 @@ export default function LoginPage() {
             const result = await login(email.trim(), password);
 
             if (result.success) {
-                setTimeout(() => {
-                    if (result.mustChangePassword) {
-                        router.push('/change-password');
-                    } else if (redirectTo) {
-                        router.push(redirectTo);
+                if (result.mustChangePassword) {
+                    router.push('/change-password');
+                } else if (redirectTo) {
+                    router.push(redirectTo);
+                } else {
+                    const user = result.user;
+                    if (user?.role === 'superadmin') {
+                        router.push('/dashboards');
+                    } else if (user?.role === 'admin') {
+                        router.push('/dashboard');
                     } else {
-                        const user = result.user;
-                        if (user?.role === 'superadmin') {
-                            router.push('/dashboards');
-                        } else if (user?.role === 'admin') {
-                            router.push('/dashboard');
-                        } else {
-                            router.push('/account');
-                        }
+                        router.push('/account');
                     }
-                    router.refresh();
-                }, 200);
+                }
             } else {
                 setError(result.error || 'Email ou mot de passe incorrect');
             }

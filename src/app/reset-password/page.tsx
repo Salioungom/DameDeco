@@ -48,6 +48,21 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    if (password.length < 12) {
+      setError('Le mot de passe doit contenir au moins 12 caractères');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError('Le mot de passe doit contenir au moins une lettre majuscule');
+      return;
+    }
+
+    if (!/[!@#$%^&*]/.test(password)) {
+      setError('Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*)');
+      return;
+    }
+
     if (!token) {
       setError('Token de réinitialisation manquant');
       return;

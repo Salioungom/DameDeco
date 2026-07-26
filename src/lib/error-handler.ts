@@ -151,14 +151,7 @@ export async function safeApiCall<T>(
     apiError.message = customErrorHandler(lastError);
   }
 
-  // Handle auth errors: clear stale tokens (callers decide navigation)
-  if (ApiErrorHandler.isAuthError(lastError)) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('accessToken');
-    }
-  }
-
+  // Auth errors are returned to callers — they decide how to handle navigation/tokens
   return { data: null, error: apiError };
 }
 

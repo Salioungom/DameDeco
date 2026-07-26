@@ -98,6 +98,7 @@ export interface CreateOrderData {
   };
   currency?: string;
   payment_method: string;
+  payment_phone?: string;
   order_type?: string;
   mode?: string;
 }
@@ -151,10 +152,10 @@ export class OrderService {
     },
     paymentMethod: string = PAYMENT_METHODS.PAYDUNYA,
     currency: string = 'XOF',
-    mode: string = 'home_delivery'
+    mode: string = 'home_delivery',
+    paymentPhone?: string
   ): Promise<OrderResponse> {
     try {
-      // Transformer les items du panier au format API
       const orderItems = cartItems.map(item => {
         if (!item.product) {
           throw new Error(`Produit non trouvé pour l'item ${item.product_id}`);
@@ -175,6 +176,7 @@ export class OrderService {
         shipping_address: shippingAddress,
         currency,
         payment_method: paymentMethod,
+        payment_phone: paymentPhone || undefined,
         order_type: 'standard',
         mode
       };
@@ -182,7 +184,6 @@ export class OrderService {
       const order = await createOrder(orderData);
       return order;
     } catch (error) {
-      console.error('Erreur création commande:', error);
       throw error;
     }
   }

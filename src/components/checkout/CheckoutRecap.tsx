@@ -185,7 +185,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                             <IconButton
                               size="small"
                               onClick={() => handleQuantityChange(item, 1)}
-                              disabled={item.quantity >= (item.product.stock_quantity || 99)}
+                              disabled={item.quantity >= (item.product.inventory_quantity || 99)}
                               sx={{ width: 40, height: 40, borderRadius: 0 }}
                             >
                               <Add fontSize="small" />

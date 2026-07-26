@@ -32,6 +32,7 @@ import {
     Cancel,
 } from '@mui/icons-material';
 import NextLink from 'next/link';
+import { sanitizeRedirect } from '@/lib/sanitize-redirect';
 
 // ClientOnly wrapper to prevent hydration mismatches
 const ClientOnly = ({ children }: { children: React.ReactNode }) => {
@@ -44,7 +45,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const theme = useTheme();
-    const redirectTo = searchParams.get('redirect');
+    const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -149,11 +150,6 @@ export default function RegisterPage() {
             }, 2000);
 
         } catch (err: any) {
-            console.error('Erreur inscription:', err);
-            console.error('Détails de l\'erreur:', err.response?.data);
-            console.error('Status:', err.response?.status);
-            console.error('Données envoyées:', formData);
-            
             let errorMessage = err.message || 'Erreur d\'inscription';
 
             // Tenter d'extraire le message d'erreur de la réponse API

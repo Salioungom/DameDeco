@@ -201,9 +201,8 @@ function QuickActionButton({
 
 export default function SuperAdminDashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { user, isAuthenticated, logout, accessToken } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout, accessToken } = useAuth();
 
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -435,35 +434,25 @@ export default function SuperAdminDashboardPage() {
   };
 
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.role === 'superadmin') {
+    if (!authLoading && isAuthenticated && user?.role === 'superadmin') {
       loadUsers();
     }
-  }, [loading, isAuthenticated, user, loadUsers]);
+  }, [authLoading, isAuthenticated, user, loadUsers]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'superadmin') {
-        setLoading(false);
-      } else {
-        router.push('/');
-      }
+    if (authLoading) return;
+
+    if (!isAuthenticated || !user) {
+      router.push('/login');
       return;
     }
 
-    const timer = setTimeout(() => {
-      if (!isAuthenticated || !user) {
-        router.push('/login');
-      } else if (user.role !== 'superadmin') {
-        router.push('/');
-      } else {
-        setLoading(false);
-      }
-    }, 500);
+    if (user.role !== 'superadmin') {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, user, router]);
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user, router]);
-
-  if (loading) {
+  if (authLoading) {
     return (
       <Box
         sx={{

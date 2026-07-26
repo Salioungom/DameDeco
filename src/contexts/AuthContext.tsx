@@ -73,14 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Gestion sécurisée du localStorage
     const getStoredToken = (): string | null => {
         if (typeof window === 'undefined') {
-            console.warn('🔒 AuthContext: Tentative d\'accès localStorage côté server');
             return null;
         }
 
         try {
             return localStorage.getItem('accessToken') || localStorage.getItem('token');
         } catch (error) {
-            console.warn('⚠️ AuthContext: Erreur accès localStorage:', error);
             return null;
         }
     };
@@ -92,23 +90,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('token');
             localStorage.removeItem('refreshToken');
-            console.log('🗑️ AuthContext: Tokens cleared from localStorage');
         } catch (error) {
-            console.warn('⚠️ AuthContext: Erreur suppression tokens:', error);
+            // Silent fail
         }
     };
 
     const setStoredToken = (token: string): void => {
         if (typeof window === 'undefined') {
-            console.warn('🔒 AuthContext: Tentative d\'écriture localStorage côté server');
             return;
         }
 
         try {
             localStorage.setItem('accessToken', token);
-            console.log('✅ AuthContext: Token stored successfully');
         } catch (error) {
-            console.warn('⚠️ AuthContext: Erreur stockage token:', error);
+            // Silent fail
         }
     };
 
@@ -120,27 +115,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Gestion des erreurs API
     const handleAuthError = (error: any, context: string): string => {
         const errorMessage = apiUtils.handleApiError(error);
-        console.warn(` AuthContext - ${context}:`, {
-            error: errorMessage,
-            status: error?.status,
-            code: error?.code,
-            timestamp: new Date().toISOString()
-        });
         return errorMessage;
     };
 
     // Récupération des informations utilisateur avec retry
     const fetchUser = async (retryCount = 0): Promise<void> => {
-        // Protection contre l'exécution côté server
         if (typeof window === 'undefined') {
-            console.log(' AuthContext - fetchUser called server-side, skipping');
             return;
         }
 
         const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
         
         if (!token) {
-            console.log(' AuthContext - No token found, user not authenticated');
             updateAuthState({
                 user: null,
                 accessToken: null,
@@ -154,11 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        // Vérifier si le token est un JWT et s'il est expiré
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             if (Date.now() > payload.exp * 1000) {
-                console.log(' AuthContext - Token expired, clearing and redirecting');
                 clearStoredTokens();
                 updateAuthState({
                     user: null,
@@ -169,20 +153,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     status: 'unauthenticated',
                 });
                 setLoading(false);
+                if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+                    window.location.href = '/login';
+                }
                 return;
             }
         } catch (e) {
-            console.log(' AuthContext - Token is not JWT, proceeding anyway');
+            // Token is not JWT, proceeding anyway
         }
-
-        console.log(' AuthContext - Fetching user data...');
         
         try {
             const response = await api.get('/api/v1/auth/me', {
-                timeout: 8000, // 8 secondes timeout
+                timeout: 8000,
             });
-
-            console.log(' AuthContext - User data received:', response.data);
             
             const user = response.data.user || response.data;
             if (!user) {
@@ -199,49 +182,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'authenticated',
             });
 
-            console.log(' AuthContext - User authenticated successfully:', user.full_name);
-
         } catch (error: any) {
             const errorMessage = handleAuthError(error, 'fetchUser');
             
-            // Retry logic pour les erreurs réseau
             if ((error.code === 'ECONNABORTED' || error.code === 'NETWORK_ERROR') && retryCount < 2) {
-                console.log(` AuthContext - Retrying fetchUser (${retryCount + 1}/2)`);
                 setTimeout(() => fetchUser(retryCount + 1), 1000 * (retryCount + 1));
                 return;
             }
             
-            // Gestion spécifique des erreurs 401 et 403
-            if (error?.status === 401) {
-                console.log(' AuthContext - Unauthorized, clearing invalid token');
-                clearStoredTokens();
-                updateAuthState({
-                    user: null,
-                    accessToken: null,
-                    isAuthenticated: false,
-                    requires2FA: false,
-                    roles: [],
-                    status: 'unauthenticated',
-                });
-                return; // Sortir early pour éviter le double nettoyage
-            }
-            
-            if (error?.status === 403) {
-                console.log('🚫 AuthContext - Forbidden, insufficient permissions');
-                // Ne pas déconnecter pour 403, juste logger
+            // 401/403 are handled by the API interceptor (refresh → retry → logout)
+            if (error?.status === 401 || error?.status === 403) {
+                setLoading(false);
                 return;
             }
 
-            // Pour les autres erreurs, nettoyer l'état
-            updateAuthState({
-                user: null,
-                accessToken: null,
-                isAuthenticated: false,
-                requires2FA: false,
-                mustChangePassword: false,
-                roles: [],
-                status: 'unauthenticated',
-            });
+            if (!error?.status || error.status >= 500) {
+                setLoading(false);
+                return;
+            }
+
+            setLoading(false);
         } finally {
             setLoading(false);
         }
@@ -256,16 +216,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             updateAuthState({ status: 'loading' });
             
-            console.log('🔐 AuthContext - Attempting login...');
-            
             const response = await api.post('/api/v1/auth/login', {
-                identifiant: identifier, // Backend attend 'identifiant'
+                identifiant: identifier,
                 password: password,
             });
 
-            console.log('✅ AuthContext - Login response received:', response.data);
-
-            // Vérification 2FA
             if (response.data.requires_2fa) {
                 updateAuthState({
                     requires2FA: true,
@@ -275,18 +230,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { success: true, requires2FA: true, user: response.data.user };
             }
 
-            // Vérification changement de mot de passe obligatoire
             const mustChangePassword = response.data.must_change_password === true;
 
-            // Stockage du token
             const token = response.data.access_token || response.data.token;
             if (token) {
                 setStoredToken(token);
-            } else {
-                console.warn('⚠️ AuthContext - No token in login response');
             }
 
-            // Mise à jour état
             updateAuthState({
                 user: response.data.user,
                 accessToken: token,
@@ -297,7 +247,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'authenticated',
             });
 
-            console.log('✅ AuthContext - Login successful:', response.data.user?.full_name);
             return { success: true, user: response.data.user, mustChangePassword };
 
         } catch (error: any) {
@@ -314,11 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            console.log('📝 AuthContext - Attempting registration...');
-            
             const response = await api.post('/api/v1/auth/register', data);
-            console.log('✅ AuthContext - Registration successful');
-            
             return { success: true };
 
         } catch (error: any) {
@@ -330,19 +275,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Déconnexion
     const logout = async (): Promise<void> => {
         if (typeof window === 'undefined') {
-            console.warn('🔒 AuthContext: Logout bloqué côté server');
             return;
         }
 
         try {
-            console.log('🚪 AuthContext - Attempting logout...');
-            
             if (state.accessToken) {
                 await api.post('/api/v1/auth/logout', {}, { timeout: 5000 });
             }
         } catch (error: any) {
-            // Ne pas bloquer la déconnexion en cas d'erreur réseau
-            console.warn('⚠️ AuthContext - Logout API error:', apiUtils.getErrorMessage(error));
+            // Silent fail on logout
         } finally {
             clearStoredTokens();
             updateAuthState({
@@ -355,32 +296,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 status: 'unauthenticated',
             });
             
-            console.log('🚪 AuthContext - Logout completed, redirecting to login');
             router.push('/login');
         }
     };
 
-    // Rafraîchissement du token
+    /** @deprecated Handled by the API interceptor — kept for SessionGuard compat */
     const refreshAccessToken = async (): Promise<boolean> => {
         if (typeof window === 'undefined') {
             return false;
         }
 
         try {
-            console.log('🔄 AuthContext - Refreshing access token...');
-            
             const response = await api.post('/api/v1/auth/refresh');
-            const { accessToken } = response.data;
+            const token = response.data.access_token || response.data.accessToken;
             
-            setStoredToken(accessToken);
-            updateAuthState({ accessToken });
-            
-            console.log('✅ AuthContext - Token refreshed successfully');
-            return true;
+            if (token) {
+                setStoredToken(token);
+                updateAuthState({ accessToken: token });
+                return true;
+            }
 
-        } catch (error: any) {
-            console.error('❌ AuthContext - Token refresh failed:', error);
-            await logout();
+            return false;
+
+        } catch {
             return false;
         }
     };
@@ -392,22 +330,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            console.log('🔢 AuthContext - Verifying OTP...');
-            
             const response = await api.post('/api/v1/auth/verify-otp', { otp, method });
-            const { user, accessToken } = response.data;
+            const user = response.data.user;
+            const token = response.data.access_token || response.data.accessToken;
             
-            setStoredToken(accessToken);
+            setStoredToken(token);
             updateAuthState({
                 user,
-                accessToken,
+                accessToken: token,
                 isAuthenticated: true,
                 requires2FA: false,
                 roles: user.role ? [user.role] : [],
                 status: 'authenticated',
             });
             
-            console.log('✅ AuthContext - OTP verification successful');
             return true;
 
         } catch (error: any) {
@@ -423,20 +359,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Initialisation au montage du composant
     useEffect(() => {
-        console.log('🚀 AuthContext - Initializing...');
         fetchUser();
     }, []);
 
-    // Vérification de la santé de l'API au montage (optionnel)
     useEffect(() => {
         if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-            apiUtils.checkApiHealth().then(result => {
-                if (!result.available) {
-                    console.warn('⚠️ AuthContext - API Health Check Failed:', result.error);
-                } else {
-                    console.log('✅ AuthContext - API Health Check Passed');
-                }
-            });
+            apiUtils.checkApiHealth();
         }
     }, []);
 

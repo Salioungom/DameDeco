@@ -21,6 +21,7 @@ import {
 import { Refresh as RefreshIcon, ArrowBack, VerifiedUser } from '@mui/icons-material';
 import NextLink from 'next/link';
 import { OTPInput } from '@/components/auth/OTPInput';
+import { sanitizeRedirect } from '@/lib/sanitize-redirect';
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState('');
@@ -34,7 +35,7 @@ export default function VerifyOTPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
-  const redirectTo = searchParams.get('redirect');
+  const redirectTo = sanitizeRedirect(searchParams.get('redirect'));
   const theme = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,28 +64,18 @@ export default function VerifyOTPPage() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Réponse OTP complète:', data);
-        console.log('Clés OTP disponibles:', Object.keys(data));
         setSuccess(true);
         
-        // FastAPI retourne les données utilisateur et tokens
         if (data.user) {
           localStorage.setItem('user_fullname', data.user.name || data.user.fullname);
           localStorage.setItem('user_email', data.user.email);
         }
         
-        // Stocker les tokens JWT si présents
         if (data.token) {
           localStorage.setItem('token', data.token);
-          console.log('Token OTP stocké:', data.token);
         }
         if (data.access_token) {
           localStorage.setItem('token', data.access_token);
-          console.log('Access token OTP stocké:', data.access_token);
-        }
-        if (data.refresh_token) {
-          localStorage.setItem('refresh_token', data.refresh_token);
-          console.log('Refresh token OTP stocké:', data.refresh_token);
         }
         
         // Redirection selon le rôle de l'utilisateur

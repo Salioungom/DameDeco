@@ -58,6 +58,7 @@ export interface OrderCheckoutData {
   city: string;
   country: string;
   paymentMethod: string;
+  paymentPhone?: string;
   deliveryMethod: string;
   instructions?: string;
 }
@@ -197,6 +198,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
       city,
       country: 'Sénégal',
       paymentMethod,
+      paymentPhone,
       deliveryMethod,
       instructions,
     });
