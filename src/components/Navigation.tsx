@@ -216,7 +216,7 @@ const NavLink = memo(function NavLink({
           width: '60%',
           height: { xs: 2, md: 2.5 },
           borderRadius: 1.25,
-          bgcolor: theme.palette.golden?.main ?? primary,
+          bgcolor: primary,
           transition: 'transform 0.25s ease',
         },
         '& .MuiButton-startIcon': {

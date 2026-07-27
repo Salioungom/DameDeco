@@ -5,9 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   surface: '#F5F9FE',
   muted: '#5F6B7A',

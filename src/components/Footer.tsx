@@ -23,9 +23,10 @@ import {
   ArrowForward,
 } from '@mui/icons-material';
 import { PaymentIcons } from './PaymentIcons';
+import { useTheme } from '@mui/material/styles';
+import { useCategories } from '@/hooks/useCategories';
 
 const PRIMARY = '#042C53';
-const ACCENT = '#185FA5';
 const LIGHT = '#85B7EB';
 const MUTED = alpha('#fff', 0.65);
 const SOFT = alpha('#fff', 0.08);
@@ -35,13 +36,6 @@ const NAV_LINKS = [
   { label: 'Boutique', href: '/shop' },
   { label: 'À propos', href: '/about' },
   { label: 'Contact', href: '/contact' },
-];
-
-const CATEGORIES = [
-  { id: '1', label: 'Meubles' },
-  { id: '2', label: 'Décoration' },
-  { id: '3', label: 'Luminaires' },
-  { id: '4', label: 'Textile' },
 ];
 
 const ACCOUNT_LINKS = [
@@ -82,6 +76,9 @@ const headingSx = {
 };
 
 export function Footer() {
+  const theme = useTheme();
+  const ACCENT = theme.palette.primary.main;
+  const { categories } = useCategories();
   return (
     <Box
       component="footer"
@@ -182,14 +179,14 @@ export function Footer() {
           <Box>
             <Typography sx={headingSx}>Catégories</Typography>
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
-              {CATEGORIES.map((cat) => (
+              {(Array.isArray(categories) ? categories : []).map((cat) => (
                 <MuiLink
                   key={cat.id}
                   component={Link}
                   href={`/shop?category=${cat.id}`}
                   sx={linkSx}
                 >
-                  {cat.label}
+                  {cat.name}
                 </MuiLink>
               ))}
             </Stack>

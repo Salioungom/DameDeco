@@ -72,7 +72,7 @@ interface CheckoutFinalizeProps {
 
 export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, error = null }: CheckoutFinalizeProps) {
   const theme = useTheme();
-  const brandBlue = '#185FA5';
+  const brandBlue = theme.palette.primary.main;
 
   const {
     deliveryMethod,

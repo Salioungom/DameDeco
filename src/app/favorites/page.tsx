@@ -34,7 +34,7 @@ export default function FavoritesPage() {
     const [error, setError] = useState<string | null>(null);
     const { addToCart, userType, favorites: storeFavorites, toggleFavorite, user } = useStore();
     const router = useRouter();
-    const brandBlue = '#185FA5';
+    const brandBlue = theme.palette.primary.main;
 
     useEffect(() => {
         if (!user) {

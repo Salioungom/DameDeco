@@ -22,7 +22,7 @@ interface CheckoutHeaderProps {
 
 export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
   const theme = useTheme();
-  const brandBlue = '#185FA5';
+  const brandBlue = theme.palette.primary.main;
 
   return (
     <Box

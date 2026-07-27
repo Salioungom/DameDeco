@@ -17,6 +17,7 @@ import { Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { BRAND_BLUE } from '@/theme';
 
 export default function ChangePasswordPage() {
   const [userId, setUserId] = useState<number | null>(null);
@@ -258,7 +259,7 @@ export default function ChangePasswordPage() {
                         sx={{
                           color: '#888780',
                           '&:hover': {
-                            color: '#185FA5',
+                            color: BRAND_BLUE,
                             bgcolor: 'rgba(24, 95, 165, 0.08)',
                           },
                         }}
@@ -277,14 +278,14 @@ export default function ChangePasswordPage() {
                       borderColor: '#85B7EB',
                     },
                     '&.Mui-focused': {
-                      borderColor: '#185FA5',
+                      borderColor: BRAND_BLUE,
                       boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                     },
                   },
                   '& .MuiInputLabel-root': {
                     fontSize: '0.875rem',
                     '&.Mui-focused': {
-                      color: '#185FA5',
+                      color: BRAND_BLUE,
                     },
                   },
                 }}
@@ -311,7 +312,7 @@ export default function ChangePasswordPage() {
                         sx={{
                           color: '#888780',
                           '&:hover': {
-                            color: '#185FA5',
+                            color: BRAND_BLUE,
                             bgcolor: 'rgba(24, 95, 165, 0.08)',
                           },
                         }}
@@ -330,14 +331,14 @@ export default function ChangePasswordPage() {
                       borderColor: '#85B7EB',
                     },
                     '&.Mui-focused': {
-                      borderColor: '#185FA5',
+                      borderColor: BRAND_BLUE,
                       boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                     },
                   },
                   '& .MuiInputLabel-root': {
                     fontSize: '0.875rem',
                     '&.Mui-focused': {
-                      color: '#185FA5',
+                      color: BRAND_BLUE,
                     },
                   },
                 }}
@@ -364,7 +365,7 @@ export default function ChangePasswordPage() {
                         sx={{
                           color: '#888780',
                           '&:hover': {
-                            color: '#185FA5',
+                            color: BRAND_BLUE,
                             bgcolor: 'rgba(24, 95, 165, 0.08)',
                           },
                         }}
@@ -383,14 +384,14 @@ export default function ChangePasswordPage() {
                       borderColor: '#85B7EB',
                     },
                     '&.Mui-focused': {
-                      borderColor: '#185FA5',
+                      borderColor: BRAND_BLUE,
                       boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                     },
                   },
                   '& .MuiInputLabel-root': {
                     fontSize: '0.875rem',
                     '&.Mui-focused': {
-                      color: '#185FA5',
+                      color: BRAND_BLUE,
                     },
                   },
                 }}

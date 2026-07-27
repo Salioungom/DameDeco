@@ -31,10 +31,11 @@ import {
   alpha,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { BRAND_BLUE } from '@/theme';
 
 // ─── Palette (unchanged) ──────────────────────────────────────────────────────
 const C = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark:    '#042C53',
   light:   '#E6F1FB',
   surface: '#F5F9FE',

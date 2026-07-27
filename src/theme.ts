@@ -47,6 +47,8 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+export const BRAND_BLUE = '#185FA5';
+
 const theme = createTheme({
   spacing: 10,
   typography: {
@@ -107,9 +109,9 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2563eb', // Blue 600
-      light: '#3b82f6', // Blue 500
-      dark: '#1d4ed8', // Blue 700
+      main: '#185FA5',
+      light: '#2a7bc4',
+      dark: '#0f3d6e',
       contrastText: '#ffffff',
     },
     secondary: {
@@ -135,9 +137,9 @@ const theme = createTheme({
       dark: '#d97706', // Amber 600
     },
     info: {
-      main: '#3b82f6', // Blue 500
-      light: '#60a5fa', // Blue 400
-      dark: '#2563eb', // Blue 600
+      main: '#185FA5',
+      light: '#2a7bc4',
+      dark: '#0f3d6e',
     },
     text: {
       primary: '#1e293b', // Slate 800
@@ -150,9 +152,9 @@ const theme = createTheme({
     },
     divider: '#e2e8f0', // Slate 200
     custom: {
-      main: '#2563eb', // Same as primary
-      light: '#3b82f6',
-      dark: '#1d4ed8',
+      main: '#185FA5',
+      light: '#2a7bc4',
+      dark: '#0f3d6e',
       contrastText: '#ffffff',
     },
     golden: {
@@ -205,9 +207,9 @@ const theme = createTheme({
           fontSize: '0.875rem',
         },
         containedPrimary: {
-          background: 'linear-gradient(90deg, #2563eb 0%, #3b82f6 100%)',
+          background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, #2a7bc4 100%)`,
           '&:hover': {
-            background: 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%)',
+            background: `linear-gradient(90deg, #0f3d6e 0%, ${BRAND_BLUE} 100%)`,
           },
         },
         outlined: {
@@ -267,7 +269,7 @@ const theme = createTheme({
         root: {
           color: '#64748b',
           '&.Mui-focused': {
-            color: '#2563eb',
+            color: BRAND_BLUE,
           },
         },
       },
@@ -279,7 +281,7 @@ const theme = createTheme({
             borderColor: '#cbd5e1',
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#2563eb',
+            borderColor: BRAND_BLUE,
           },
         },
         input: {

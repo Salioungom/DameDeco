@@ -27,6 +27,7 @@ import NextLink from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClientOnly } from '@/components/ClientOnly';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
+import { BRAND_BLUE } from '@/theme';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -268,14 +269,14 @@ export default function LoginPage() {
                                                 borderColor: '#85B7EB',
                                             },
                                             '&.Mui-focused': {
-                                                borderColor: '#185FA5',
+                                                borderColor: BRAND_BLUE,
                                                 boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                                             },
                                         },
                                         '& .MuiInputLabel-root': {
                                             fontSize: '0.875rem',
                                             '&.Mui-focused': {
-                                                color: '#185FA5',
+                                                color: BRAND_BLUE,
                                             },
                                         },
                                     }}
@@ -305,7 +306,7 @@ export default function LoginPage() {
                                                 sx={{
                                                     color: '#888780',
                                                     '&:hover': {
-                                                        color: '#185FA5',
+                                                        color: BRAND_BLUE,
                                                         bgcolor: 'rgba(24, 95, 165, 0.08)',
                                                     },
                                                 }}
@@ -324,14 +325,14 @@ export default function LoginPage() {
                                             borderColor: '#85B7EB',
                                         },
                                         '&.Mui-focused': {
-                                            borderColor: '#185FA5',
+                                            borderColor: BRAND_BLUE,
                                             boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                                         },
                                     },
                                     '& .MuiInputLabel-root': {
                                         fontSize: '0.875rem',
                                         '&.Mui-focused': {
-                                            color: '#185FA5',
+                                            color: BRAND_BLUE,
                                         },
                                     },
                                 }}
@@ -342,7 +343,7 @@ export default function LoginPage() {
                                     component={NextLink}
                                     href="/forgot-password"
                                     sx={{
-                                        color: '#185FA5',
+                                        color: BRAND_BLUE,
                                         textDecoration: 'none',
                                         fontSize: '0.875rem',
                                         fontWeight: 600,
@@ -407,8 +408,8 @@ export default function LoginPage() {
                                 borderWidth: 1.5,
                                 fontWeight: 600,
                                 textTransform: 'none',
-                                borderColor: '#185FA5',
-                                color: '#185FA5',
+                                borderColor: BRAND_BLUE,
+                                color: BRAND_BLUE,
                                 fontSize: '0.95rem',
                                 transition: 'all 0.25s ease',
                                 '&:hover': {

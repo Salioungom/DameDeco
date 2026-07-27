@@ -1,12 +1,15 @@
 "use client";
 
-import { useTheme } from "next-themes";
+import { useTheme as useNextTheme } from "next-themes";
+import { useTheme } from "@mui/material/styles";
 import { Toaster as Sonner } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { theme = "system" } = useNextTheme();
+  const muiTheme = useTheme();
+  const infoColor = muiTheme.palette.primary.main;
 
   return (
     <Sonner
@@ -60,11 +63,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
         info: {
           style: {
             backgroundColor: '#EFF6FF',
-            color: '#2563EB',
+            color: infoColor,
             border: '1px solid #BFDBFE',
-          },
-          classNames: {
-            toast: '!bg-[#EFF6FF] !text-[#2563EB] !border-[#BFDBFE]',
           },
         },
       }}

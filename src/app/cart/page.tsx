@@ -32,7 +32,7 @@ export default function CartPage() {
     const router = useRouter();
     const { removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
     const { cart: cartWithProducts, loading: productsLoading } = useCartWithProducts();
-    const brandBlue = '#185FA5';
+    const brandBlue = theme.palette.primary.main;
 
     useEffect(() => {
         loadCart();
@@ -301,18 +301,18 @@ export default function CartPage() {
                     }}
                 >
                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'flex-end' }, gap: { xs: 2, sm: 2.25, md: 2 } }}>
-                        <Box sx={{ width: '100%' }}>
+                        <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
                             <Button
                                 variant="outlined"
                                 color="error"
                                 onClick={() => clearCart()}
                                 startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
-                                sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, width: '100%', fontSize: { xs: 13, sm: 15, md: 16 } }}
+                                sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, width: { xs: '100%', md: 'auto' }, whiteSpace: 'nowrap', fontSize: { xs: 13, sm: 15, md: 16 } }}
                             >
                                 Vider le panier
                             </Button>
                         </Box>
-                        <Box sx={{ width: '100%' }}>
+                        <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: { xs: 1.5, sm: 1.75, md: 2 } }}>
                                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
                                     Sous-total
@@ -322,12 +322,12 @@ export default function CartPage() {
                                 </Typography>
                             </Box>
 
-                            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.25, md: 1.5 }, flexDirection: { xs: 'column', sm: 'row' }, width: '100%' }}>
+                            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.25, md: 1.5 }, flexWrap: { xs: 'wrap', lg: 'nowrap' }, width: '100%' }}>
                                 <Button
                                     variant="outlined"
                                     onClick={() => router.push('/shop')}
                                     startIcon={<KeyboardArrowLeft sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
-                                    sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, fontSize: { xs: 13, sm: 15, md: 16 }, width: '100%' }}
+                                    sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, fontWeight: 500, fontSize: { xs: 13, sm: 15, md: 16 }, width: { xs: '100%', lg: 'auto' }, whiteSpace: 'nowrap' }}
                                 >
                                     Continuer mes achats
                                 </Button>
@@ -343,7 +343,8 @@ export default function CartPage() {
                                         fontWeight: 600,
                                         fontSize: { xs: 13, sm: 15, md: 16 },
                                         boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
-                                        width: '100%',
+                                        width: { xs: '100%', lg: 'auto' },
+                                        whiteSpace: 'nowrap',
                                     }}
                                 >
                                     Passer la commande

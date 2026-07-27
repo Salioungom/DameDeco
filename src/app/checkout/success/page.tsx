@@ -24,7 +24,7 @@ export default function OrderConfirmationPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const brandBlue = '#185FA5';
+    const brandBlue = theme.palette.primary.main;
     const brandDark = '#042C53';
 
     useEffect(() => {

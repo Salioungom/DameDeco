@@ -16,9 +16,10 @@ import {
 import { Save as SaveIcon } from '@mui/icons-material';
 import { shippingAPI } from '@/lib/shipping';
 import type { ShippingSettings, ShippingSettingsCreate } from '@/lib/types/shipping';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',

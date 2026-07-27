@@ -115,10 +115,10 @@ export function CartDrawer() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: alpha(golden, 0.08),
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
               }}
             >
-              <ShoppingBag sx={{ fontSize: 45, color: golden }} />
+              <ShoppingBag sx={{ fontSize: 45, color: theme.palette.primary.main }} />
             </Box>
             <Typography variant="body1" fontWeight={600}>
               {cartLoading ? 'Chargement...' : 'Votre panier est vide'}

@@ -41,9 +41,10 @@ import { orderViaWhatsApp } from '../lib/whatsapp';
 import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
+import { BRAND_BLUE } from '@/theme';
 
 const C = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   light: '#E6F1FB',
   surface: '#F8FAFC',

@@ -22,6 +22,7 @@ import {
   MarkEmailRead,
 } from '@mui/icons-material';
 import NextLink from 'next/link';
+import { BRAND_BLUE } from '@/theme';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -194,14 +195,14 @@ export default function ForgotPasswordPage() {
                         borderColor: '#85B7EB',
                       },
                       '&.Mui-focused': {
-                        borderColor: '#185FA5',
+                        borderColor: BRAND_BLUE,
                         boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                       },
                     },
                     '& .MuiInputLabel-root': {
                       fontSize: '0.875rem',
                       '&.Mui-focused': {
-                        color: '#185FA5',
+                        color: BRAND_BLUE,
                       },
                     },
                   }}
@@ -323,8 +324,8 @@ export default function ForgotPasswordPage() {
                     borderWidth: 1.5,
                     fontWeight: 600,
                     textTransform: 'none',
-                    borderColor: '#185FA5',
-                    color: '#185FA5',
+                    borderColor: BRAND_BLUE,
+                    color: BRAND_BLUE,
                     fontSize: '0.95rem',
                     transition: 'all 0.25s ease',
                     '&:hover': {

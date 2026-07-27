@@ -61,9 +61,10 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { categoryService, type Category } from '@/services/category.service';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',

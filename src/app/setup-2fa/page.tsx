@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { Security } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
+import { BRAND_BLUE } from '@/theme';
 
 interface TOTPSetup {
   secret: string;
@@ -311,10 +312,10 @@ export default function Setup2FAPage() {
                       disabled={settingUpTOTP || enablingTOTP || disablingTOTP}
                       sx={{
                         '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#185FA5',
+                          color: BRAND_BLUE,
                         },
                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#185FA5',
+                          backgroundColor: BRAND_BLUE,
                         },
                       }}
                     />
@@ -341,8 +342,8 @@ export default function Setup2FAPage() {
                         borderRadius: '8px',
                         fontWeight: 600,
                         textTransform: 'none',
-                        borderColor: '#185FA5',
-                        color: '#185FA5',
+                        borderColor: BRAND_BLUE,
+                        color: BRAND_BLUE,
                         '&:hover': {
                           borderColor: '#0C447C',
                           bgcolor: 'rgba(24, 95, 165, 0.06)',
@@ -395,10 +396,10 @@ export default function Setup2FAPage() {
                       }}
                       sx={{
                         '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#185FA5',
+                          color: BRAND_BLUE,
                         },
                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#185FA5',
+                          backgroundColor: BRAND_BLUE,
                         },
                       }}
                     />
@@ -476,14 +477,14 @@ export default function Setup2FAPage() {
                       borderColor: '#85B7EB',
                     },
                     '&.Mui-focused': {
-                      borderColor: '#185FA5',
+                      borderColor: BRAND_BLUE,
                       boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
                     },
                   },
                   '& .MuiInputLabel-root': {
                     fontSize: '0.875rem',
                     '&.Mui-focused': {
-                      color: '#185FA5',
+                      color: BRAND_BLUE,
                     },
                   },
                 }}
@@ -498,7 +499,7 @@ export default function Setup2FAPage() {
               borderRadius: '10px',
               fontWeight: 600,
               textTransform: 'none',
-              color: '#185FA5',
+              color: BRAND_BLUE,
               '&:hover': {
                 bgcolor: 'rgba(24, 95, 165, 0.06)',
               },

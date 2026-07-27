@@ -3,9 +3,10 @@
 import { Box, Paper, Typography } from '@mui/material';
 import { LocalShippingOutlined } from '@mui/icons-material';
 import ShippingSettingsForm from './ShippingSettingsForm';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   light: '#E6F1FB',
   border: '#D4E8F7',

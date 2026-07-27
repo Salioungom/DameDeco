@@ -10,9 +10,10 @@ import {
   Email, Phone, LocationOn, Send, WhatsApp,
   Facebook, Instagram, Twitter, AccessTime, ExpandMore,
 } from '@mui/icons-material';
+import { BRAND_BLUE } from '@/theme';
 
 const C = {
-  primary:'#185FA5', dark:'#042C53', light:'#E6F1FB',
+  primary: BRAND_BLUE, dark:'#042C53', light:'#E6F1FB',
   surface:'#F5F9FE', border:'#E6F1FB', mid:'#85B7EB',
   muted:'#888780', text:'#5F5E5A',
 } as const;

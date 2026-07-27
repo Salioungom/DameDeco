@@ -50,9 +50,10 @@ import { productService } from '../services/product.service';
 import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ProductImage } from './ProductImage';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',

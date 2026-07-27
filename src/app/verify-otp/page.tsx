@@ -22,6 +22,7 @@ import { Refresh as RefreshIcon, ArrowBack, VerifiedUser } from '@mui/icons-mate
 import NextLink from 'next/link';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
+import { BRAND_BLUE } from '@/theme';
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState('');
@@ -472,7 +473,7 @@ export default function VerifyOTPPage() {
                       '&.Mui-selected': {
                         background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
                         color: 'white',
-                        borderColor: '#185FA5',
+                        borderColor: BRAND_BLUE,
                       },
                     },
                   }}
@@ -545,7 +546,7 @@ export default function VerifyOTPPage() {
                 borderRadius: '10px',
                 fontWeight: 600,
                 textTransform: 'none',
-                color: '#185FA5',
+                color: BRAND_BLUE,
                 fontSize: '0.95rem',
                 transition: 'all 0.25s ease',
                 '&:hover': {

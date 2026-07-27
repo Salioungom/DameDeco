@@ -27,9 +27,10 @@ import {
 import { RequireRole } from '@/components/RequireRole';
 import { useAuth } from '@/contexts/AuthContext';
 import { validatePhone } from '@/utils/phoneValidation';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',

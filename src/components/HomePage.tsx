@@ -20,7 +20,6 @@ import {
   LocalShipping as Truck,
   Security as Shield,
   Place as PlaceIcon,
-  Star as StarIcon,
   CheckCircle,
   Add as AddIcon,
 } from '@mui/icons-material';
@@ -42,9 +41,10 @@ import { Product, Category } from '../lib/types';
 import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/error-handler';
+import { BRAND_BLUE } from '@/theme';
 
 const C = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   light: '#E6F1FB',
   surface: '#F8FAFC',
@@ -324,7 +324,7 @@ export function HomePage({
             position: 'relative',
             zIndex: 1,
             px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 4, sm: 6, lg: 8 },
+            py: { xs: 6, sm: 8, lg: 10 },
             maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
           }}
         >
@@ -513,21 +513,6 @@ export function HomePage({
                         position: 'absolute',
                         inset: 0,
                         background: `linear-gradient(to top, ${alpha(C.dark, 0.35)} 0%, transparent 40%)`,
-                      }}
-                    />
-                    <Chip
-                      icon={<StarIcon sx={{ fontSize: '17.5px !important', color: '#fbbf24 !important' }} />}
-                      label="4,9 · 2 300+ avis"
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        bgcolor: alpha('#fff', 0.95),
-                        fontWeight: 700,
-                        fontSize: 13.75,
-                        color: C.dark,
-                        border: `1px solid ${C.border}`,
                       }}
                     />
                     <Paper
@@ -1116,13 +1101,13 @@ export function HomePage({
               overflow: 'hidden',
               position: 'relative',
               bgcolor: C.dark,
-              px: { xs: 2, sm: 3.5, md: 5 },
-              py: { xs: 5, md: 7 },
+              px: { xs: 3, sm: 3.5, md: 5 },
+              py: { xs: 4, sm: 5, md: 7 },
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'stretch', md: 'center' },
               justifyContent: 'space-between',
-              gap: 4,
-              flexWrap: 'wrap',
+              gap: { xs: 3, md: 4 },
               border: `1px solid ${alpha(C.mid, 0.2)}`,
               background: `linear-gradient(135deg, ${C.dark} 0%, #0a3d6e 50%, ${C.primary} 120%)`,
               '&::before': {
@@ -1140,7 +1125,7 @@ export function HomePage({
             }}
           >
             <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 675 }}>
-              <Typography sx={{ ...sectionLabelSx, color: C.mid, mb: 1.5 }}>Achat en gros</Typography>
+              <Typography sx={{ ...sectionLabelSx, color: C.mid, mb: { xs: 1, md: 1.5 } }}>Achat en gros</Typography>
               <Typography
                 component="h2"
                 sx={{
@@ -1157,7 +1142,7 @@ export function HomePage({
               <Typography sx={{ fontSize: { xs: 17.5, md: 18.75 }, color: alpha('#fff', 0.72), lineHeight: 1.75, maxWidth: 600 }}>
                 Tarifs dégressifs pour les professionnels, devis personnalisé sous 24h et accompagnement dédié.
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 3 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: { xs: 2.5, md: 3 } }}>
                 {['Devis sous 24h', 'Tarifs négociés', 'Support prioritaire'].map((tag) => (
                   <Chip
                     key={tag}
@@ -1167,34 +1152,38 @@ export function HomePage({
                       bgcolor: alpha('#fff', 0.1),
                       color: alpha('#fff', 0.9),
                       fontWeight: 600,
-                      fontSize: 13.75,
-                      border: `1px solid ${alpha('#fff', 0.15)}`,
+                      fontSize: { xs: 12.5, sm: 13.25, md: 13.75 },
+                      border: `1px solid ${alpha('#fff', 0.18)}`,
+                      height: { xs: 28, md: 32 },
                     }}
                   />
                 ))}
               </Stack>
             </Box>
 
-            <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
+            <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'flex', justifyContent: { xs: 'center', md: 'flex-end' }, width: { xs: '100%', md: 'auto' } }}>
               <Button
                 variant="contained"
                 size="large"
                 endIcon={<ArrowRight />}
                 onClick={() => handleNavigate('contact')}
                 sx={{
-                  bgcolor: '#fff',
-                  color: C.dark,
+                  bgcolor: C.primary,
+                  color: '#fff',
                   fontWeight: 800,
-                  fontSize: 17.5,
-                  px: 4,
-                  py: 1.75,
+                  fontSize: { xs: 15, sm: 16, md: 17.5 },
+                  px: { xs: 3, sm: 3.5, md: 4 },
+                  py: { xs: 1.5, sm: 1.6, md: 1.75 },
                   borderRadius: '15px',
                   textTransform: 'none',
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  width: { xs: '100%', md: 'auto' },
+                  border: `2px solid ${alpha('#fff', 0.25)}`,
+                  boxShadow: `0 8px 32px ${alpha(C.primary, 0.5)}, inset 0 1px 0 ${alpha('#fff', 0.2)}`,
                   '&:hover': {
-                    bgcolor: C.light,
+                    bgcolor: C.dark,
                     transform: 'translateY(-2px)',
+                    boxShadow: `0 12px 40px ${alpha(C.primary, 0.6)}`,
                   },
                   transition: 'all 0.2s ease',
                 }}

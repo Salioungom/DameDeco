@@ -59,9 +59,10 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { safeApiCall } from '@/lib/error-handler';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',
@@ -202,7 +203,7 @@ function QuickActionButton({
 export default function SuperAdminDashboardPage() {
   const router = useRouter();
   const [error, setError] = useState('');
-  const { user, isAuthenticated, loading: authLoading, logout, accessToken } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, accessToken } = useAuth();
 
   const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -553,21 +554,6 @@ export default function SuperAdminDashboardPage() {
                 />
               </Stack>
             </Box>
-            <Button
-              variant="outlined"
-              onClick={() => logout()}
-              sx={{
-                color: BRAND.white,
-                borderColor: alpha(BRAND.white, 0.4),
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 600,
-                alignSelf: { xs: 'flex-start', sm: 'center' },
-                '&:hover': { borderColor: BRAND.white, bgcolor: alpha(BRAND.white, 0.1) },
-              }}
-            >
-              Déconnexion
-            </Button>
           </Stack>
         </Box>
       </Box>

@@ -17,6 +17,7 @@ import {
 import { Person as PersonIcon } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
+import { BRAND_BLUE } from '@/theme';
 
 interface UserProfile {
   id: number;
@@ -419,14 +420,14 @@ const textFieldStyles = {
       borderColor: '#85B7EB',
     },
     '&.Mui-focused': {
-      borderColor: '#185FA5',
+      borderColor: BRAND_BLUE,
       boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
     },
   },
   '& .MuiInputLabel-root': {
     fontSize: '0.875rem',
     '&.Mui-focused': {
-      color: '#185FA5',
+      color: BRAND_BLUE,
     },
   },
 };

@@ -38,7 +38,6 @@ import {
   AttachMoney as DollarSign,
   Category,
   Star,
-  Refresh as RefreshIcon,
   AdminPanelSettings,
   CheckCircle,
   Block,
@@ -55,9 +54,10 @@ import { CategoriesManagement } from './CategoriesManagement';
 import { AdminOrderManagement } from './AdminOrderManagement';
 import ShippingManagement from './shipping/ShippingManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',
@@ -405,23 +405,6 @@ export function AdminDashboard() {
                 Bienvenue{user?.full_name ? `, ${user.full_name}` : ''} — gérez votre boutique Dame Sarr
               </Typography>
             </Box>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={fetchDashboardData}
-              disabled={loadingStats || loadingOrders || loadingClients}
-              sx={{
-                color: BRAND.white,
-                borderColor: alpha(BRAND.white, 0.4),
-                borderRadius: '12.5px',
-                textTransform: 'none',
-                fontWeight: 600,
-                alignSelf: { xs: 'flex-start', sm: 'center' },
-                '&:hover': { borderColor: BRAND.white, bgcolor: alpha(BRAND.white, 0.1) },
-              }}
-            >
-              Actualiser
-            </Button>
           </Stack>
         </Box>
       </Box>

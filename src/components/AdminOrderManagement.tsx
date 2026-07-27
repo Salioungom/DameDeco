@@ -38,9 +38,10 @@ import {
   ShoppingCart as ShoppingCartIcon,
 } from '@mui/icons-material';
 import { getAdminOrders, updateOrderStatus } from '@/lib/api';
+import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
-  primary: '#185FA5',
+  primary: BRAND_BLUE,
   dark: '#042C53',
   white: '#FFFFFF',
   light: '#E6F1FB',
