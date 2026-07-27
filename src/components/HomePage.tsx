@@ -57,31 +57,31 @@ const C = {
 const HERO_IMAGE = '/banner.png';
 
 const formatPrice = (amount: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount);
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount).replace('XOF', 'FCFA');
 
 const sectionLabelSx = {
-  fontSize: { xs: 14, md: 15 },
+  fontSize: { xs: 12, sm: 13, md: 14, lg: 15 },
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
   color: C.primary,
-  mb: 1.5,
+  mb: { xs: 1, sm: 1.25, md: 1.5 },
 };
 
 const sectionTitleSx = {
-  fontSize: { xs: '1.9rem', md: '2.5rem' },
+  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.1rem', lg: '2.5rem' },
   fontWeight: 800,
   color: C.dark,
   letterSpacing: '-0.03em',
-  lineHeight: 1.15,
-  mb: 1.5,
+  lineHeight: { xs: 1.2, sm: 1.18, md: 1.15 },
+  mb: { xs: 1, sm: 1.25, md: 1.5 },
 };
 
 const sectionDescSx = {
-  fontSize: { xs: 18, md: 20 },
+  fontSize: { xs: 15, sm: 16.5, md: 18, lg: 20 },
   color: C.text,
-  lineHeight: 1.75,
-  maxWidth: 650,
+  lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 },
+  maxWidth: { xs: '100%', sm: 550, md: 650 },
 };
 
 const FEATURES = [
@@ -129,12 +129,12 @@ function SectionHeader({
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
         alignItems: centered ? 'center' : { xs: 'flex-start', sm: 'flex-end' },
-        gap: 3,
-        mb: { xs: 5, md: 6 },
+        gap: { xs: 2, sm: 2.5, md: 3 },
+        mb: { xs: 4, sm: 5, md: 6 },
         textAlign: centered ? 'center' : 'left',
       }}
     >
-      <Box sx={{ maxWidth: centered ? 800 : 700, ...(centered && { mx: 'auto' }) }}>
+      <Box sx={{ maxWidth: centered ? { xs: '100%', sm: 800 } : { xs: '100%', sm: 700 }, ...(centered && { mx: 'auto' }) }}>
         <Typography sx={sectionLabelSx}>{label}</Typography>
         <Typography component="h2" sx={sectionTitleSx}>
           {title}
@@ -293,13 +293,14 @@ export function HomePage({
   const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px)`;
 
   return (
-    <Box sx={{ width: '100%', overflow: 'hidden', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.default' }}>
       {/* ── HERO PREMIUM ── */}
       <Box
         component="section"
         sx={{
           position: 'relative',
           overflow: 'hidden',
+          overflowX: 'hidden',
           bgcolor: C.surface,
           minHeight: { xs: 'auto', lg: heroMinHeight },
         }}
@@ -323,34 +324,35 @@ export function HomePage({
             position: 'relative',
             zIndex: 1,
             px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 5, sm: 7, lg: 8 },
+            py: { xs: 4, sm: 6, lg: 8 },
+            maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
           }}
         >
           <Grid
             container
-            spacing={{ xs: 5, lg: 6 }}
+            spacing={{ xs: 3, sm: 4, lg: 6 }}
             alignItems="center"
             sx={{ minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
             <Grid size={{ xs: 12, lg: 6 }}>
-              <Box sx={{ maxWidth: 725 }}>
+              <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
                 <Box
                   sx={{
-                    display: 'inline-flex',
+                    display: { xs: 'none', sm: 'inline-flex' },
                     alignItems: 'center',
-                    gap: 1,
+                    gap: { xs: 0.75, sm: 1 },
                     bgcolor: '#fff',
                     border: `1px solid ${C.border}`,
                     borderRadius: '100px',
-                    px: 1.75,
-                    py: 0.625,
-                    mb: 3,
+                    px: { xs: 1.25, sm: 1.5, md: 1.75 },
+                    py: { xs: 0.5, sm: 0.625 },
+                    mb: { xs: 2, sm: 2.5, md: 3 },
                     boxShadow: '0 2px 12px rgba(4, 44, 83, 0.06)',
                   }}
                 >
-                  <Box sx={{ width: 8.75, height: 8.75, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
-                  <PlaceIcon sx={{ fontSize: 18.75, color: C.primary }} />
-                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
+                  <Box sx={{ width: { xs: 7, sm: 8, md: 8.75 }, height: { xs: 7, sm: 8, md: 8.75 }, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0 }} />
+                  <PlaceIcon sx={{ fontSize: { xs: 16, sm: 17, md: 18.75 }, color: C.primary }} />
+                  <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 600, color: C.dark, letterSpacing: '0.04em' }}>
                     Dakar · Import premium depuis la Chine
                   </Typography>
                 </Box>
@@ -359,11 +361,11 @@ export function HomePage({
                   component="h1"
                   sx={{
                     fontWeight: 800,
-                    fontSize: { xs: '2.15rem', sm: '2.75rem', md: '3.15rem', xl: '3.5rem' },
-                    lineHeight: 1.08,
+                    fontSize: { xs: '1.75rem', sm: '2.15rem', md: '2.75rem', lg: '3.15rem', xl: '3.5rem' },
+                    lineHeight: { xs: 1.15, sm: 1.1, md: 1.08 },
                     letterSpacing: '-0.035em',
                     color: C.dark,
-                    mb: 2.5,
+                    mb: { xs: 2, sm: 2.5 },
                   }}
                 >
                   L&apos;art de{' '}
@@ -383,31 +385,31 @@ export function HomePage({
 
                 <Typography
                   sx={{
-                    fontSize: { xs: 18.75, md: 20 },
+                    fontSize: { xs: 15, sm: 17, md: 18.75, lg: 20 },
                     color: C.text,
-                    lineHeight: 1.75,
-                    mb: 3,
-                    maxWidth: 600,
+                    lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 },
+                    mb: { xs: 2, sm: 2.5, md: 3 },
+                    maxWidth: { xs: '100%', sm: 550, md: 600 },
                   }}
                 >
                   Meubles, décoration et textile sélectionnés par Dame Sarr — import direct,
                   qualité contrôlée, livraison partout au Sénégal.
                 </Typography>
 
-                <Stack spacing={1.25} sx={{ mb: 4 }}>
+                <Stack spacing={{ xs: 1, sm: 1.25 }} sx={{ mb: { xs: 3, sm: 4 } }}>
                   {[
                     'Sélection rigoureuse chez des fournisseurs certifiés',
                     'Tarifs dégressifs pour les professionnels',
                     'Suivi de commande et livraison express',
                   ].map((pt) => (
-                    <Stack key={pt} direction="row" spacing={1.25} alignItems="flex-start">
-                      <CheckCircle sx={{ fontSize: 21.25, color: C.primary, mt: 0.25, flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 16.875, color: C.text, lineHeight: 1.5 }}>{pt}</Typography>
+                    <Stack key={pt} direction="row" spacing={{ xs: 1, sm: 1.25 }} alignItems="flex-start">
+                      <CheckCircle sx={{ fontSize: { xs: 18, sm: 20, md: 21.25 }, color: C.primary, mt: { xs: 0.15, sm: 0.25 }, flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: { xs: 14, sm: 15.5, md: 16.875 }, color: C.text, lineHeight: { xs: 1.4, sm: 1.5 } }}>{pt}</Typography>
                     </Stack>
                   ))}
                 </Stack>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 5 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3, sm: 4, md: 5 } }}>
                   <Button
                     variant="contained"
                     size="large"
@@ -416,10 +418,10 @@ export function HomePage({
                     sx={{
                       bgcolor: C.primary,
                       color: '#fff',
-                      borderRadius: '12.5px',
-                      px: 3.5,
-                      py: 1.375,
-                      fontSize: 17.5,
+                      borderRadius: { xs: '10px', sm: '12.5px' },
+                      px: { xs: 2, sm: 2.5, md: 3.5 },
+                      py: { xs: 1, sm: 1.15, md: 1.25 },
+                      fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 700,
                       textTransform: 'none',
                       boxShadow: `0 8px 28px ${alpha(C.primary, 0.35)}`,
@@ -429,6 +431,7 @@ export function HomePage({
                         transform: 'translateY(-1px)',
                       },
                       transition: 'all 0.2s ease',
+                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
                     Explorer la boutique
@@ -441,13 +444,14 @@ export function HomePage({
                       borderColor: C.border,
                       color: C.primary,
                       bgcolor: '#fff',
-                      borderRadius: '12.5px',
-                      px: 3,
-                      py: 1.375,
-                      fontSize: 17.5,
+                      borderRadius: { xs: '10px', sm: '12.5px' },
+                      px: { xs: 2, sm: 2.5, md: 3 },
+                      py: { xs: 1, sm: 1.15, md: 1.25 },
+                      fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 600,
                       textTransform: 'none',
                       '&:hover': { bgcolor: C.light, borderColor: C.mid },
+                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
                     Devis professionnel
@@ -457,9 +461,9 @@ export function HomePage({
                 <Box
                   sx={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: 2,
-                    pt: 3,
+                    gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(3, 1fr)' },
+                    gap: { xs: 1.5, sm: 2 },
+                    pt: { xs: 2.5, sm: 3 },
                     borderTop: `1px solid ${C.border}`,
                   }}
                 >
@@ -469,30 +473,31 @@ export function HomePage({
                     { num: '14 ans', label: "D'expertise" },
                   ].map((s) => (
                     <Box key={s.label}>
-                      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1.2rem', md: '1.45rem' }, color: C.dark, letterSpacing: '-0.02em' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1rem', sm: '1.2rem', md: '1.45rem' }, color: C.dark, letterSpacing: '-0.02em' }}>
                         {s.num}
                       </Typography>
-                      <Typography sx={{ fontSize: 14.375, color: C.muted, mt: 0.25 }}>{s.label}</Typography>
+                      <Typography sx={{ fontSize: { xs: 12, sm: 14, md: 14.375 }, color: C.muted, mt: 0.25 }}>{s.label}</Typography>
                     </Box>
                   ))}
                 </Box>
               </Box>
             </Grid>
 
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: 600, lg: 700 } }}>
-                <Box sx={{ position: 'relative' }}>
+            <Grid size={{ xs: 12, lg: 6 }} sx={{ overflow: 'hidden', width: '100%' }}>
+              <Box sx={{ mx: 'auto', width: '100%', maxWidth: { xs: '100%', sm: '90%', md: '85%', lg: 700 } }}>
+                <Box sx={{ position: 'relative', width: '100%' }}>
                   <Box
                     sx={{
                       position: 'relative',
-                      borderRadius: { xs: '25px', md: '30px' },
+                      borderRadius: { xs: '20px', sm: '25px', md: '30px' },
                       overflow: 'hidden',
-                      aspectRatio: '16/9',
-                      minHeight: { xs: 250, sm: 325, lg: 375 },
+                      aspectRatio: { xs: '4/3', sm: '16/9', md: '16/9' },
+                      minHeight: { xs: 180, sm: 280, md: 325, lg: 375 },
                       maxHeight: { lg: 425 },
                       bgcolor: C.light,
-                      boxShadow: '0 24px 80px rgba(4, 44, 83, 0.18)',
+                      boxShadow: { xs: '0 8px 24px rgba(4, 44, 83, 0.12)', md: '0 24px 80px rgba(4, 44, 83, 0.18)' },
                       border: `1px solid ${C.border}`,
+                      width: '100%',
                     }}
                   >
                     <Image
@@ -500,7 +505,7 @@ export function HomePage({
                       alt="Intérieur premium — Dame Sarr Import"
                       fill
                       priority
-                      sizes="(max-width: 900px) 90vw, 560px"
+                      sizes="(max-width: 600px) 100vw, (max-width: 900px) 90vw, 560px"
                       style={{ objectFit: 'cover', objectPosition: 'center' }}
                     />
                     <Box
@@ -555,8 +560,8 @@ export function HomePage({
                   sx={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    gap: 1,
-                    mt: 2,
+                    gap: { xs: 0.75, sm: 1 },
+                    mt: { xs: 1.5, sm: 2 },
                   }}
                 >
                   {heroCategoryTags.map((cat) => (
@@ -566,8 +571,8 @@ export function HomePage({
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          px: 1.5,
-                          py: 0.75,
+                          px: { xs: 1, sm: 1.5 },
+                          py: { xs: 0.5, sm: 0.75 },
                           borderRadius: '12.5px',
                           bgcolor: '#fff',
                           border: `1px solid ${C.border}`,
@@ -581,7 +586,7 @@ export function HomePage({
                           },
                         }}
                       >
-                        <Typography sx={{ fontSize: 14.375, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontSize: { xs: 13, sm: 14.375 }, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
                           {cat.name}
                         </Typography>
                       </Box>
@@ -592,8 +597,8 @@ export function HomePage({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 0.5,
-                      px: 1.5,
-                      py: 0.75,
+                      px: { xs: 1, sm: 1.5 },
+                      py: { xs: 0.5, sm: 0.75 },
                       borderRadius: '12.5px',
                       bgcolor: alpha(C.primary, 0.06),
                       border: `1px dashed ${alpha(C.primary, 0.3)}`,
@@ -605,8 +610,8 @@ export function HomePage({
                       },
                     }}
                   >
-                    <AddIcon sx={{ fontSize: 17.5, color: C.primary }} />
-                    <Typography sx={{ fontSize: 14.375, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
+                    <AddIcon sx={{ fontSize: { xs: 16, sm: 17.5 }, color: C.primary }} />
+                    <Typography sx={{ fontSize: { xs: 13, sm: 14.375 }, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
                       Plus
                     </Typography>
                   </Box>
@@ -746,9 +751,9 @@ export function HomePage({
                 <Box
                   key={feature.num}
                   sx={{
-                    p: { xs: 3.5, md: 4 },
+                    p: { xs: 2.5, sm: 3, md: 4 },
                     height: '100%',
-                    borderRadius: '20px',
+                    borderRadius: { xs: '16px', sm: '18px', md: '20px' },
                     bgcolor: alpha('#fff', 0.85),
                     backdropFilter: 'blur(12px)',
                     boxShadow: `0 1px 3px ${alpha(C.dark, 0.04)}`,
@@ -764,44 +769,44 @@ export function HomePage({
                 >
                   <Box
                     sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '14px',
+                      width: { xs: 48, sm: 52, md: 56 },
+                      height: { xs: 48, sm: 52, md: 56 },
+                      borderRadius: { xs: '12px', sm: '13px', md: '14px' },
                       background: `linear-gradient(135deg, ${C.primary} 0%, ${C.dark} 100%)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      mb: 3,
+                      mb: { xs: 2, sm: 2.5, md: 3 },
                       boxShadow: `0 8px 24px ${alpha(C.primary, 0.3)}`,
                     }}
                   >
-                    <Icon sx={{ fontSize: 28, color: '#fff' }} />
+                    <Icon sx={{ fontSize: { xs: 24, sm: 26, md: 28 }, color: '#fff' }} />
                   </Box>
 
                   <Typography
                     component="h3"
                     sx={{
-                      fontSize: { xs: 21, md: 23 },
+                      fontSize: { xs: 18, sm: 19.5, md: 21, lg: 23 },
                       fontWeight: 700,
                       color: C.dark,
-                      mb: 1.25,
+                      mb: { xs: 1, sm: 1.15, md: 1.25 },
                       letterSpacing: '-0.01em',
                     }}
                   >
                     {feature.title}
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: 16, md: 17 }, color: C.muted, lineHeight: 1.8, flex: 1 }}>
+                  <Typography sx={{ fontSize: { xs: 14.5, sm: 15.5, md: 16, lg: 17 }, color: C.muted, lineHeight: { xs: 1.6, sm: 1.7, md: 1.8 }, flex: 1 }}>
                     {feature.description}
                   </Typography>
 
                   {'paymentMethods' in feature && feature.paymentMethods && (
-                    <Box sx={{ mt: 3, pt: 2.5, borderTop: `1px solid ${alpha(C.border, 0.6)}` }}>
+                    <Box sx={{ mt: { xs: 2, sm: 2.5, md: 3 }, pt: { xs: 2, sm: 2.25, md: 2.5 }, borderTop: `1px solid ${alpha(C.border, 0.6)}` }}>
                       <Typography
                         sx={{
-                          fontSize: 13,
+                          fontSize: { xs: 11.5, sm: 12, md: 13 },
                           fontWeight: 700,
                           color: alpha(C.muted, 0.8),
-                          mb: 1.5,
+                          mb: { xs: 1, sm: 1.25, md: 1.5 },
                           textTransform: 'uppercase',
                           letterSpacing: '0.1em',
                         }}
@@ -833,10 +838,10 @@ export function HomePage({
                 sx={{
                   borderColor: C.border,
                   color: C.primary,
-                  borderRadius: '12.5px',
-                  px: 2.5,
-                  py: 1,
-                  fontSize: 16.25,
+                  borderRadius: { xs: '10px', sm: '12.5px' },
+                  px: { xs: 2, sm: 2.25, md: 2.5 },
+                  py: { xs: 0.85, sm: 0.95, md: 1 },
+                  fontSize: { xs: 14.5, sm: 15.5, md: 16.25 },
                   fontWeight: 600,
                   textTransform: 'none',
                   flexShrink: 0,
@@ -856,7 +861,7 @@ export function HomePage({
             >
               <CarouselContent>
                 {[1, 2, 3, 4].map((i) => (
-                  <CarouselItem key={i} sx={{ flex: { xs: '0 0 100%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' } }}>
+                  <CarouselItem key={i} sx={{ flex: { xs: '0 0 50%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' } }}>
                     <Skeleton variant="rounded" sx={{ borderRadius: '22.5px', aspectRatio: '16/10' }} />
                   </CarouselItem>
                 ))}
@@ -891,7 +896,7 @@ export function HomePage({
                     <CarouselItem
                       key={category.id}
                       sx={{
-                        flex: { xs: '0 0 100%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' },
+                        flex: { xs: '0 0 50%', sm: '0 0 50%', md: '0 0 33.333%', lg: '0 0 25%' },
                       }}
                     >
                       <Box
@@ -1060,7 +1065,7 @@ export function HomePage({
           />
 
           {loading ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} variant="rounded" height={475} sx={{ borderRadius: '17.5px' }} />
               ))}
@@ -1082,21 +1087,20 @@ export function HomePage({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-                gap: { xs: 2.5, md: 3 },
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+                gap: { xs: 2, md: 2.5 },
               }}
             >
               {popularProducts.map((product: Product) => (
-                <Box key={product.id}>
-                  <ProductCard
-                    product={product}
-                    onAddToCart={onAddToCart}
-                    onViewDetails={onViewProduct}
-                    userType={userType}
-                    isFavorite={favorites.includes(product.id.toString())}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                </Box>
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onViewDetails={onViewProduct}
+                  userType={userType}
+                  isFavorite={favorites.includes(product.id.toString())}
+                  onToggleFavorite={onToggleFavorite}
+                />
               ))}
             </Box>
           )}

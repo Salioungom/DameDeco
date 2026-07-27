@@ -52,6 +52,7 @@ import { productService } from '@/services/product.service';
 import { api } from '@/lib/api';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
+import { AdminOrderManagement } from './AdminOrderManagement';
 import ShippingManagement from './shipping/ShippingManagement';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -284,17 +285,35 @@ export function AdminDashboard() {
       setProductsCount(countRes.error ? 0 : countRes.data?.total || 0);
       setPopularProducts(popularRes.error ? [] : popularRes.data?.items || []);
 
-      const ordersData: OrderWithCustomer[] = Array.isArray(ordersRes.data)
-        ? ordersRes.data
-        : [];
-      setOrders(ordersData);
-
       const clientsData: ClientWithStats[] = Array.isArray(clientsRes.data?.items)
         ? clientsRes.data.items
         : Array.isArray(clientsRes.data)
           ? clientsRes.data
           : [];
       setClients(clientsData);
+
+      // Create client mapping for order-customer matching
+      const clientMap = new Map(clientsData.map(c => [c.id, c]));
+
+      const ordersData: OrderWithCustomer[] = Array.isArray(ordersRes.data)
+        ? ordersRes.data.map((order: any) => {
+            // If customer data is missing but we have customer_id, try to match from clients list
+            if (!order.customer && order.customer_id && clientMap.has(order.customer_id)) {
+              const client = clientMap.get(order.customer_id);
+              return {
+                ...order,
+                customer: {
+                  id: client!.id,
+                  name: client!.full_name || 'Client',
+                  email: client!.email,
+                  phone: client!.phone
+                }
+              };
+            }
+            return order;
+          })
+        : [];
+      setOrders(ordersData);
     } catch {
       setPopularProducts([]);
       setProductsCount(0);
@@ -612,150 +631,7 @@ export function AdminDashboard() {
 
         {/* Commandes */}
         <CustomTabPanel value={activeTab} index={3}>
-          <Paper
-            elevation={0}
-            sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
-          >
-            <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
-              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
-                Toutes les commandes
-              </Typography>
-              <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
-                {filteredOrders.length} commande{filteredOrders.length !== 1 ? 's' : ''} sur {orders.length}
-              </Typography>
-            </Box>
-
-            <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-              <TextField
-                size="small"
-                placeholder="Rechercher une commande..."
-                value={orderSearch}
-                onChange={(e) => setOrderSearch(e.target.value)}
-                sx={{ flex: 1, minWidth: 220 }}
-                slotProps={{
-                  input: {
-                    startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
-                  },
-                }}
-              />
-              <FormControl size="small" sx={{ minWidth: 180 }}>
-                <InputLabel sx={{ color: BRAND.muted }}>Statut</InputLabel>
-                <Select
-                  value={orderStatusFilter}
-                  label="Statut"
-                  onChange={(e) => setOrderStatusFilter(e.target.value)}
-                  sx={{ borderRadius: '10px' }}
-                >
-                  <MenuItem value="all">Tous les statuts</MenuItem>
-                  <MenuItem value="pending">En attente</MenuItem>
-                  <MenuItem value="confirmed">Confirmée</MenuItem>
-                  <MenuItem value="processing">En traitement</MenuItem>
-                  <MenuItem value="shipped">Expédiée</MenuItem>
-                  <MenuItem value="delivered">Livrée</MenuItem>
-                  <MenuItem value="cancelled">Annulée</MenuItem>
-                  <MenuItem value="refunded">Remboursée</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            {loadingOrders ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                <CircularProgress sx={{ color: BRAND.primary }} />
-              </Box>
-            ) : filteredOrders.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <ShoppingCart sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
-                <Typography sx={{ color: BRAND.muted }}>
-                  {orders.length === 0 ? 'Aucune commande enregistrée' : 'Aucune commande ne correspond aux filtres'}
-                </Typography>
-              </Box>
-            ) : (
-              <>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow
-                        sx={{
-                          bgcolor: BRAND.dark,
-                          '& th': {
-                            color: BRAND.white,
-                            fontWeight: 600,
-                            fontSize: 15,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            py: 1.5,
-                            borderBottom: 'none',
-                          },
-                        }}
-                      >
-                        <TableCell>N° commande</TableCell>
-                        <TableCell>Client</TableCell>
-                        <TableCell>Total</TableCell>
-                        <TableCell>Statut</TableCell>
-                        <TableCell>Date</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {paginatedOrders.map((order, i) => (
-                        <TableRow
-                          key={order.id}
-                          hover
-                          sx={{
-                            bgcolor: i % 2 === 0 ? BRAND.white : BRAND.surface,
-                            '& td': { borderColor: BRAND.border, py: 1.5 },
-                          }}
-                        >
-                          <TableCell>
-                            <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary }}>
-                              {order.order_number}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography sx={{ fontSize: 17.5, color: BRAND.dark }}>
-                              {getOrderCustomerName(order)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
-                              {formatFcfa(Number(order.total_amount) || 0)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
-                          </TableCell>
-                          <TableCell>
-                            <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>
-                              {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <TablePagination
-                  component="div"
-                  count={filteredOrders.length}
-                  page={orderPage}
-                  onPageChange={(_e, p) => setOrderPage(p)}
-                  rowsPerPage={orderRowsPerPage}
-                  onRowsPerPageChange={(e) => { setOrderRowsPerPage(Number(e.target.value)); setOrderPage(0); }}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                  labelRowsPerPage="Lignes par page"
-                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
-                  sx={{
-                    borderTop: `1px solid ${BRAND.border}`,
-                    '& .MuiTablePagination-toolbar': { minHeight: 52 },
-                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                      color: BRAND.muted,
-                      fontSize: 15,
-                    },
-                    '& .MuiIconButton-root': { color: BRAND.primary },
-                  }}
-                />
-              </>
-            )}
-          </Paper>
+          <AdminOrderManagement />
         </CustomTabPanel>
 
         {/* Avis */}
@@ -802,7 +678,7 @@ export function AdminDashboard() {
                 size="small"
                 placeholder="Rechercher un client..."
                 value={clientSearch}
-                onChange={(e) => setClientSearch(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientSearch(e.target.value)}
                 sx={{ flex: 1, minWidth: 220 }}
                 slotProps={{
                   input: {
@@ -815,7 +691,7 @@ export function AdminDashboard() {
                 <Select
                   value={clientStatusFilter}
                   label="Statut"
-                  onChange={(e) => setClientStatusFilter(e.target.value)}
+                  onChange={(e: React.ChangeEvent<{ value: unknown }>) => setClientStatusFilter(e.target.value as string)}
                   sx={{ borderRadius: '10px' }}
                 >
                   <MenuItem value="all">Tous les statuts</MenuItem>
@@ -907,12 +783,12 @@ export function AdminDashboard() {
                   component="div"
                   count={filteredClients.length}
                   page={clientPage}
-                  onPageChange={(_e, p) => setClientPage(p)}
+                  onPageChange={(_e: React.MouseEvent<HTMLButtonElement> | null, p: number) => setClientPage(p)}
                   rowsPerPage={clientRowsPerPage}
-                  onRowsPerPageChange={(e) => { setClientRowsPerPage(Number(e.target.value)); setClientPage(0); }}
+                  onRowsPerPageChange={(e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => { setClientRowsPerPage(Number(e.target.value)); setClientPage(0); }}
                   rowsPerPageOptions={[5, 10, 25, 50]}
                   labelRowsPerPage="Lignes par page"
-                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+                  labelDisplayedRows={({ from, to, count }: { from: number; to: number; count: number }) => `${from}–${to} sur ${count}`}
                   sx={{
                     borderTop: `1px solid ${BRAND.border}`,
                     '& .MuiTablePagination-toolbar': { minHeight: 52 },

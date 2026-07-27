@@ -44,7 +44,7 @@ export function ProductCardAlternative({ product }: ProductCardAlternativeProps)
         p: 2,
       }}>
         <Typography variant="h6" color="white" fontWeight="bold">
-          {product.price.toLocaleString()} XOF
+          {product.price.toLocaleString()} FCFA
         </Typography>
       </Box>
     </Box>

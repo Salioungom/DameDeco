@@ -349,7 +349,7 @@ export function CategoryPage({
                             <Grid
                                 item
                                 key={product.id}
-                                xs={12}
+                                xs={6}
                                 sm={6}
                                 md={6}
                                 lg={4}

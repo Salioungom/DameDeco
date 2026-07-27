@@ -30,11 +30,22 @@ import {
     CardContent,
     Grid,
 } from '@mui/material';
-import { MoreVert, ShoppingBag as ShoppingBagIcon } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
+import { MoreVert, ShoppingBag as ShoppingBagIcon, FilterList as FilterIcon } from '@mui/icons-material';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
 import { OrderResponse } from '@/services/order.service';
+
+const STATUS_FILTERS = [
+    { value: null, label: 'Toutes' },
+    { value: ORDER_STATUS.PENDING, label: OrderService.getStatusLabel(ORDER_STATUS.PENDING) },
+    { value: ORDER_STATUS.CONFIRMED, label: OrderService.getStatusLabel(ORDER_STATUS.CONFIRMED) },
+    { value: ORDER_STATUS.PROCESSING, label: OrderService.getStatusLabel(ORDER_STATUS.PROCESSING) },
+    { value: ORDER_STATUS.SHIPPED, label: OrderService.getStatusLabel(ORDER_STATUS.SHIPPED) },
+    { value: ORDER_STATUS.DELIVERED, label: OrderService.getStatusLabel(ORDER_STATUS.DELIVERED) },
+    { value: ORDER_STATUS.CANCELLED, label: OrderService.getStatusLabel(ORDER_STATUS.CANCELLED) },
+    { value: ORDER_STATUS.REFUNDED, label: OrderService.getStatusLabel(ORDER_STATUS.REFUNDED) },
+] as const;
 
 function OrdersContent() {
     const { user } = useAuth();
@@ -52,16 +63,13 @@ function OrdersContent() {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [hasMore, setHasMore] = useState(true);
     const [hasOrders, setHasOrders] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<typeof ORDER_STATUS[keyof typeof ORDER_STATUS] | null>(null);
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             setIsPageChanging(true);
             setError(null);
-            const ordersData = await OrderService.getCustomerOrders(page, rowsPerPage);
+            const ordersData = await OrderService.getCustomerOrders(page, rowsPerPage, statusFilter ?? undefined);
             setOrders(ordersData);
             
             // Détecter si on a atteint la dernière page
@@ -73,7 +81,11 @@ function OrdersContent() {
             setLoading(false);
             setIsPageChanging(false);
         }
-    };
+    }, [page, rowsPerPage, statusFilter]);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const handleChangePage = (event: unknown, newPage: number) => {
         // Empêcher d'avancer au-delà de la dernière page
@@ -88,9 +100,10 @@ function OrdersContent() {
         setPage(0);
     };
 
-    useEffect(() => {
-        fetchOrders();
-    }, [page, rowsPerPage]);
+    const handleStatusFilterChange = (value: typeof ORDER_STATUS[keyof typeof ORDER_STATUS] | null) => {
+        setStatusFilter(value);
+        setPage(0);
+    };
 
     const handleCancelOrder = async (order: OrderResponse) => {
         try {
@@ -134,8 +147,7 @@ function OrdersContent() {
                 router.push(`/checkout?orderId=${order.id}`);
                 break;
             case 'validate':
-                // TODO: Implémenter la validation
-                console.log('Valider commande', order.id);
+                router.push(`/checkout/finalize?orderId=${order.id}`);
                 break;
         }
     };
@@ -159,6 +171,21 @@ function OrdersContent() {
                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                     Historique de vos commandes
                 </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
+                <FilterIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                {STATUS_FILTERS.map(({ value, label }) => (
+                    <Chip
+                        key={label}
+                        label={label}
+                        size="small"
+                        variant={statusFilter === value ? 'filled' : 'outlined'}
+                        color={statusFilter === value ? 'primary' : 'default'}
+                        onClick={() => handleStatusFilterChange(value)}
+                        sx={{ fontWeight: statusFilter === value ? 600 : 400 }}
+                    />
+                ))}
             </Box>
 
             <Card elevation={2} sx={{ borderRadius: 2 }}>
@@ -238,12 +265,16 @@ function OrdersContent() {
                                                 <MenuItem onClick={() => handleMenuAction('details', order)} sx={{ color: 'primary.main' }}>
                                                     Détails
                                                 </MenuItem>
-                                                <MenuItem onClick={() => handleMenuAction('change_info', order)} sx={{ color: 'info.main' }}>
-                                                    Changer mes informations
-                                                </MenuItem>
-                                                <MenuItem onClick={() => handleMenuAction('validate', order)} sx={{ color: 'success.main' }}>
-                                                    Valider
-                                                </MenuItem>
+                                                {order.status === ORDER_STATUS.PENDING && (
+                                                    <MenuItem onClick={() => handleMenuAction('change_info', order)} sx={{ color: 'info.main' }}>
+                                                        Changer mes informations
+                                                    </MenuItem>
+                                                )}
+                                                {order.status === ORDER_STATUS.PENDING && (
+                                                    <MenuItem onClick={() => handleMenuAction('validate', order)} sx={{ color: 'success.main' }}>
+                                                        Valider
+                                                    </MenuItem>
+                                                )}
                                             </Menu>
                                         </TableCell>
                                     </TableRow>
@@ -285,16 +316,29 @@ function OrdersContent() {
                 <Card elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'grey.50' }}>
                     <ShoppingBagIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
                     <Typography variant="h6" color="text.secondary" gutterBottom>
-                        Vous n'avez pas encore de commandes
+                        {statusFilter
+                            ? `Aucune commande avec le statut « ${OrderService.getStatusLabel(statusFilter)} »`
+                            : "Vous n'avez pas encore de commandes"}
                     </Typography>
-                    <Button
-                        variant="contained"
-                        size="large"
-                        sx={{ mt: 2 }}
-                        onClick={() => window.location.href = '/shop'}
-                    >
-                        Commencer vos achats
-                    </Button>
+                    {statusFilter ? (
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            sx={{ mt: 2 }}
+                            onClick={() => handleStatusFilterChange(null)}
+                        >
+                            Voir toutes les commandes
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            size="large"
+                            sx={{ mt: 2 }}
+                            onClick={() => window.location.href = '/shop'}
+                        >
+                            Commencer vos achats
+                        </Button>
+                    )}
                 </Card>
             )}
 

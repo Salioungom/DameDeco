@@ -714,7 +714,7 @@ export function ProductManagement() {
                     />
                     <ProductImageOverlay className="product-image-overlay">
                       <Typography variant="h6" color="white" fontWeight="bold">
-                        {product.price.toLocaleString()} XOF
+                        {product.price.toLocaleString()} FCFA
                       </Typography>
                     </ProductImageOverlay>
                     <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -743,7 +743,7 @@ export function ProductManagement() {
                       </Typography>
                       {product.original_price && product.original_price > product.price && (
                         <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.disabled' }}>
-                          {product.original_price.toLocaleString()} XOF
+                          {product.original_price.toLocaleString()} FCFA
                         </Typography>
                       )}
                     </Box>
@@ -753,7 +753,7 @@ export function ProductManagement() {
                       </Typography>
                       {product.wholesale_price && (
                         <Typography variant="caption" color="success.main">
-                          Grossiste: {product.wholesale_price.toLocaleString()} XOF
+                          Grossiste: {product.wholesale_price.toLocaleString()} FCFA
                         </Typography>
                       )}
                     </Box>
@@ -1054,7 +1054,7 @@ export function ProductManagement() {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Typography sx={{ color: 'success.main', fontSize: 25, fontWeight: 700 }}>XOF</Typography>
+                  <Typography sx={{ color: 'success.main', fontSize: 25, fontWeight: 700 }}>FCFA</Typography>
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" fontWeight={700} color="text.primary">
@@ -1088,7 +1088,7 @@ export function ProductManagement() {
                       value={formData.price || 0}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, price: Number(e.target.value) })}
                       InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">XOF</Typography></InputAdornment>
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="success.main">FCFA</Typography></InputAdornment>
                       }}
                       required
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
@@ -1103,7 +1103,7 @@ export function ProductManagement() {
                       value={formData.original_price || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, original_price: Number(e.target.value) })}
                       InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>
                       }}
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                     />
@@ -1116,7 +1116,7 @@ export function ProductManagement() {
                       value={formData.wholesale_price || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesale_price: Number(e.target.value) })}
                       InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">XOF</Typography></InputAdornment>
+                        endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>
                       }}
                       sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                     />
@@ -1482,7 +1482,7 @@ export function ProductManagement() {
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Prix Public</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight={800}>{selectedProduct.price.toLocaleString()} XOF</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight={800}>{selectedProduct.price.toLocaleString()} FCFA</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Catégorie</Typography>

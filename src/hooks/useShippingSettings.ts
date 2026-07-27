@@ -32,19 +32,19 @@ export function useShippingSettings() {
             const fallbackSettings: Partial<ShippingSettings> = {
               freeShippingThreshold: 25000,
               standardShippingCost: 2500,
-              currency: 'XOF',
-              freeShippingEnabled: true,
-            };
-            setSettings(fallbackSettings as ShippingSettings);
-          }
-        }
-      } catch (err) {
-        console.log('Error fetching settings:', err);
-        // Fallback avec les valeurs configurées dans l'admin
-        const fallbackSettings: Partial<ShippingSettings> = {
-          freeShippingThreshold: 25000,
-          standardShippingCost: 2500,
-          currency: 'XOF',
+currency: 'FCFA',
+          freeShippingEnabled: true,
+        };
+        setSettings(fallbackSettings as ShippingSettings);
+      }
+    }
+  } catch (err) {
+    console.log('Error fetching settings:', err);
+    // Fallback avec les valeurs configurées dans l'admin
+    const fallbackSettings: Partial<ShippingSettings> = {
+      freeShippingThreshold: 25000,
+      standardShippingCost: 2500,
+      currency: 'FCFA',
           freeShippingEnabled: true,
         };
         setSettings(fallbackSettings as ShippingSettings);

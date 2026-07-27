@@ -67,12 +67,12 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
   if (items.length === 0) {
     return (
       <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <ShoppingCartOutlined sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom>
+        <Box sx={{ textAlign: 'center', px: 2 }}>
+          <ShoppingCartOutlined sx={{ fontSize: { xs: 60, sm: 70, md: 80 }, color: 'text.disabled', mb: { xs: 1.5, sm: 2 } }} />
+          <Typography variant="h6" fontWeight={600} color="text.secondary" gutterBottom sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }}>
             Votre panier est vide
           </Typography>
-          <Button variant="contained" onClick={onBackToCart} sx={{ borderRadius: 2, mt: 1 }}>
+          <Button variant="contained" onClick={onBackToCart} sx={{ borderRadius: { xs: 2, sm: 2.25, md: 2.5 }, mt: { xs: 1, sm: 1.25 }, fontSize: { xs: 14, sm: 15, md: 16 } }}>
             Retour à la boutique
           </Button>
         </Box>
@@ -82,15 +82,15 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 4 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 3.5, md: 4, lg: 5 } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: { xs: 3, sm: 3.5, md: 4 } }}>
           {/* Liste des articles */}
           <Box>
-            <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
               {items.length} article{items.length > 1 ? 's' : ''}
             </Typography>
 
-            <Stack spacing={2}>
+            <Stack spacing={{ xs: 1.5, sm: 2 }}>
               {items.map((item) => {
                 if (!item.product) return null;
                 const price =
@@ -104,9 +104,9 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     key={item.id || item.product_id}
                     sx={{
                       display: 'flex',
-                      gap: 2,
-                      p: 2.5,
-                      borderRadius: 3,
+                      gap: { xs: 1.5, sm: 2 },
+                      p: { xs: 2, sm: 2.25, md: 2.5 },
+                      borderRadius: { xs: 2.5, sm: 2.75, md: 3 },
                       bgcolor: 'background.paper',
                       border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
                       transition: 'all 0.2s ease',
@@ -117,9 +117,9 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                   >
                     <Box
                       sx={{
-                        width: 112.5,
-                        height: 112.5,
-                        borderRadius: 2,
+                        width: { xs: 80, sm: 95, md: 112.5 },
+                        height: { xs: 80, sm: 95, md: 112.5 },
+                        borderRadius: { xs: 1.5, sm: 1.75, md: 2 },
                         overflow: 'hidden',
                         bgcolor: 'action.hover',
                         flexShrink: 0,
@@ -134,16 +134,11 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     </Box>
 
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: { xs: 0.75, sm: 1 } }}>
                         <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="subtitle1" fontWeight={600} noWrap>
+                          <Typography variant="subtitle1" fontWeight={600} noWrap sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
                             {item.product.name}
                           </Typography>
-                          {item.product.reference && (
-                            <Typography variant="caption" color="text.secondary">
-                              Réf: {item.product.reference}
-                            </Typography>
-                          )}
                         </Box>
                         <IconButton
                           size="small"
@@ -153,18 +148,18 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                             '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.08) },
                           }}
                         >
-                          <Trash2 fontSize="small" />
+                          <Trash2 fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
                         </IconButton>
                       </Box>
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: { xs: 1, sm: 1.25, md: 1.5 } }}>
                         <Box
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5,
+                            gap: { xs: 0.35, sm: 0.5 },
                             border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
-                            borderRadius: 1.5,
+                            borderRadius: { xs: 1.25, sm: 1.35, md: 1.5 },
                             overflow: 'hidden',
                           }}
                         >
@@ -173,12 +168,12 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                               size="small"
                               onClick={() => handleQuantityChange(item, -1)}
                               disabled={item.quantity <= 1}
-                              sx={{ width: 40, height: 40, borderRadius: 0 }}
+                              sx={{ width: { xs: 32, sm: 36, md: 40 }, height: { xs: 32, sm: 36, md: 40 }, borderRadius: 0 }}
                             >
-                              <Remove fontSize="small" />
+                              <Remove fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
                             </IconButton>
                           </ClientOnly>
-                          <Typography variant="body2" fontWeight={600} sx={{ px: 1.5, minWidth: 30, textAlign: 'center' }}>
+                          <Typography variant="body2" fontWeight={600} sx={{ px: { xs: 1, sm: 1.25, md: 1.5 }, minWidth: { xs: 24, sm: 27, md: 30 }, textAlign: 'center', fontSize: { xs: 13, sm: 14, md: 15 } }}>
                             {item.quantity}
                           </Typography>
                           <ClientOnly>
@@ -186,14 +181,14 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                               size="small"
                               onClick={() => handleQuantityChange(item, 1)}
                               disabled={item.quantity >= (item.product.inventory_quantity || 99)}
-                              sx={{ width: 40, height: 40, borderRadius: 0 }}
+                              sx={{ width: { xs: 32, sm: 36, md: 40 }, height: { xs: 32, sm: 36, md: 40 }, borderRadius: 0 }}
                             >
-                              <Add fontSize="small" />
+                              <Add fontSize="small" sx={{ fontSize: { xs: 16, sm: 18, md: 20 } }} />
                             </IconButton>
                           </ClientOnly>
                         </Box>
 
-                        <Typography variant="subtitle1" fontWeight={700} color="primary">
+                        <Typography variant="subtitle1" fontWeight={700} color="primary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
                           {lineTotal.toLocaleString('fr-FR')} FCFA
                         </Typography>
                       </Box>
@@ -208,24 +203,24 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
           <Box>
             <Box
               sx={{
-                p: 3.5,
-                borderRadius: 3,
+                p: { xs: 2.5, sm: 3, md: 3.5 },
+                borderRadius: { xs: 2.5, sm: 2.75, md: 3 },
                 bgcolor: 'background.paper',
                 border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
-                position: 'sticky',
-                top: 100,
+                position: { lg: 'sticky' },
+                top: { lg: 100 },
               }}
             >
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, fontSize: { xs: 18, sm: 19, md: 20 } }}>
                 Résumé
               </Typography>
 
-              <Stack spacing={2}>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }}>
                     Sous-total
                   </Typography>
-                  <Typography variant="body2" fontWeight={600}>
+                  <Typography variant="body2" fontWeight={600} sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }}>
                     {subtotal.toLocaleString('fr-FR')} FCFA
                   </Typography>
                 </Box>
@@ -233,23 +228,24 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                 <Divider />
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" fontWeight={800}>
+                  <Typography variant="subtitle1" fontWeight={800} sx={{ fontSize: { xs: 16, sm: 17, md: 18 } }}>
                     Total
                   </Typography>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary">
+                  <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ fontSize: { xs: 16, sm: 17, md: 18 } }}>
                     {total.toLocaleString('fr-FR')} FCFA
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column', pt: 1 }}>
+                <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 }, flexDirection: 'column', pt: { xs: 0.75, sm: 1 } }}>
                   <Button
                     variant="outlined"
                     onClick={onBackToCart}
                     sx={{
-                      borderRadius: 2,
-                      py: 1.3,
+                      borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
+                      py: { xs: 1.15, sm: 1.25, md: 1.3 },
                       fontWeight: 600,
                       borderColor: alpha(theme.palette.divider, 0.8),
+                      fontSize: { xs: 14, sm: 15, md: 16 },
                     }}
                   >
                     Modifier le panier
@@ -260,12 +256,12 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     fullWidth
                     onClick={onContinue}
                     disabled={checkingAuth}
-                    endIcon={checkingAuth ? <CircularProgress size={20} color="inherit" /> : <ArrowForward />}
+                    endIcon={checkingAuth ? <CircularProgress size={{ xs: 18, sm: 20 }} color="inherit" /> : <ArrowForward sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
                     sx={{
-                      borderRadius: 2,
-                      py: 1.6,
+                      borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
+                      py: { xs: 1.35, sm: 1.45, md: 1.6 },
                       fontWeight: 700,
-                      fontSize: 18.75,
+                      fontSize: { xs: 15.5, sm: 17, md: 18.75 },
                       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
                     }}
                   >
@@ -277,7 +273,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                   variant="caption"
                   align="center"
                   color="text.secondary"
-                  sx={{ display: 'block', lineHeight: 1.5, pt: 0.5 }}
+                  sx={{ display: 'block', lineHeight: { xs: 1.4, sm: 1.45, md: 1.5 }, pt: { xs: 0.35, sm: 0.4, md: 0.5 }, fontSize: { xs: 11, sm: 11.5, md: 12 } }}
                 >
                   En continuant, vous acceptez nos conditions de vente
                 </Typography>

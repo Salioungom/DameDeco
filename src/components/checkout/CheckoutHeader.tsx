@@ -29,19 +29,20 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
       sx={{
         background: `linear-gradient(135deg, ${alpha(brandBlue, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.04)} 100%)`,
         borderBottom: `1px solid ${alpha(brandBlue, 0.1)}`,
-        pt: { xs: 12, md: 14 },
-        pb: { xs: 3, md: 4 },
+        pt: { xs: 10, sm: 11, md: 13, lg: 14 },
+        pb: { xs: 2.5, sm: 3, md: 3.5, lg: 4 },
       }}
     >
       <Container maxWidth="xl">
         <Button
-          startIcon={<ArrowLeft />}
+          startIcon={<ArrowLeft sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
           onClick={onBack}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: { xs: 1.5, sm: 2 },
+            borderRadius: { xs: 2, sm: 2.25, md: 2.5 },
             fontWeight: 500,
             color: 'text.secondary',
+            fontSize: { xs: 14, sm: 15, md: 16 },
           }}
         >
           {activeStep === 0 ? 'Retour au panier' : 'Retour au récapitulatif'}
@@ -51,9 +52,9 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
           variant="h3"
           fontWeight={800}
           sx={{
-            fontSize: { xs: 32.5, md: 42.5 },
+            fontSize: { xs: 26, sm: 28, md: 36, lg: 42.5 },
             letterSpacing: '-0.02em',
-            mb: 3,
+            mb: { xs: 2, sm: 2.5, md: 3 },
           }}
         >
           {activeStep === 0 ? 'Votre panier' : 'Finaliser la commande'}
@@ -62,10 +63,10 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
         <Stepper
           activeStep={activeStep}
           sx={{
-            maxWidth: 625,
+            maxWidth: { xs: '100%', sm: 625 },
             '& .MuiStepLabel-label': {
               fontWeight: 600,
-              fontSize: { xs: 16.25, md: 17.5 },
+              fontSize: { xs: 13, sm: 14.5, md: 16.25, lg: 17.5 },
             },
             '& .MuiStepLabel-label.Mui-active': {
               color: brandBlue,

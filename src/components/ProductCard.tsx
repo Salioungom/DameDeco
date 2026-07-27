@@ -219,7 +219,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 
   const fmt = (amount: number) =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount);
+    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount).replace('XOF', 'FCFA');
 
   // ── Skeleton state ─────────────────────────────────────────────────────────
 

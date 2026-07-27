@@ -50,18 +50,18 @@ import {
 import { useStore } from '@/store/useStore';
 
 /** Hauteur fixe de la navbar — utilisée pour le padding du layout */
-export const NAVBAR_HEIGHT = 90;
+export const NAVBAR_HEIGHT = { xs: 72, sm: 80, md: 90 };
 
-const ACTION_SIZE = 50;
-const ICON_SIZE = 27.5;
+const ACTION_SIZE = { xs: 42, sm: 46, md: 50 };
+const ICON_SIZE = { xs: 22, sm: 24, md: 27.5 };
 
 type NavItem = { label: string; path: string; icon: React.ReactNode };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Accueil', path: '/', icon: <HomeOutlined sx={{ fontSize: ICON_SIZE }} /> },
-  { label: 'Boutique', path: '/shop', icon: <StorefrontOutlined sx={{ fontSize: ICON_SIZE }} /> },
-  { label: 'À propos', path: '/about', icon: <InfoOutlined sx={{ fontSize: ICON_SIZE }} /> },
-  { label: 'Contact', path: '/contact', icon: <MailOutline sx={{ fontSize: ICON_SIZE }} /> },
+  { label: 'Accueil', path: '/', icon: <HomeOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Boutique', path: '/shop', icon: <StorefrontOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'À propos', path: '/about', icon: <InfoOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Contact', path: '/contact', icon: <MailOutline sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
 ];
 
 /** Bouton d'action à taille fixe — évite tout décalage au clic / hover */
@@ -82,12 +82,12 @@ const NavActionButton = memo(function NavActionButton({
   const primary = theme.palette.primary.main;
 
   const sx = {
-    width: ACTION_SIZE,
-    height: ACTION_SIZE,
-    minWidth: ACTION_SIZE,
-    minHeight: ACTION_SIZE,
+    width: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+    minHeight: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
     p: 0,
-    borderRadius: '15px',
+    borderRadius: { xs: '12px', sm: '13px', md: '15px' },
     border: `1px solid ${alpha(primary, 0.12)}`,
     bgcolor: active ? alpha(primary, 0.08) : 'transparent',
     color: active ? primary : theme.palette.text.secondary,
@@ -131,18 +131,18 @@ const NavActionButton = memo(function NavActionButton({
 const Brand = memo(function Brand() {
   const theme = useTheme();
   return (
-    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ flexShrink: 0 }}>
+    <Stack direction="row" spacing={{ xs: 1, sm: 1.25 }} alignItems="center" sx={{ flexShrink: 0 }}>
       <Box
         sx={{
-          width: 50,
-          height: 50,
-          borderRadius: '15px',
+          width: { xs: 42, sm: 46, md: 50 },
+          height: { xs: 42, sm: 46, md: 50 },
+          borderRadius: { xs: '12px', sm: '13px', md: '15px' },
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16.25,
+          fontSize: { xs: 14, sm: 15, md: 16.25 },
           fontWeight: 700,
           letterSpacing: '0.04em',
           boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
@@ -153,7 +153,7 @@ const Brand = memo(function Brand() {
       <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
         <Typography
           sx={{
-            fontSize: 18.75,
+            fontSize: { sm: 17, md: 18.75 },
             fontWeight: 700,
             color: theme.palette.text.primary,
             lineHeight: 1.2,
@@ -164,7 +164,7 @@ const Brand = memo(function Brand() {
         </Typography>
         <Typography
           sx={{
-            fontSize: 12.5,
+            fontSize: { sm: 11.5, md: 12.5 },
             color: theme.palette.text.secondary,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
@@ -195,10 +195,10 @@ const NavLink = memo(function NavLink({
       disableRipple
       sx={{
         position: 'relative',
-        borderRadius: '12.5px',
-        px: 1.75,
-        py: 1,
-        fontSize: 17.5,
+        borderRadius: { xs: '10px', md: '12.5px' },
+        px: { xs: 1.25, md: 1.75 },
+        py: { xs: 0.75, md: 1 },
+        fontSize: { xs: 15, md: 17.5 },
         fontWeight: active ? 600 : 500,
         textTransform: 'none',
         color: active ? primary : theme.palette.text.secondary,
@@ -210,19 +210,19 @@ const NavLink = memo(function NavLink({
         '&::after': {
           content: '""',
           position: 'absolute',
-          bottom: 4,
+          bottom: { xs: 3, md: 4 },
           left: '50%',
           transform: active ? 'translateX(-50%) scaleX(1)' : 'translateX(-50%) scaleX(0)',
           width: '60%',
-          height: 2.5,
+          height: { xs: 2, md: 2.5 },
           borderRadius: 1.25,
           bgcolor: theme.palette.golden?.main ?? primary,
           transition: 'transform 0.25s ease',
         },
         '& .MuiButton-startIcon': {
-          mr: 0.75,
+          mr: { xs: 0.5, md: 0.75 },
           ml: 0,
-          '& svg': { fontSize: 22.5 },
+          '& svg': { fontSize: { xs: 18, md: 22.5 } },
         },
       }}
       startIcon={item.icon}
@@ -252,16 +252,16 @@ const SearchField = memo(function SearchField({
     <Box
       component="form"
       onSubmit={onSubmit}
-      sx={{ width: fullWidth ? '100%' : { md: 275, lg: 325 } }}
+      sx={{ width: fullWidth ? '100%' : { sm: 200, md: 275, lg: 325 } }}
     >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
-          height: ACTION_SIZE,
-          px: 1.5,
-          borderRadius: '15px',
+          gap: { xs: 0.75, sm: 1 },
+          height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+          px: { xs: 1, sm: 1.25, md: 1.5 },
+          borderRadius: { xs: '12px', sm: '13px', md: '15px' },
           bgcolor: alpha(primary, 0.04),
           border: `1px solid ${alpha(primary, 0.1)}`,
           transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
@@ -271,7 +271,7 @@ const SearchField = memo(function SearchField({
           },
         }}
       >
-        <SearchIcon sx={{ fontSize: 22.5, color: alpha(primary, 0.5), flexShrink: 0 }} />
+        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: alpha(primary, 0.5), flexShrink: 0 }} />
         <InputBase
           placeholder="Rechercher un produit…"
           value={value}
@@ -279,7 +279,7 @@ const SearchField = memo(function SearchField({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           sx={{
             flex: 1,
-            fontSize: 16.25,
+            fontSize: { xs: 14, sm: 15, md: 16.25 },
             fontWeight: 500,
             color: theme.palette.text.primary,
             '& input::placeholder': {
@@ -373,7 +373,7 @@ export function Navigation() {
   }, [user]);
 
   const drawer = (
-    <Box sx={{ width: 375, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+    <Box sx={{ width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
       <Box
         sx={{
           px: 2.5,
@@ -387,7 +387,7 @@ export function Navigation() {
       >
         <Brand />
         <NavActionButton ariaLabel="Fermer le menu" onClick={() => setMobileOpen(false)}>
-          <CloseIcon sx={{ fontSize: ICON_SIZE }} />
+          <CloseIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
         </NavActionButton>
       </Box>
 
@@ -411,18 +411,18 @@ export function Navigation() {
                   href={item.path}
                   onClick={() => setMobileOpen(false)}
                   sx={{
-                    mx: 1.5,
+                    mx: { xs: 1, sm: 1.5 },
                     borderRadius: '12.5px',
-                    py: 1.25,
+                    py: { xs: 1, sm: 1.25 },
                     mb: 0.25,
                     bgcolor: active ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
                     color: active ? 'primary.main' : 'text.secondary',
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{item.icon}</ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ fontSize: 17.5, fontWeight: active ? 600 : 500 }}
+                    primaryTypographyProps={{ fontSize: { xs: 16, sm: 17.5 }, fontWeight: active ? 600 : 500 }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -455,15 +455,15 @@ export function Navigation() {
 
       <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
         {user ? (
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Avatar src={user.avatar} sx={{ width: 52.5, height: 52.5, bgcolor: 'primary.main' }}>
-              {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center">
+            <Avatar src={user.avatar} sx={{ width: { xs: 44, sm: 48, md: 52.5 }, height: { xs: 44, sm: 48, md: 52.5 }, bgcolor: 'primary.main' }}>
+              {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
             </Avatar>
             <Box>
-              <Typography fontWeight={600} fontSize={17.5}>
-                {user.name || user.email}
+              <Typography fontWeight={600} fontSize={{ xs: 15, sm: 17.5 }}>
+                {user.full_name || user.email}
               </Typography>
-              <Typography fontSize={15} color="text.secondary">
+              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary">
                 {user.email}
               </Typography>
             </Box>
@@ -473,9 +473,9 @@ export function Navigation() {
             <Box sx={{ textAlign: 'center', mb: 0.5 }}>
               <Box
                 sx={{
-                  width: 55,
-                  height: 55,
-                  borderRadius: '15px',
+                  width: { xs: 48, sm: 55 },
+                  height: { xs: 48, sm: 55 },
+                  borderRadius: { xs: '12px', sm: '15px' },
                   background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -484,12 +484,12 @@ export function Navigation() {
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.25)}`,
                 }}
               >
-                <PersonOutline sx={{ fontSize: 27.5, color: '#fff' }} />
+                <PersonOutline sx={{ fontSize: { xs: 24, sm: 27.5 }, color: '#fff' }} />
               </Box>
-              <Typography fontSize={17.5} fontWeight={700} color="text.primary">
+              <Typography fontSize={{ xs: 15, sm: 17.5 }} fontWeight={700} color="text.primary">
                 Bienvenue !
               </Typography>
-              <Typography fontSize={15} color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography fontSize={{ xs: 13, sm: 15 }} color="text.secondary" sx={{ mt: 0.5 }}>
                 Suivez vos commandes et vos favoris
               </Typography>
             </Box>
@@ -501,9 +501,10 @@ export function Navigation() {
               onClick={() => setMobileOpen(false)}
               disableElevation
               sx={{
-                py: 1.2,
+                py: { xs: 1, sm: 1.2 },
                 borderRadius: '12.5px',
                 fontWeight: 700,
+                fontSize: { xs: 15, sm: 17.5 },
                 textTransform: 'none',
                 background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                 boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
@@ -518,10 +519,10 @@ export function Navigation() {
               href="/register"
               onClick={() => setMobileOpen(false)}
               sx={{
-                py: 1,
+                py: { xs: 0.9, sm: 1 },
                 borderRadius: '12.5px',
                 fontWeight: 600,
-                fontSize: 16.25,
+                fontSize: { xs: 14, sm: 16.25 },
                 textTransform: 'none',
                 color: theme.palette.primary.main,
               }}
@@ -549,14 +550,14 @@ export function Navigation() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 0.75,
-        width: user && !isMobile ? 'auto' : ACTION_SIZE,
-        minWidth: ACTION_SIZE,
-        height: ACTION_SIZE,
-        pl: user && !isMobile ? 0.75 : 0,
-        pr: user && !isMobile ? 1.25 : 0,
+        gap: { xs: 0.25, sm: 0.5, md: 0.75 },
+        width: user && !isMobile ? 'auto' : typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        minWidth: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        height: typeof ACTION_SIZE === 'object' ? ACTION_SIZE : ACTION_SIZE,
+        pl: user && !isMobile ? { xs: 0.5, sm: 0.75 } : 0,
+        pr: user && !isMobile ? { xs: 0.5, sm: 0.75, md: 1.25 } : 0,
         border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
-        borderRadius: '15px',
+        borderRadius: { xs: '10px', sm: '12px', md: '15px' },
         bgcolor: profileMenuOpen ? alpha(theme.palette.primary.main, 0.06) : 'transparent',
         cursor: 'pointer',
         flexShrink: 0,
@@ -568,29 +569,31 @@ export function Navigation() {
       }}
     >
       {authLoading ? (
-        <Avatar sx={{ width: 35, height: 35, bgcolor: 'action.hover' }} />
+        <Avatar sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'action.hover' }} />
       ) : user ? (
         <>
-              <Avatar sx={{ width: 35, height: 35, bgcolor: 'primary.main', fontSize: 15, fontWeight: 700 }}>
-            {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+              <Avatar sx={{ width: { xs: 28, sm: 30, md: 35 }, height: { xs: 28, sm: 30, md: 35 }, bgcolor: 'primary.main', fontSize: { xs: 12, sm: 13, md: 15 }, fontWeight: 700 }}>
+            {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
           </Avatar>
           {!isMobile && (
-            <Typography sx={{ fontSize: 16.25, fontWeight: 600, color: 'text.primary', maxWidth: 110 }} noWrap>
-              {user.name?.split(' ')[0] || 'Compte'}
+            <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 16.25 }, fontWeight: 600, color: 'text.primary', maxWidth: { xs: 60, sm: 90, md: 110 } }} noWrap>
+              {user.full_name?.split(' ')[0] || 'Compte'}
             </Typography>
           )}
-          <KeyboardArrowDown
-            sx={{
-              fontSize: 22.5,
-              color: 'text.disabled',
-              transition: 'transform 0.2s ease',
-              transform: profileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              flexShrink: 0,
-            }}
-          />
+          {(!isMobile || user) && (
+            <KeyboardArrowDown
+              sx={{
+                fontSize: { xs: 16, sm: 18, md: 22.5 },
+                color: 'text.disabled',
+                transition: 'transform 0.2s ease',
+                transform: profileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                flexShrink: 0,
+              }}
+            />
+          )}
         </>
       ) : (
-        <PersonOutline sx={{ fontSize: ICON_SIZE, color: 'text.secondary' }} />
+        <PersonOutline sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
       )}
     </Box>
   );
@@ -601,7 +604,7 @@ export function Navigation() {
         position="fixed"
         elevation={0}
         sx={{
-          height: NAVBAR_HEIGHT,
+          height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
           justifyContent: 'center',
           bgcolor: scrolled ? alpha('#fff', 0.92) : '#fff',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
@@ -613,25 +616,25 @@ export function Navigation() {
           zIndex: theme.zIndex.appBar,
         }}
       >
-        <Container maxWidth="xl" sx={{ height: '100%', px: { xs: 2, md: 3 } }}>
+        <Container maxWidth="xl" sx={{ height: '100%', px: { xs: 1.5, sm: 2, md: 3 } }}>
           <Toolbar
             disableGutters
             sx={{
-              height: NAVBAR_HEIGHT,
-              minHeight: `${NAVBAR_HEIGHT}px !important`,
+              height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
+              minHeight: `${typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT.md : NAVBAR_HEIGHT}px !important`,
               justifyContent: 'space-between',
-              gap: 2,
+              gap: { xs: 1, sm: 1.5, md: 2 },
             }}
           >
             {/* Gauche */}
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+            <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} alignItems="center" sx={{ flexShrink: 0 }}>
               <Box sx={{ display: { lg: 'none' } }}>
                 <NavActionButton
                   ariaLabel="Ouvrir le menu"
                   onClick={() => setMobileOpen(true)}
                   active={mobileOpen}
                 >
-                  <MenuIcon sx={{ fontSize: ICON_SIZE }} />
+                  <MenuIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
                 </NavActionButton>
               </Box>
               <Button
@@ -659,9 +662,9 @@ export function Navigation() {
             {/* Droite — slots fixes */}
             <Stack
               direction="row"
-              spacing={0.75}
+              spacing={{ xs: 0.5, sm: 0.75 }}
               alignItems="center"
-              sx={{ flexShrink: 0, minWidth: { xs: 'auto', md: 280 } }}
+              sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 } }}
             >
               <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                 <SearchField
@@ -677,16 +680,16 @@ export function Navigation() {
                   onClick={() => setSearchOpen((p) => !p)}
                   active={searchOpen}
                 >
-                  <SearchIcon sx={{ fontSize: ICON_SIZE }} />
+                  <SearchIcon sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
                 </NavActionButton>
               </Box>
 
               <Box
                 sx={{
                   width: '1px',
-                  height: 30,
+                  height: { xs: 24, sm: 28, md: 30 },
                   bgcolor: 'divider',
-                  mx: 0.25,
+                  mx: { xs: 0.15, sm: 0.25 },
                   display: { xs: 'none', sm: 'block' },
                 }}
               />
@@ -698,16 +701,16 @@ export function Navigation() {
                   overlap="circular"
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: 12.5,
+                      fontSize: { xs: 11, sm: 12.5 },
                       fontWeight: 700,
-                      height: 22.5,
-                      minWidth: 22.5,
-                      top: 5,
-                      right: 5,
+                      height: { xs: 18, sm: 22.5 },
+                      minWidth: { xs: 18, sm: 22.5 },
+                      top: { xs: 4, sm: 5 },
+                      right: { xs: 4, sm: 5 },
                     },
                   }}
                 >
-                  <FavoriteBorder sx={{ fontSize: ICON_SIZE }} />
+                  <FavoriteBorder sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
                 </Badge>
               </NavActionButton>
 
@@ -718,16 +721,16 @@ export function Navigation() {
                   overlap="circular"
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: 12.5,
+                      fontSize: { xs: 11, sm: 12.5 },
                       fontWeight: 700,
-                      height: 22.5,
-                      minWidth: 22.5,
-                      top: 5,
-                      right: 5,
+                      height: { xs: 18, sm: 22.5 },
+                      minWidth: { xs: 18, sm: 22.5 },
+                      top: { xs: 4, sm: 5 },
+                      right: { xs: 4, sm: 5 },
                     },
                   }}
                 >
-                  <ShoppingCartOutlined sx={{ fontSize: ICON_SIZE }} />
+                  <ShoppingCartOutlined sx={{ fontSize: { xs: 22, sm: 24, md: ICON_SIZE } }} />
                 </Badge>
               </NavActionButton>
 
@@ -743,8 +746,8 @@ export function Navigation() {
             top: '100%',
             left: 0,
             right: 0,
-            px: 2,
-            py: 1.5,
+            px: { xs: 1.5, sm: 2 },
+            py: { xs: 1, sm: 1.5 },
             bgcolor: alpha('#fff', 0.98),
             backdropFilter: 'blur(12px)',
             borderBottom: '1px solid',
@@ -779,8 +782,9 @@ export function Navigation() {
             elevation: 0,
             sx: {
               mt: 1,
-              minWidth: 325,
-              borderRadius: '17.5px',
+              minWidth: { xs: 260, sm: 300, md: 325 },
+              maxWidth: { xs: '85vw', sm: 'auto' },
+              borderRadius: { xs: '14px', sm: '17.5px' },
               border: '1px solid',
               borderColor: 'divider',
               boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.12)}`,
@@ -788,7 +792,7 @@ export function Navigation() {
             },
           },
         }}
-        MenuListProps={{ sx: { py: 1 } }}
+        MenuListProps={{ sx: { py: { xs: 0.75, sm: 1 } } }}
         disableScrollLock
       >
         {user && (
@@ -796,23 +800,23 @@ export function Navigation() {
             component="li"
             sx={{
               listStyle: 'none',
-              px: 2,
-              py: 1.5,
-              mx: 1,
-              mb: 0.5,
-              borderRadius: '12.5px',
+              px: { xs: 1.5, sm: 2 },
+              py: { xs: 1.25, sm: 1.5 },
+              mx: { xs: 0.75, sm: 1 },
+              mb: { xs: 0.25, sm: 0.5 },
+              borderRadius: { xs: '10px', sm: '12.5px' },
               bgcolor: alpha(theme.palette.primary.main, 0.04),
             }}
           >
-            <Stack direction="row" spacing={1.25} alignItems="center">
-              <Avatar sx={{ width: 50, height: 50, bgcolor: 'primary.main' }}>
-                {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+            <Stack direction="row" spacing={{ xs: 0.75, sm: 1, md: 1.25 }} alignItems="center">
+              <Avatar sx={{ width: { xs: 36, sm: 42, md: 50 }, height: { xs: 36, sm: 42, md: 50 }, bgcolor: 'primary.main', fontSize: { xs: 14, sm: 16, md: 18 }, fontWeight: 700 }}>
+                {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
               </Avatar>
               <Box sx={{ minWidth: 0 }}>
-                <Typography fontWeight={600} fontSize={17.5} noWrap>
-                  {user.name || user.email}
+                <Typography fontWeight={600} fontSize={{ xs: 14, sm: 15, md: 17.5 }} noWrap>
+                  {user.full_name || user.email}
                 </Typography>
-                <Typography fontSize={15} color="text.secondary" noWrap>
+                <Typography fontSize={{ xs: 12, sm: 13, md: 15 }} color="text.secondary" noWrap>
                   {user.email}
                 </Typography>
               </Box>
@@ -832,48 +836,48 @@ export function Navigation() {
                   router.push(item.path);
                 }
               }}
-              sx={{ mx: 1, borderRadius: '10px', py: 1, fontSize: 17.5 }}
+              sx={{ mx: { xs: 0.75, sm: 1 }, borderRadius: { xs: '8px', sm: '10px' }, py: { xs: 0.75, sm: 0.85, md: 1 }, fontSize: { xs: 14, sm: 15, md: 17.5 } }}
             >
-              <ListItemIcon sx={{ minWidth: 32, color: 'inherit' }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: { xs: 28, sm: 32 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
             </MenuItem>
           ))}
         {!user && (
           <Box
             component="li"
-            sx={{ listStyle: 'none', p: 0, minWidth: 350 }}
+            sx={{ listStyle: 'none', p: 0, minWidth: { xs: 260, sm: 300, sm: 350 }, maxWidth: { xs: '85vw', sm: 'auto' } }}
           >
             <Box
               sx={{
-                px: 3,
-                pt: 3,
-                pb: 2.5,
+                px: { xs: 2.5, sm: 3 },
+                pt: { xs: 2.5, sm: 3 },
+                pb: { xs: 2, sm: 2.5 },
                 background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.06)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
               }}
             >
               <Box
                 sx={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: '17.5px',
+                  width: { xs: 48, sm: 52, md: 60 },
+                  height: { xs: 48, sm: 52, md: 60 },
+                  borderRadius: { xs: '12px', sm: '14px', md: '17.5px' },
                   background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: 1.5,
+                  mb: { xs: 0.75, sm: 1, sm: 1.5 },
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
                 }}
               >
-                <PersonOutline sx={{ fontSize: 30, color: '#fff' }} />
+                <PersonOutline sx={{ fontSize: { xs: 24, sm: 26, md: 30 }, color: '#fff' }} />
               </Box>
-              <Typography fontSize={18.75} fontWeight={700} color="text.primary" lineHeight={1.3} sx={{ mb: 0.5 }}>
+              <Typography fontSize={{ xs: 15, sm: 17, md: 18.75 }} fontWeight={700} color="text.primary" lineHeight={1.3} sx={{ mb: { xs: 0.25, sm: 0.5 } }}>
                 Bienvenue !
               </Typography>
-              <Typography fontSize={15.625} color="text.secondary" lineHeight={1.5}>
+              <Typography fontSize={{ xs: 13, sm: 14, md: 15.625 }} color="text.secondary" lineHeight={1.5}>
                 Connectez-vous pour suivre vos commandes, gérer vos favoris et profiter d&apos;offres exclusives.
               </Typography>
             </Box>
-            <Box sx={{ px: 2.5, py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: { xs: 0.75, sm: 1 } }}>
               <Button
                 fullWidth
                 variant="contained"
@@ -882,10 +886,10 @@ export function Navigation() {
                 onClick={closeProfileMenu}
                 disableElevation
                 sx={{
-                  py: 1.2,
-                  borderRadius: '12.5px',
+                  py: { xs: 0.85, sm: 1, md: 1.2 },
+                  borderRadius: { xs: '10px', sm: '12.5px' },
                   fontWeight: 700,
-                  fontSize: 17.5,
+                  fontSize: { xs: 14, sm: 15, md: 17.5 },
                   textTransform: 'none',
                   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
@@ -905,10 +909,10 @@ export function Navigation() {
                 href="/register"
                 onClick={closeProfileMenu}
                 sx={{
-                  py: 1.1,
-                  borderRadius: '12.5px',
+                  py: { xs: 0.75, sm: 0.9, md: 1.1 },
+                  borderRadius: { xs: '10px', sm: '12.5px' },
                   fontWeight: 600,
-                  fontSize: 16.25,
+                  fontSize: { xs: 13, sm: 14, md: 16.25 },
                   textTransform: 'none',
                   color: theme.palette.primary.main,
                   transition: 'all 0.2s ease',
@@ -934,7 +938,7 @@ export function Navigation() {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', lg: 'none' },
-          '& .MuiDrawer-paper': { width: 375, border: 'none' },
+          '& .MuiDrawer-paper': { width: { xs: '85%', sm: 320, md: 375 }, maxWidth: 375, border: 'none' },
         }}
       >
         {drawer}

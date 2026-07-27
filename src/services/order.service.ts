@@ -111,7 +111,7 @@ export class OrderService {
   static async getCustomerOrders(
     page: number = 0,
     limit: number = 20,
-    status?: keyof typeof ORDER_STATUS
+    status?: typeof ORDER_STATUS[keyof typeof ORDER_STATUS]
   ): Promise<OrderResponse[]> {
     try {
       const orders = await getOrders(page, limit, status);
@@ -280,7 +280,7 @@ export class OrderService {
   /**
    * Formater le montant en devise locale
    */
-  static formatAmount(amount: string | number, currency: string = 'XOF'): string {
+  static formatAmount(amount: string | number, currency: string = 'FCFA'): string {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('fr-SN', {
       style: 'currency',

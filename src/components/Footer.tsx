@@ -64,7 +64,7 @@ const LEGAL_LINKS = [
 ];
 
 const linkSx = {
-  fontSize: 17.5,
+  fontSize: { xs: 14.5, sm: 16, md: 17.5 },
   color: MUTED,
   textDecoration: 'none',
   transition: 'color 0.2s ease',
@@ -73,12 +73,12 @@ const linkSx = {
 };
 
 const headingSx = {
-  fontSize: 13.75,
+  fontSize: { xs: 11.5, sm: 12.5, md: 13.75 },
   fontWeight: 700,
   color: LIGHT,
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
-  mb: 2.5,
+  mb: { xs: 1.5, sm: 2, md: 2.5 },
 };
 
 export function Footer() {
@@ -105,7 +105,7 @@ export function Footer() {
         }}
       />
 
-      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 2, sm: 3, md: 4 } }}>
+      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 } }}>
         {/* Bandeau CTA */}
         
         {/* Grille principale */}
@@ -113,24 +113,24 @@ export function Footer() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: '1.4fr 1fr 1fr 1.2fr' },
-            gap: { xs: 4, md: 5 },
-            py: { xs: 5, md: 7 },
+            gap: { xs: 3, sm: 4, md: 5 },
+            py: { xs: 3.5, sm: 4.5, md: 6, lg: 7 },
           }}
         >
           {/* Brand */}
           <Box>
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+            <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} alignItems="center" sx={{ mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
               <Box
                 sx={{
-                  width: 55,
-                  height: 55,
-                  borderRadius: '15px',
+                  width: { xs: 42, sm: 48, md: 55 },
+                  height: { xs: 42, sm: 48, md: 55 },
+                  borderRadius: { xs: '12px', sm: '13px', md: '15px' },
                   background: `linear-gradient(135deg, ${ACCENT} 0%, ${LIGHT} 100%)`,
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 17.5,
+                  fontSize: { xs: 14, sm: 15.5, md: 17.5 },
                   fontWeight: 800,
                   flexShrink: 0,
                   boxShadow: `0 8px 24px ${alpha('#000', 0.25)}`,
@@ -139,28 +139,28 @@ export function Footer() {
                 DS
               </Box>
               <Box>
-                <Typography sx={{ fontSize: 21.25, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                   Dame Sarr
                 </Typography>
-                <Typography sx={{ fontSize: 12.5, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                   Import & Commerce
                 </Typography>
               </Box>
             </Stack>
 
-            <Typography sx={{ fontSize: 17.5, color: MUTED, lineHeight: 1.75, mb: 3, maxWidth: 350 }}>
+            <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: MUTED, lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 }, mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: { xs: '100%', sm: 350 } }}>
               Importation de produits premium depuis la Chine. Votre partenaire de confiance à Dakar depuis 2010.
             </Typography>
 
-            <Stack spacing={1.5}>
+            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {[
-                { icon: <MapPin sx={{ fontSize: 21.25 }} />, value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: 21.25 }} />, value: '+221 77 XXX XX XX' },
-                { icon: <Mail sx={{ fontSize: 21.25 }} />, value: 'contact@damesarr.sn' },
+                { icon: <MapPin sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'Dakar, Sénégal' },
+                { icon: <Phone sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: '+221 77 XXX XX XX' },
+                { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'contact@damesarr.sn' },
               ].map((item) => (
-                <Stack key={item.value} direction="row" alignItems="center" spacing={1.25}>
+                <Stack key={item.value} direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.15, md: 1.25 }}>
                   <Box sx={{ color: LIGHT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
-                  <Typography sx={{ fontSize: 16.25, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -169,7 +169,7 @@ export function Footer() {
           {/* Navigation */}
           <Box>
             <Typography sx={headingSx}>Navigation</Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {NAV_LINKS.map((link) => (
                 <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
                   {link.label}
@@ -181,7 +181,7 @@ export function Footer() {
           {/* Catégories */}
           <Box>
             <Typography sx={headingSx}>Catégories</Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {CATEGORIES.map((cat) => (
                 <MuiLink
                   key={cat.id}
@@ -198,7 +198,7 @@ export function Footer() {
           {/* Compte + paiement */}
           <Box>
             <Typography sx={headingSx}>Mon compte</Typography>
-            <Stack spacing={1.5} sx={{ mb: 4 }}>
+            <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2.5, sm: 3, md: 4 } }}>
               {ACCOUNT_LINKS.map((link) => (
                 <MuiLink key={link.label} component={Link} href={link.href} sx={linkSx}>
                   {link.label}
@@ -206,11 +206,11 @@ export function Footer() {
               ))}
             </Stack>
 
-            <Typography sx={{ ...headingSx, mb: 2 }}>Paiement accepté</Typography>
+            <Typography sx={{ ...headingSx, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>Paiement accepté</Typography>
             <Box
               sx={{
                 '& img': { filter: 'brightness(1.1)' },
-                '& > div': { gap: 1 },
+                '& > div': { gap: { xs: 0.75, sm: 1 } },
               }}
             >
               <PaymentIcons size="sm" />
@@ -223,18 +223,18 @@ export function Footer() {
         {/* Bas de page */}
         <Box
           sx={{
-            py: { xs: 3, md: 4 },
+            py: { xs: 2, sm: 2.5, md: 3, lg: 4 },
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr auto 1fr' },
             alignItems: 'center',
-            gap: { xs: 2.5, md: 2 },
+            gap: { xs: 2, sm: 2.25, md: 2 },
           }}
         >
-          <Typography sx={{ fontSize: 15, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
+          <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
             © {new Date().getFullYear()} Dame Sarr · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
-          <Stack direction="row" spacing={1} justifyContent="center">
+          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} justifyContent="center">
             {SOCIALS.map(({ Icon, label, href }) => (
               <IconButton
                 key={label}
@@ -243,9 +243,9 @@ export function Footer() {
                 aria-label={label}
                 size="small"
                 sx={{
-                  width: 47.5,
-                  height: 47.5,
-                  borderRadius: '12.5px',
+                  width: { xs: 38, sm: 42, md: 47.5 },
+                  height: { xs: 38, sm: 42, md: 47.5 },
+                  borderRadius: { xs: '10px', sm: '11px', md: '12.5px' },
                   border: `1px solid ${SOFT}`,
                   color: alpha('#fff', 0.75),
                   bgcolor: alpha('#fff', 0.04),
@@ -258,14 +258,14 @@ export function Footer() {
                   },
                 }}
               >
-                <Icon sx={{ fontSize: 22.5 }} />
+                <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 } }} />
               </IconButton>
             ))}
           </Stack>
 
-          <Stack direction="row" spacing={2.5} justifyContent={{ xs: 'center', md: 'flex-end' }} flexWrap="wrap">
+          <Stack direction="row" spacing={{ xs: 1.5, sm: 2, md: 2.5 }} justifyContent={{ xs: 'center', md: 'flex-end' }} flexWrap="wrap">
             {LEGAL_LINKS.map((l) => (
-              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: 15 }}>
+              <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: { xs: 13, sm: 14, md: 15 } }}>
                 {l.label}
               </MuiLink>
             ))}

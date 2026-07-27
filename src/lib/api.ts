@@ -522,6 +522,15 @@ export const cancelOrder = async (id: string | number): Promise<Order> => {
     return response.data;
 };
 
+export const updateOrderStatus = async (
+    id: string | number,
+    status: string,
+    notes?: string
+): Promise<Order> => {
+    const response = await api.patch<Order>(`/api/v1/orders/${id}/status`, { status, notes });
+    return response.data;
+};
+
 export const getOrderPayments = async (id: string | number): Promise<any[]> => {
     const response = await api.get<any[]>(`/api/v1/orders/${id}/payments`);
     return response.data;

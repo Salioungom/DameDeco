@@ -205,7 +205,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
   };
 
   const sectionSx = {
-    p: { xs: 2.5, md: 3.5 },
+    p: { xs: 2, sm: 2.5, md: 3.5 },
     borderRadius: 3,
     bgcolor: 'background.paper',
     border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
@@ -225,15 +225,15 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
             <Stack spacing={3.5}>
               {/* Section 1: Mode de livraison */}
               <Box sx={sectionSx}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <LocalShippingOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
-                  <Typography variant="h6" fontWeight={700}>Mode de livraison</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
+                  <LocalShippingOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
+                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Mode de livraison</Typography>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
                   <Box
                     onClick={() => setDeliveryMethod('delivery')}
                     sx={{
-                      p: 2.5,
+                      p: { xs: 1.5, sm: 2.5 },
                       border: '2px solid',
                       borderColor: deliveryMethod === 'delivery' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
@@ -243,19 +243,17 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                      <LocalShippingOutlined sx={{ color: deliveryMethod === 'delivery' ? brandBlue : 'text.secondary', fontSize: 30 }} />
-                      <Typography variant="subtitle1" fontWeight={700} color={deliveryMethod === 'delivery' ? 'text.primary' : 'text.secondary'}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
+                      <LocalShippingOutlined sx={{ color: deliveryMethod === 'delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMethod === 'delivery' ? 'text.primary' : 'text.secondary'}>
                         Livraison à la maison
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {estimatedDays || '2-5 jours ouvrables'}
-                    </Typography>
+                    
                     {deliveryMethod === 'delivery' && (
-                      <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 22.5 }} />
-                        <Typography variant="caption" fontWeight={600} color={brandBlue}>Sélectionné</Typography>
+                      <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
+                        <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
                       </Box>
                     )}
                   </Box>
@@ -263,7 +261,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   <Box
                     onClick={() => setDeliveryMethod('pickup')}
                     sx={{
-                      p: 2.5,
+                      p: { xs: 1.5, sm: 2.5 },
                       border: '2px solid',
                       borderColor: deliveryMethod === 'pickup' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
@@ -273,19 +271,19 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                      <StoreOutlined sx={{ color: deliveryMethod === 'pickup' ? brandBlue : 'text.secondary', fontSize: 30 }} />
-                      <Typography variant="subtitle1" fontWeight={700} color={deliveryMethod === 'pickup' ? 'text.primary' : 'text.secondary'}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
+                      <StoreOutlined sx={{ color: deliveryMethod === 'pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMethod === 'pickup' ? 'text.primary' : 'text.secondary'}>
                         Retrait en boutique
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Gratuit — sous 24h
+                    <Typography variant={{ xs: 'caption', sm: 'body2' }} color="text.secondary">
+                      Gratuit 
                     </Typography>
                     {deliveryMethod === 'pickup' && (
-                      <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle2 sx={{ color: brandBlue, fontSize: 22.5 }} />
-                        <Typography variant="caption" fontWeight={600} color={brandBlue}>Sélectionné</Typography>
+                      <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
+                        <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
                       </Box>
                     )}
                   </Box>
@@ -308,9 +306,9 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               {/* Section 2: Informations de livraison (uniquement si livraison à la maison) */}
               {deliveryMethod === 'delivery' && (
                 <Box sx={sectionSx}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                    <LocationOn sx={{ color: brandBlue, fontSize: 27.5 }} />
-                    <Typography variant="h6" fontWeight={700}>Informations de livraison</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
+                    <LocationOn sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
+                    <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Informations de livraison</Typography>
                   </Box>
 
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
@@ -417,9 +415,9 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
 
               {/* Section 3: Méthode de paiement */}
               <Box sx={sectionSx}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <PaymentOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
-                  <Typography variant="h6" fontWeight={700}>Méthode de paiement</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
+                  <PaymentOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
+                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Méthode de paiement</Typography>
                 </Box>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                   <Tabs
@@ -430,7 +428,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     }}
                     variant="fullWidth"
                     sx={{
-                      '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: 17.5 },
+                      '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: { xs: 14, sm: 17.5 } },
                       '& .Mui-selected': { color: `${brandBlue} !important` },
                       '& .MuiTabs-indicator': { bgcolor: brandBlue },
                     }}
@@ -512,7 +510,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                 top: 100,
               }}
             >
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>
+              <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700} sx={{ mb: { xs: 2, sm: 3 } }}>
                 Récapitulatif
               </Typography>
               <Stack spacing={2.5}>
@@ -525,8 +523,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     <Box key={item.id || item.product.id} sx={{ display: 'flex', gap: 2 }}>
                         <Box
                         sx={{
-                          width: 70,
-                          height: 70,
+                          width: { xs: 55, sm: 70 },
+                          height: { xs: 55, sm: 70 },
                           borderRadius: 2,
                           overflow: 'hidden',
                           bgcolor: 'action.hover',
@@ -540,16 +538,18 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" fontWeight={600} noWrap>
+                      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={600} noWrap sx={{ mb: 0.5 }}>
                           {item.product.name || `Produit #${item.product_id}`}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {item.quantity} x {(price || 0).toLocaleString('fr-FR')} FCFA
-                        </Typography>
-                        <Typography variant="body2" fontWeight={700} color="primary">
-                          {totalPrice.toLocaleString('fr-FR')} FCFA
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant={{ xs: 'caption', sm: 'caption' }} color="text.secondary">
+                            {item.quantity} x {(price || 0).toLocaleString('fr-FR')} FCFA
+                          </Typography>
+                          <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={700} color="primary">
+                            {totalPrice.toLocaleString('fr-FR')} FCFA
+                          </Typography>
+                        </Box>
                       </Box>
                     </Box>
                   );
@@ -609,9 +609,9 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                     endIcon={isProcessing ? undefined : <ArrowForward />}
                       sx={{
                         borderRadius: 2,
-                        py: 1.6,
+                        py: { xs: 1.4, sm: 1.6 },
                         fontWeight: 700,
-                        fontSize: 18.75,
+                        fontSize: { xs: 15, sm: 18.75 },
                       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
                     }}
                   >
@@ -630,7 +630,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   </Button>
                 </Box>
 
-                <Typography variant="caption" align="center" color="text.secondary" sx={{ display: 'block', lineHeight: 1.5 }}>
+                <Typography variant={{ xs: 'caption', sm: 'caption' }} align="center" color="text.secondary" sx={{ display: 'block', lineHeight: 1.5, fontSize: { xs: 11, sm: 12 } }}>
                   En passant commande, vous acceptez nos conditions de vente
                 </Typography>
               </Stack>
