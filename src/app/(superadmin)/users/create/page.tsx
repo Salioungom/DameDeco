@@ -250,7 +250,7 @@ export default function CreateAdminPage() {
                   Inviter un administrateur
                 </Typography>
                 <Typography sx={{ fontSize: 14, opacity: 0.9, mt: 0.5 }}>
-                  Envoyez une invitation à un nouveau compte admin sur Dame Sarr
+                  Envoyez une invitation à un nouveau compte admin sur DameDéco
                 </Typography>
               </Box>
             </Stack>

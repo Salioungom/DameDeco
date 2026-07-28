@@ -1,7 +1,7 @@
-// Configuration WhatsApp pour Dame Sarr Import & Commerce
+// Configuration WhatsApp pour DameDéco
 export const WHATSAPP_CONFIG = {
-  phoneNumber: '221785950601', // Numéro WhatsApp: 78 595 06 01
-  businessName: 'Dame Sarr Import & Commerce',
+  phoneNumber: '22177133658', // Numéro WhatsApp: 77 133 36 58
+  businessName: 'DameDéco',
 };
 
 /**

@@ -137,7 +137,7 @@ export function Footer() {
               </Box>
               <Box>
                 <Typography sx={{ fontSize: { xs: 17, sm: 19, md: 21.25 }, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-                  Dame Sarr
+                  DameDéco
                 </Typography>
                 <Typography sx={{ fontSize: { xs: 11, sm: 11.5, md: 12.5 }, color: LIGHT, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                   Import & Commerce
@@ -152,8 +152,8 @@ export function Footer() {
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }}>
               {[
                 { icon: <MapPin sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: '+221 77 XXX XX XX' },
-                { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'contact@damesarr.sn' },
+                { icon: <Phone sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: '+221 77 133 36 58' },
+                { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'damedeco1@gmail.com' },
               ].map((item) => (
                 <Stack key={item.value} direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.15, md: 1.25 }}>
                   <Box sx={{ color: LIGHT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
@@ -228,7 +228,7 @@ export function Footer() {
           }}
         >
           <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, color: alpha('#fff', 0.45), textAlign: { xs: 'center', md: 'left' } }}>
-            © {new Date().getFullYear()} Dame Sarr · Tous droits réservés · Dakar, Sénégal
+              © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
           <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} justifyContent="center">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI } from '@/lib/auth';
 import {
@@ -42,7 +42,7 @@ const ClientOnly = ({ children }: { children: React.ReactNode }) => {
     return isMounted ? <>{children}</> : null;
 };
 
-export default function RegisterPage() {
+function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const theme = useTheme();
@@ -402,7 +402,7 @@ export default function RegisterPage() {
                                 Créer un compte
                             </Typography>
                             <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-                                Rejoignez Dame Sarr et accédez à nos services exclusifs
+                                Rejoignez DameDéco et accédez à nos services exclusifs
                             </Typography>
                         </Box>
 
@@ -735,5 +735,13 @@ export default function RegisterPage() {
                 </Box>
             </Container>
         </Box>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense>
+            <RegisterForm />
+        </Suspense>
     );
 }

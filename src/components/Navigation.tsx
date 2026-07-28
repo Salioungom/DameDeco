@@ -160,7 +160,7 @@ const Brand = memo(function Brand() {
             letterSpacing: '-0.02em',
           }}
         >
-          Dame Sarr
+              DameDéco
         </Typography>
         <Typography
           sx={{
@@ -845,7 +845,7 @@ export function Navigation() {
         {!user && (
           <Box
             component="li"
-            sx={{ listStyle: 'none', p: 0, minWidth: { xs: 260, sm: 300, sm: 350 }, maxWidth: { xs: '85vw', sm: 'auto' } }}
+            sx={{ listStyle: 'none', p: 0, minWidth: { xs: 260, sm: 300, md: 350 }, maxWidth: { xs: '85vw', sm: 'auto' } }}
           >
             <Box
               sx={{
@@ -864,7 +864,7 @@ export function Navigation() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mb: { xs: 0.75, sm: 1, sm: 1.5 },
+                  mb: { xs: 0.75, sm: 1, md: 1.5 },
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
                 }}
               >

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -24,7 +24,7 @@ import { OTPInput } from '@/components/auth/OTPInput';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
 import { BRAND_BLUE } from '@/theme';
 
-export default function VerifyOTPPage() {
+function VerifyOTPForm() {
   const [otp, setOtp] = useState('');
   const [method, setMethod] = useState<'totp' | 'email'>('totp');
   const [loading, setLoading] = useState(false);
@@ -259,7 +259,7 @@ export default function VerifyOTPPage() {
                     mb: 1,
                   }}
                 >
-                  Dame Sarr
+                        DameDéco
                 </Typography>
                 <Typography variant="h6" color="text.secondary" fontWeight={500}>
                   Vérification réussie
@@ -561,5 +561,13 @@ export default function VerifyOTPPage() {
         </Box>
       </Container>
     </Box>
+  );
+}
+
+export default function VerifyOTPPage() {
+  return (
+    <Suspense>
+      <VerifyOTPForm />
+    </Suspense>
   );
 }

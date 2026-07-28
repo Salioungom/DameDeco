@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -19,7 +19,7 @@ import { Visibility, VisibilityOff, ArrowBack, LockReset } from '@mui/icons-mate
 import NextLink from 'next/link';
 import { BRAND_BLUE } from '@/theme';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -512,5 +512,13 @@ export default function ResetPasswordPage() {
         </Box>
       </Container>
     </Box>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

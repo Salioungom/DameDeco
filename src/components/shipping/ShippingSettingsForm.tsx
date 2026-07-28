@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 import {
   Box,
   Paper,
@@ -130,7 +130,7 @@ export default function ShippingSettingsForm() {
               <TextField
                 type="number"
                 value={formData.freeShippingThreshold ?? ''}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                   setFormData({ ...formData, freeShippingThreshold: Number(e.target.value) })
                 }
                 placeholder="60000"
@@ -151,7 +151,7 @@ export default function ShippingSettingsForm() {
               <TextField
                 type="number"
                 value={formData.standardShippingCost ?? ''}
-                onChange={(e) =>
+                onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                   setFormData({ ...formData, standardShippingCost: Number(e.target.value) })
                 }
                 placeholder="3000"

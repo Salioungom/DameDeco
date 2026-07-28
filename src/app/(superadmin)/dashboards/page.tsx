@@ -528,7 +528,7 @@ export default function SuperAdminDashboardPage() {
                 </Typography>
               </Stack>
               <Typography sx={{ fontSize: 15, opacity: 0.9, mb: 2 }}>
-                Bienvenue, <strong>{user?.full_name || 'SuperAdmin'}</strong> — gestion de la plateforme Dame Sarr
+                Bienvenue, <strong>{user?.full_name || 'SuperAdmin'}</strong> — gestion de la plateforme DameDéco
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Chip
@@ -1022,7 +1022,7 @@ export default function SuperAdminDashboardPage() {
                   }}
                   rowsPerPageOptions={[5, 10, 25, 50]}
                   labelRowsPerPage="Lignes par page"
-                  labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count !== -1 ? count : `plus de ${to}`}`}
+                  labelDisplayedRows={({ from, to, count }: { from: number; to: number; count: number }) => `${from}–${to} sur ${count !== -1 ? count : `plus de ${to}`}`}
                   sx={{
                     borderTop: `1px solid ${BRAND.border}`,
                     '& .MuiTablePagination-toolbar': { minHeight: 52 },

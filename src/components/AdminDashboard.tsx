@@ -402,7 +402,7 @@ export function AdminDashboard() {
                 </Typography>
               </Stack>
               <Typography sx={{ fontSize: 17.5, opacity: 0.9 }}>
-                Bienvenue{user?.full_name ? `, ${user.full_name}` : ''} — gérez votre boutique Dame Sarr
+                Bienvenue{user?.full_name ? `, ${user.full_name}` : ''} — gérez votre boutique DameDéco
               </Typography>
             </Box>
           </Stack>

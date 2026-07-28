@@ -286,7 +286,7 @@ export const useStore = create<StoreState>()(
                 set({ cartError: null });
 
                 if (!isOnline()) {
-                    enqueueOffline({ type: 'add', productId: product.id, quantity, priceType: get().userType });
+                    enqueueOffline({ type: 'add', productId: Number(product.id), quantity, priceType: get().userType });
                     toast.info('Action enregistrée. Synchronisation dès la reconnexion.');
                     return;
                 }
@@ -301,12 +301,12 @@ export const useStore = create<StoreState>()(
                             return;
                         }
                         result = await withRetry(() =>
-                            cartService.addToGuestCart(product.id, quantity, get().userType),
+                            cartService.addToGuestCart(Number(product.id), quantity, get().userType),
                             { label: 'addToCart' },
                         );
                     } else {
                         result = await withRetry(() =>
-                            cartService.addToCart(product.id, quantity, get().userType),
+                            cartService.addToCart(Number(product.id), quantity, get().userType),
                             { label: 'addToCart' },
                         );
                     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Box,
@@ -29,7 +29,7 @@ import { ClientOnly } from '@/components/ClientOnly';
 import { sanitizeRedirect } from '@/lib/sanitize-redirect';
 import { BRAND_BLUE } from '@/theme';
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const theme = useTheme();
@@ -222,7 +222,7 @@ export default function LoginPage() {
                                     Bienvenue
                                 </Typography>
                                 <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-                                    Connectez-vous à votre compte Dame Sarr
+                                    Connectez-vous à votre compte DameDéco
                                 </Typography>
                             </Box>
 
@@ -428,5 +428,13 @@ export default function LoginPage() {
                 </Box>
             </Container>
         </Box>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
     );
 }

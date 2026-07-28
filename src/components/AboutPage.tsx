@@ -208,7 +208,7 @@ export default function AboutPage() {
                   maxWidth: 650,
                 }}
               >
-                Dame Sarr Import & Commerce sélectionne et importe des produits premium depuis la Chine — meubles, décoration, textile — pour les particuliers et professionnels au Sénégal.
+                DameDéco Import & Commerce sélectionne et importe des produits premium depuis la Chine — meubles, décoration, textile — pour les particuliers et professionnels au Sénégal.
               </Typography>
 
               <Stack spacing={1.25} sx={{ mb: 4 }}>
@@ -398,7 +398,7 @@ export default function AboutPage() {
                 Notre raison d'être
               </Typography>
               <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85, mb: 2.5 }}>
-                Depuis 2010, Dame Sarr Import & Commerce s'est imposée comme le partenaire de référence pour l'importation de produits de qualité au Sénégal. Nous travaillons directement avec des fournisseurs certifiés en Chine pour garantir les meilleurs prix et standards de qualité.
+                Depuis 2010, DameDéco Import & Commerce s'est imposée comme le partenaire de référence pour l'importation de produits de qualité au Sénégal. Nous travaillons directement avec des fournisseurs certifiés en Chine pour garantir les meilleurs prix et standards de qualité.
               </Typography>
               <Typography sx={{ fontSize: 18, color: C.text, lineHeight: 1.85 }}>
                 Notre mission : rendre accessibles des produits premium à tous, particuliers comme professionnels, grâce à une logistique maîtrisée et un service client de proximité basé à Dakar.
@@ -409,8 +409,8 @@ export default function AboutPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {[
                 { icon: <Place sx={{ fontSize: 21 }} />,  label: 'Adresse',   value: 'Dakar, Sénégal' },
-                { icon: <Phone sx={{ fontSize: 21 }} />,  label: 'Téléphone', value: '+221 77 XXX XX XX' },
-                { icon: <Email sx={{ fontSize: 21 }} />,  label: 'Email',     value: 'contact@damesarr.sn' },
+                { icon: <Phone sx={{ fontSize: 21 }} />,  label: 'Téléphone', value: '+221 77 133 36 58' },
+                { icon: <Email sx={{ fontSize: 21 }} />,  label: 'Email',     value: 'damedeco1@gmail.com' },
               ].map((item) => (
                 <Box
                   key={item.label}

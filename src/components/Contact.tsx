@@ -19,8 +19,8 @@ const C = {
 } as const;
 
 const CONTACT_ITEMS = [
-  { icon:<Phone sx={{fontSize:21.25}}/>, label:'Téléphone', value:'+221 77 XXX XX XX', sub:'Lun – Sam · 9h–18h' },
-  { icon:<Email sx={{fontSize:21.25}}/>, label:'Email', value:'contact@damesarr.sn', sub:'Réponse sous 24h' },
+  { icon:<Phone sx={{fontSize:21.25}}/>, label:'Téléphone', value:'+221 77 133 36 58', sub:'Lun – Sam · 9h–18h' },
+  { icon:<Email sx={{fontSize:21.25}}/>, label:'Email', value:'damedeco1@gmail.com', sub:'Réponse sous 24h' },
   { icon:<LocationOn sx={{fontSize:21.25}}/>, label:'Adresse', value:'Dakar, Sénégal', sub:'Quartier des affaires' },
 ];
 

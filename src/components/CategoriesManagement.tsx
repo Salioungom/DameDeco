@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, type ChangeEvent } from 'react';
 import {
   Box,
   Typography,
@@ -1134,7 +1134,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                               type="file"
                               accept="image/*"
                               hidden
-                              onChange={(e) => handleImageUpload(e, category)}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleImageUpload(e, category)}
                             />
                             <UploadIcon fontSize="small" />
                           </IconButton>
@@ -1182,18 +1182,18 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             component="div"
             count={state.pagination.total}
             page={Math.floor(state.pagination.skip / state.pagination.limit)}
-            onPageChange={(_e, p) => setState(prev => ({
+            onPageChange={(_e: React.MouseEvent<HTMLButtonElement> | null, p: number) => setState(prev => ({
               ...prev,
               pagination: { ...prev.pagination, skip: p * prev.pagination.limit },
             }))}
             rowsPerPage={state.pagination.limit}
-            onRowsPerPageChange={(e) => setState(prev => ({
+            onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => setState(prev => ({
               ...prev,
               pagination: { ...prev.pagination, limit: Number(e.target.value), skip: 0 },
             }))}
             rowsPerPageOptions={[5, 10, 25, 50]}
             labelRowsPerPage="Lignes par page"
-            labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+            labelDisplayedRows={({ from, to, count }: { from: number; to: number; count: number }) => `${from}–${to} sur ${count}`}
             sx={{
               borderTop: `1px solid ${BRAND.border}`,
               '& .MuiTablePagination-toolbar': { minHeight: 52 },
@@ -1226,21 +1226,21 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <CategoryImageUpload previewUrl={previewUrl} selectedImage={selectedImage} onSelect={handleImageSelect} />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} helperText="Vide = généré auto" sx={fieldSx} />
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} helperText="Vide = généré auto" sx={fieldSx} />
               </Grid>
               <Grid item xs={12}>
-                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
-                    control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
                     label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
                 </Paper>
@@ -1282,21 +1282,21 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
+                <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e) => setFormData((p) => ({ ...p, slug: e.target.value }))} sx={fieldSx} />
+                <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12}>
-                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
+                <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
+                <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
-                    control={<Switch checked={formData.is_active} onChange={(e) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
+                    control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
                     label={<Typography sx={{ fontWeight: 600, fontSize: 18 }}>Visible sur la boutique</Typography>}
                   />
                 </Paper>

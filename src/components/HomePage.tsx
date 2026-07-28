@@ -392,7 +392,7 @@ export function HomePage({
                     maxWidth: { xs: '100%', sm: 550, md: 600 },
                   }}
                 >
-                  Meubles, décoration et textile sélectionnés par Dame Sarr — import direct,
+                  Meubles, décoration et textile sélectionnés par DameDéco — import direct,
                   qualité contrôlée, livraison partout au Sénégal.
                 </Typography>
 
@@ -502,7 +502,7 @@ export function HomePage({
                   >
                     <Image
                       src={HERO_IMAGE}
-                      alt="Intérieur premium — Dame Sarr Import"
+                      alt="Intérieur premium — DameDéco Import"
                       fill
                       priority
                       sizes="(max-width: 600px) 100vw, (max-width: 900px) 90vw, 560px"
