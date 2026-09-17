@@ -321,24 +321,26 @@ function ResetPasswordForm() {
                   value={password}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   required
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          sx={{
-                            color: '#888780',
-                            '&:hover': {
-                              color: BRAND_BLUE,
-                              bgcolor: 'rgba(24, 95, 165, 0.08)',
-                            },
-                          }}
-                        >
-                          {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            sx={{
+                              color: '#888780',
+                              '&:hover': {
+                                color: BRAND_BLUE,
+                                bgcolor: 'rgba(24, 95, 165, 0.08)',
+                              },
+                            }}
+                          >
+                            {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                   sx={{
                     mb: 2.5,
@@ -369,24 +371,26 @@ function ResetPasswordForm() {
                   value={confirmPassword}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                   required
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          edge="end"
-                          sx={{
-                            color: '#888780',
-                            '&:hover': {
-                              color: BRAND_BLUE,
-                              bgcolor: 'rgba(24, 95, 165, 0.08)',
-                            },
-                          }}
-                        >
-                          {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            edge="end"
+                            sx={{
+                              color: '#888780',
+                              '&:hover': {
+                                color: BRAND_BLUE,
+                                bgcolor: 'rgba(24, 95, 165, 0.08)',
+                              },
+                            }}
+                          >
+                            {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                   sx={{
                     mb: 3,

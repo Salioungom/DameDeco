@@ -326,7 +326,7 @@ export default function ProfilePage() {
             {/* Form */}
             <Box component="form" onSubmit={handleSubmit}>
               <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Nom complet"
                     value={formData.full_name}
@@ -335,7 +335,7 @@ export default function ProfilePage() {
                     sx={textFieldStyles}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Nom d'utilisateur"
                     value={formData.username}
@@ -344,7 +344,7 @@ export default function ProfilePage() {
                     sx={textFieldStyles}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Nom d'affichage"
                     value={formData.name}
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                     sx={textFieldStyles}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Numéro de téléphone"
                     value={formData.phone}
@@ -360,7 +360,7 @@ export default function ProfilePage() {
                     sx={textFieldStyles}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     label="Adresse email"
                     type="email"

@@ -252,9 +252,11 @@ function OrdersContent() {
                                                 anchorEl={menuAnchorEl}
                                                 open={menuOrderId === order.id}
                                                 onClose={handleMenuClose}
-                                                PaperProps={{
-                                                    elevation: 3,
-                                                    sx: { minWidth: 180 }
+                                                slotProps={{
+                                                    paper: {
+                                                        elevation: 3,
+                                                        sx: { minWidth: 180 },
+                                                    },
                                                 }}
                                             >
                                                 {order.status === ORDER_STATUS.PENDING && (

@@ -49,10 +49,6 @@ function AccountPageContent() {
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
@@ -72,6 +68,11 @@ function AccountPageContent() {
         }
     };
 
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'warning';
@@ -105,7 +106,7 @@ function AccountPageContent() {
         },
         {
             title: 'Total Dépensé',
-            value: `${stats.totalSpent.toLocaleString('fr-FR')} FCFA`,
+            value: `${Math.round(stats.totalSpent).toLocaleString('fr-FR')} FCFA`,
             icon: <TrendingUp sx={{ fontSize: 32 }} />,
             color: theme.palette.success.main,
             bgColor: alpha(theme.palette.success.main, 0.1),
@@ -177,7 +178,7 @@ function AccountPageContent() {
                     </Avatar>
                     <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                         <Typography variant="h3" gutterBottom fontWeight={800} sx={{ textShadow: '0 2px 10px rgba(0,0,0,0.1)', fontSize: { xs: '2rem', md: '3rem' } }}>
-                            Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'} 👋
+                            Bonjour, {user?.full_name || user?.email?.split('@')[0] || 'Cher client'}
                         </Typography>
                         <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 400, maxWidth: 600, fontSize: { xs: 14, sm: 15, md: 16 }, lineHeight: 1.6 }}>
                             Bienvenue sur votre espace personnel. Gérez vos commandes, vos favoris et vos paramètres en toute simplicité.
@@ -211,14 +212,25 @@ function AccountPageContent() {
                             }}
                         >
                             <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
-                                <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ height: '100%' }}>
+                                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
                                     <Box>
                                         <Typography variant="overline" color="text.secondary" fontWeight={700} sx={{ fontSize: '0.75rem', letterSpacing: 1.2 }}>
                                             {stat.title}
                                         </Typography>
-                                        <Typography variant="h4" fontWeight={800} color="text.primary" mt={0.5} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
-                                            {stat.value}
-                                        </Typography>
+                                        {typeof stat.value === 'string' && stat.value.includes('FCFA') ? (
+                                            <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+                                                <Typography variant="h4" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                    {stat.value.replace(' FCFA', '')}
+                                                </Typography>
+                                                <Typography fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
+                                                    FCFA
+                                                </Typography>
+                                            </Box>
+                                        ) : (
+                                            <Typography variant="h4" fontWeight={800} color="text.primary" mt={0.5} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
+                                                {stat.value}
+                                            </Typography>
+                                        )}
                                     </Box>
                                     <Box
                                         className="stat-icon-wrapper"
@@ -326,9 +338,9 @@ function AccountPageContent() {
                                             onClick={() => router.push(`/account/orders/${order.id}`)}
                                         >
                                             <CardContent sx={{ py: { xs: 1.25, sm: 1.5, md: 2 } + ' !important' }}>
-                                <Grid container alignItems="center" spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 1, sm: 0 } }}>
+                                <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ alignItems: 'center', mb: { xs: 1, sm: 0 } }}>
                                     <Grid size={{ xs: 12, sm: 4 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             N° Commande
                                                         </Typography>
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -361,7 +373,7 @@ function AccountPageContent() {
                                                         </Box>
                                                     </Grid>
                                                     <Grid size={{ xs: 4, sm: 3 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Date
                                                         </Typography>
                                                         <Typography variant="body2" fontWeight={500} color="text.secondary">
@@ -369,7 +381,7 @@ function AccountPageContent() {
                                                         </Typography>
                                                     </Grid>
                                                     <Grid size={{ xs: 4, sm: 3 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Montant
                                                         </Typography>
                                                         <Typography variant="body1" fontWeight={800} color="text.primary">
@@ -377,7 +389,7 @@ function AccountPageContent() {
                                                         </Typography>
                                                     </Grid>
                                                     <Grid size={{ xs: 4, sm: 2 }}>
-                                                        <Typography variant="caption" color="text.tertiary" fontWeight={600} textTransform="uppercase" display="block" mb={0.5}>
+                                                        <Typography variant="caption" color="text.tertiary" sx={{ fontWeight: 600, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
                                                             Statut
                                                         </Typography>
                                                         <Chip
@@ -436,7 +448,7 @@ function AccountPageContent() {
                             <Typography variant="h6" fontWeight={700} gutterBottom sx={{ position: 'relative', zIndex: 1, fontSize: { xs: 16, sm: 17, md: 18 } }}>
                                 Besoin d'assistance ?
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 4, position: 'relative', zIndex: 1, maxWidth: 280 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 4, position: 'relative', zIndex: 1, maxWidth: 280 }}>
                                 Notre équipe de support client est disponible pour répondre à vos questions 7j/7.
                             </Typography>
                             <Button

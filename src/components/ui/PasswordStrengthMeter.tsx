@@ -114,7 +114,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Box display="flex" alignItems="center" mb={1}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
         <Typography variant="body2" sx={{ flexGrow: 1 }}>
           Force du mot de passe: {strength ? getStrengthLabel(strength.score) : 'Vérification...'}
         </Typography>
@@ -155,7 +155,11 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
                 </ListItemIcon>
                 <ListItemText
                   primary={suggestion}
-                  primaryTypographyProps={{ variant: 'body2' }}
+                  slotProps={{
+                    primary: {
+                      variant: 'body2',
+                    },
+                  }}
                 />
               </ListItem>
             ))}
@@ -164,7 +168,7 @@ export function PasswordStrengthMeter({ password, onStrengthCheck }: PasswordStr
       )}
 
       {strength && strength.score >= 3 && (
-        <Box display="flex" alignItems="center" mt={1}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
           <CheckIcon sx={{ fontSize: 20, color: theme.palette.success.main, mr: 1 }} />
           <Typography variant="body2" color={theme.palette.success.main}>
             Mot de passe sécurisé

@@ -213,7 +213,7 @@ export default function AboutPage() {
 
               <Stack spacing={1.25} sx={{ mb: 4 }}>
                 {['Fournisseurs certifiés en Chine', 'Livraison express 24–48h à Dakar', 'Tarifs grossiste pour les professionnels'].map((pt) => (
-                  <Stack key={pt} direction="row" spacing={1.25} alignItems="center">
+                  <Stack key={pt} direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                     <Box
                       sx={{
                         width: 23,

@@ -369,7 +369,7 @@ export function ShopPage({
             </Box>
 
             {/* Droite : filtre mobile + tri */}
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               {/* Bouton filtre mobile */}
               <Button
                 onClick={() => setMobileOpen(true)}
@@ -566,11 +566,13 @@ export function ShopPage({
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
-        PaperProps={{
-          sx: {
-            width: 350,
-            border: 'none',
-            boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
+        slotProps={{
+          paper: {
+            sx: {
+              width: 350,
+              border: 'none',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
+            },
           },
         }}
       >

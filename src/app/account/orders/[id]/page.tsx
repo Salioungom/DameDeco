@@ -49,16 +49,16 @@ import {
     Check as CheckIcon,
     CreditCard as CreditCardIcon,
     AccountBalance as BankIcon,
-    Money as CashIcon,
     KeyboardArrowRight as ChevronRightIcon,
     Receipt as ReceiptIcon,
     Info as InfoIcon,
 } from '@mui/icons-material';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
 import { OrderResponse, Payment } from '@/services/order.service';
 import { getImageUrl } from '@/lib/imageUtils';
+import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
 import { styled, useTheme, alpha } from '@mui/material/styles';
 
@@ -142,16 +142,14 @@ function getCurrentStep(status: string): number {
     return idx >= 0 ? idx + 1 : 1;
 }
 
-function getPaymentMethodIcon(method: string) {
+function getPaymentMethodIcon(method?: string | null) {
     switch (method?.toLowerCase()) {
-        case 'paydunya':
-            return <CreditCardIcon />;
         case 'wave':
             return <BankIcon />;
-        case 'orange-money':
+        case 'orange_money':
             return <PhoneIcon />;
-        case 'cash':
-            return <CashIcon />;
+        case 'card':
+            return <CreditCardIcon />;
         default:
             return <PaymentIcon />;
     }
@@ -170,6 +168,7 @@ function OrderDetailContent() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
+    const validatingRef = useRef(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingQuantities, setEditingQuantities] = useState<{ [key: number]: number }>({});
     const [modifications, setModifications] = useState<Array<{
@@ -223,14 +222,30 @@ function OrderDetailContent() {
 
     const handleValidateOrder = async () => {
         if (!order) return;
+        // Commande déjà réglée : ne jamais relancer un paiement.
+        if (order.payment_status === 'paid') {
+            router.push(`/checkout/success?orderId=${order.id}`);
+            return;
+        }
+        // Garde synchrone contre un double clic avant le re-render de `cancelling`.
+        if (validatingRef.current) return;
+        validatingRef.current = true;
         try {
             setCancelling(true);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            await fetchOrderDetails();
-            setSuccess('Commande validée avec succès ! Vous allez être redirigé vers la page de paiement.');
+            // Le backend exige order_id et renvoie l'URL de redirection PayTech.
+            const paymentResp = await OrderService.initiatePayment(order.id);
+            const redirectUrl = paymentResp?.redirect_url;
+            if (!redirectUrl) {
+                setError(paymentResp?.message || 'Le paiement n\'a pas fourni d\'URL de redirection.');
+                validatingRef.current = false;
+                return;
+            }
+            setSuccess('Redirection vers la page de paiement sécurisée...');
+            window.location.href = redirectUrl;
         } catch (error) {
             console.error('Erreur lors de la validation:', error);
-            setError('Impossible de valider la commande. Veuillez réessayer.');
+            setError('Impossible d\'initialiser le paiement. Veuillez réessayer.');
+            validatingRef.current = false;
         } finally {
             setCancelling(false);
         }
@@ -500,8 +515,8 @@ function OrderDetailContent() {
                 <Box sx={{ position: 'absolute', top: '30%', right: '20%', width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.03)' }} />
 
                 <Box sx={{ position: 'relative', zIndex: 1 }}>
-                    <Grid container alignItems="center" spacing={3}>
-                        <Grid item xs={12} md={7}>
+                    <Grid container spacing={3} sx={{ alignItems: 'center' }}>
+                        <Grid size={{ xs: 12, md: 7 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2.5 }, mb: 1.5 }}>
                                 <Avatar
                                     sx={{
@@ -569,7 +584,7 @@ function OrderDetailContent() {
                                 )}
                             </Box>
                         </Grid>
-                        <Grid item xs={12} md={5}>
+                        <Grid size={{ xs: 12, md: 5 }}>
                             <Box
                                 sx={{
                                     bgcolor: 'rgba(255,255,255,0.1)',
@@ -607,7 +622,7 @@ function OrderDetailContent() {
                             >
                                 {orderSteps.map(step => (
                                     <Step key={step.value}>
-                                        <StepLabel StepIconComponent={ColorlibStepIcon}>
+                                        <StepLabel slots={{ stepIcon: ColorlibStepIcon }}>
                                             {step.label}
                                         </StepLabel>
                                     </Step>
@@ -641,7 +656,7 @@ function OrderDetailContent() {
 
             <Grid container spacing={3}>
                 {/* Articles de la commande */}
-                <Grid item xs={12} lg={8}>
+                <Grid size={{ xs: 12, lg: 8 }}>
                     <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
                         <CardHeader
                             avatar={
@@ -900,7 +915,7 @@ function OrderDetailContent() {
                                                         startIcon={cancelling ? <CircularProgress size={18} /> : <CheckCircleIcon />}
                                                         size="large"
                                                     >
-                                                        {cancelling ? 'Validation...' : 'Valider la commande'}
+                                                        {cancelling ? 'Redirection...' : 'Payer la commande'}
                                                     </Button>
                                                     <Button
                                                         variant="outlined"
@@ -933,7 +948,7 @@ function OrderDetailContent() {
                 </Grid>
 
                 {/* Sidebar - Informations de livraison et paiement */}
-                <Grid item xs={12} lg={4}>
+                <Grid size={{ xs: 12, lg: 4 }}>
                     {/* Récapitulatif */}
                     <Card sx={{ mb: 3, borderRadius: 3 }}>
                         <CardHeader
@@ -1010,10 +1025,10 @@ function OrderDetailContent() {
                                         <LocationIcon color="action" sx={{ fontSize: 20, mt: 0.3, flexShrink: 0 }} />
                                         <Box>
                                             <Typography variant="body2" fontWeight="600">
-                                                {order.shipping_address.street}
+                                                {order.shipping_address.first_name} {order.shipping_address.last_name}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                {order.shipping_address.city}, {order.shipping_address.country}
+                                                {order.shipping_address.address}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -1052,7 +1067,7 @@ function OrderDetailContent() {
                                                 </Typography>
                                                 <Chip
                                                     icon={getPaymentMethodIcon(payment.payment_method)}
-                                                    label={payment.payment_method}
+                                                    label={getPaymentMethodLabel(payment.payment_method)}
                                                     size="small"
                                                     variant="outlined"
                                                     sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'capitalize' }}

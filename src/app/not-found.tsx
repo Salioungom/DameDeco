@@ -149,8 +149,7 @@ export default function NotFoundPage() {
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={2}
-          justifyContent="center"
-          sx={{ animation: 'slideUp 0.6s ease-out 0.4s both' }}
+          sx={{ justifyContent: 'center', animation: 'slideUp 0.6s ease-out 0.4s both' }}
         >
           <Button
             variant="contained"

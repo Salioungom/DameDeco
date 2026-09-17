@@ -81,7 +81,7 @@ interface OrderWithCustomer {
   total_amount: number;
   currency: string;
   source: string;
-  shipping_address: { full_name: string; phone: string; address: string; city: string } | null;
+  shipping_address: { first_name: string; last_name: string; phone: string; address: string } | null;
   customer: { id: number; name: string; email: string | null; phone: string | null } | null;
   items: any[];
   created_at: string;
@@ -129,7 +129,7 @@ function StatCard({
         },
       }}
     >
-      <Stack direction="row" spacing={2} alignItems="flex-start">
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
         <Box
           sx={{
             width: 60,
@@ -179,7 +179,7 @@ function CustomTabPanel({ children, value, index }: TabPanelProps) {
 function getOrderCustomerName(order: OrderWithCustomer) {
   if (order.customer?.name) return order.customer.name;
   const addr = order.shipping_address;
-  if (addr?.full_name) return addr.full_name;
+  if (addr?.first_name) return `${addr.first_name} ${addr.last_name || ''}`.trim();
   return 'Client invité';
 }
 
@@ -379,11 +379,10 @@ export function AdminDashboard() {
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             spacing={2}
-            alignItems={{ sm: 'center' }}
-            justifyContent="space-between"
+            sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
           >
             <Box>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
                 <Box
                   sx={{
                     width: 55,
@@ -461,7 +460,7 @@ export function AdminDashboard() {
               <StatCard
                 title="Revenu total"
                 value={loadingOrders ? '—' : formatFcfa(stats.totalRevenue)}
-                subtitle="Basé sur les commandes API"
+                subtitle="Basé sur les commandes"
                 icon={<DollarSign />}
                 loading={loadingOrders}
               />
@@ -527,7 +526,7 @@ export function AdminDashboard() {
                             bgcolor: BRAND.surface,
                           }}
                         >
-                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <Box>
                               <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
                                 {getOrderCustomerName(order)}

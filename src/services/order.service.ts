@@ -6,8 +6,14 @@
  */
 
 import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments } from '@/lib/api';
+import api from '@/lib/api';
 import { Order, CartItem } from '@/lib/types';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
+import type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
+
+// Réexport du contrat partagé (livraison / paiement).
+export type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
+export { PAYMENT_GATEWAY } from '@/lib/delivery';
 
 // Types pour les statuts de commande
 export const ORDER_STATUS = {
@@ -28,24 +34,11 @@ export const PAYMENT_STATUS = {
   REFUNDED: 'refunded' as const
 };
 
-export const PAYMENT_METHODS = {
-  PAYDUNYA: 'paydunya' as const,
-  WAVE: 'wave' as const,
-  ORANGE_MONEY: 'orange-money' as const,
-  CASH: 'cash' as const
-};
-
 // Types pour les réponses API
 export interface OrderResponse extends Order {
   order_number: string;
-  payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+  payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled';
   currency: string;
-  shipping_address: {
-    street: string;
-    city: string;
-    country: string;
-    phone: string;
-  };
   items_count?: number;
 }
 
@@ -72,35 +65,52 @@ export interface OrderItem {
 export interface Payment {
   id: number;
   order_id: number;
-  payment_method: string;
+  payment_method: string | null;
   amount: string;
   currency: string;
-  status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+  status: 'pending' | 'processing' | 'completed' | 'paid' | 'failed' | 'refunded' | 'cancelled' | 'expired';
   transaction_id?: string;
   created_at: string;
 }
 
+export interface PaymentInitiateResponse {
+  payment_id?: number;
+  redirect_url?: string;
+  ref_command?: string;
+  status?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 // Interface pour la création de commande
+// shipping_address est obligatoire uniquement pour mode=home_delivery.
+// payment_method est optionnel : PayTech détermine le moyen réel, renseigné après IPN.
 export interface CreateOrderData {
   items: {
     product_id: string | number;
     quantity: number;
     unit_price: number;
   }[];
-  shipping_address: {
-    first_name: string;
-    last_name: string;
-    address: string;
-    street: string;
-    city: string;
-    country: string;
-    phone: string;
-  };
+  mode: DeliveryMode;
+  shipping_address?: ShippingAddress;
   currency?: string;
-  payment_method: string;
+  payment_method?: PaymentMethod;
   payment_phone?: string;
   order_type?: string;
-  mode?: string;
+}
+
+/**
+ * Enrichit une erreur levée par le service avec le statut HTTP d'origine
+ * (l'intercepteur api.ts le pose sur l'erreur Axios). Permet aux appels
+ * (pages success / finalize) de réagir précisément, ex. 404 = commande introuvable.
+ */
+function withStatus(error: unknown, message: string): Error {
+  const out = new Error(message) as Error & { status?: number; code?: string };
+  const status = (error as { status?: number } | null)?.status;
+  const code = (error as { code?: string } | null)?.code;
+  if (typeof status === 'number') out.status = status;
+  if (code) out.code = code;
+  return out;
 }
 
 // Service de gestion des commandes
@@ -118,7 +128,7 @@ export class OrderService {
       return orders;
     } catch (error) {
       console.error('Erreur récupération commandes:', error);
-      throw new Error('Impossible de récupérer les commandes');
+      throw withStatus(error, 'Impossible de récupérer les commandes');
     }
   }
 
@@ -131,7 +141,7 @@ export class OrderService {
       return order;
     } catch (error) {
       console.error('Erreur détails commande:', error);
-      throw new Error('Impossible de récupérer les détails de la commande');
+      throw withStatus(error, 'Impossible de récupérer les détails de la commande');
     }
   }
 
@@ -141,19 +151,10 @@ export class OrderService {
    */
   static async createOrderFromCart(
     cartItems: CartItemWithProduct[],
-    shippingAddress: {
-      first_name: string;
-      last_name: string;
-      address: string;
-      street: string;
-      city: string;
-      country: string;
-      phone: string;
-    },
-    paymentMethod: string = PAYMENT_METHODS.PAYDUNYA,
-    currency: string = 'XOF',
-    mode: string = 'home_delivery',
-    paymentPhone?: string
+    mode: DeliveryMode,
+    shippingAddress?: ShippingAddress,
+    paymentMethod?: PaymentMethod,
+    currency: string = 'FCFA'
   ): Promise<OrderResponse> {
     try {
       const orderItems = cartItems.map(item => {
@@ -173,13 +174,18 @@ export class OrderService {
 
       const orderData: CreateOrderData = {
         items: orderItems,
-        shipping_address: shippingAddress,
         currency,
-        payment_method: paymentMethod,
-        payment_phone: paymentPhone || undefined,
         order_type: 'standard',
         mode
       };
+
+      if (paymentMethod) {
+        orderData.payment_method = paymentMethod;
+      }
+
+      if (mode === 'home_delivery' && shippingAddress) {
+        orderData.shipping_address = shippingAddress;
+      }
 
       const order = await createOrder(orderData);
       return order;
@@ -197,7 +203,7 @@ export class OrderService {
       return cancelledOrder;
     } catch (error) {
       console.error('Erreur annulation commande:', error);
-      throw new Error('Impossible d\'annuler la commande');
+      throw withStatus(error, 'Impossible d\'annuler la commande');
     }
   }
 
@@ -273,7 +279,25 @@ export class OrderService {
       return payments as Payment[];
     } catch (error) {
       console.error('Erreur récupération paiements:', error);
-      throw new Error('Impossible de récupérer les paiements');
+      throw withStatus(error, 'Impossible de récupérer les paiements');
+    }
+  }
+
+  /**
+   * Initialiser le paiement d'une commande (POST /api/v1/orders/{orderId}/pay).
+   * Le backend exige order_id dans le corps. Aucun payment_method n'est envoyé :
+   * c'est PayTech qui détermine le moyen de paiement réel (renseigné par IPN).
+   */
+  static async initiatePayment(orderId: string | number, payload?: Record<string, unknown>): Promise<PaymentInitiateResponse> {
+    try {
+      const response = await api.post<PaymentInitiateResponse>(`/api/v1/orders/${orderId}/pay`, {
+        order_id: orderId,
+        ...(payload || {})
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erreur initialisation paiement:', error);
+      throw error;
     }
   }
 

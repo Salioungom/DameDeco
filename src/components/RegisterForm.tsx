@@ -183,12 +183,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 error={!!errors.fullName}
                 helperText={errors.fullName?.message}
                 disabled={loading}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <Person color="action" />
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Person color="action" />
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
 
@@ -203,12 +205,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 disabled={loading}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <Email color="action" />
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Email color="action" />
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
 
@@ -223,12 +227,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 helperText={errors.phone?.message}
                 disabled={loading}
                 placeholder="+22177XXXXXXX"
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <Phone color="action" />
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Phone color="action" />
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
 
@@ -243,18 +249,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={loading}
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <IconButton
-                                onClick={togglePasswordVisibility}
-                                edge="end"
-                                disabled={loading}
-                            >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    onClick={togglePasswordVisibility}
+                                    edge="end"
+                                    disabled={loading}
+                                >
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
 
@@ -269,18 +277,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
                 disabled={loading}
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <IconButton
-                                onClick={toggleConfirmPasswordVisibility}
-                                edge="end"
-                                disabled={loading}
-                            >
-                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    onClick={toggleConfirmPasswordVisibility}
+                                    edge="end"
+                                    disabled={loading}
+                                >
+                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
 
@@ -300,7 +310,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo }) =>
                 }}
             >
                 {loading ? (
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress size={20} color="inherit" />
                         <span>Inscription en cours...</span>
                     </Box>

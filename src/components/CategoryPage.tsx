@@ -346,15 +346,7 @@ export function CategoryPage({
                 <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
                     {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
                         filteredProducts.map((product) => (
-                            <Grid
-                                item
-                                key={product.id}
-                                xs={6}
-                                sm={6}
-                                md={6}
-                                lg={4}
-                                xl={3}
-                            >
+                            <Grid key={product.id} size={{ xs: 6, sm: 6, md: 6, lg: 4, xl: 3 }}>
                                 <ProductCard
                                     product={product}
                                     onAddToCart={onAddToCart}
@@ -366,7 +358,7 @@ export function CategoryPage({
                             </Grid>
                         ))
                     ) : (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Box sx={{ textAlign: 'center', py: 8 }}>
                                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                                     Aucun produit trouvé dans cette catégorie

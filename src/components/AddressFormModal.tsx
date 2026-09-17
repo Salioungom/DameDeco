@@ -141,7 +141,17 @@ export function AddressFormModal({ address, open, onClose, onSuccess }: AddressF
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: { borderRadius: 2 },
+        },
+      }}
+    >
       <DialogTitle sx={{ fontWeight: 700 }}>
         {address ? 'Modifier' : 'Ajouter'} une adresse
       </DialogTitle>

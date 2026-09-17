@@ -111,16 +111,14 @@ const FavoriteButton = muiStyled(IconButton)(() => ({
   zIndex: 3,
   width: 45,
   height: 45,
-  // Glassmorphism premium
-  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  backgroundColor: 'rgba(25, 118, 210, 0.15)',
   backdropFilter: 'blur(12px) saturate(180%)',
   WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-  border: '1px solid rgba(255, 255, 255, 0.35)',
+  border: '1.5px solid rgba(25, 118, 210, 0.5)',
   boxShadow: '0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.5)',
   transition: 'all 0.2s ease',
-  color: 'rgba(255,255,255,0.9)',
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.32)',
+    backgroundColor: 'rgba(25, 118, 210, 0.25)',
     transform: 'scale(1.1)',
     boxShadow: '0 6px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6)',
   },
@@ -441,7 +439,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {originalPrice && Number(originalPrice) > Number(product.price) && userType !== 'wholesale' && (
             <Box sx={{ mt: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip
                   label={`-${discountPercentage}%`}
                   size="small"

@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUtils';
-import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { FREE_SHIPPING_THRESHOLD } from '@/lib/delivery';
 
 
 export function CartDrawer() {
@@ -35,7 +35,6 @@ export function CartDrawer() {
   const router = useRouter();
   const theme = useTheme();
   const { isAuthenticated, user } = useAuth();
-  const { settings: shippingSettings, calculateShippingCost } = useShippingSettings();
 
   const golden = theme.palette.golden?.main || theme.palette.primary.main;
 
@@ -54,11 +53,6 @@ export function CartDrawer() {
     }, 0),
   [cartWithProducts]);
 
-  const shippingCost = useMemo(() => {
-    if (!shippingSettings) return 0;
-    return calculateShippingCost(subtotal);
-  }, [subtotal, shippingSettings, calculateShippingCost]);
-
   const itemCount = cartWithProducts?.length ?? 0;
 
   const handleCheckout = () => {
@@ -72,8 +66,10 @@ export function CartDrawer() {
       anchor="right"
       open={isCartOpen}
       onClose={() => toggleCart(false)}
-      PaperProps={{
-        sx: { width: '100%', maxWidth: 562.5, border: 'none' },
+      slotProps={{
+        paper: {
+          sx: { width: '100%', maxWidth: 562.5, border: 'none' },
+        },
       }}
     >
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
@@ -189,7 +185,7 @@ export function CartDrawer() {
                         <Typography variant="body2" fontWeight={700} color="primary" sx={{ mt: 0.25 }}>
                           {price.toLocaleString('fr-FR')} FCFA
                         </Typography>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.75 }}>
+                        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mt: 0.75 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1.875 }}>
                             <IconButton
                               size="small"
@@ -236,7 +232,7 @@ export function CartDrawer() {
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography color="text.secondary">Livraison</Typography>
-                  {shippingSettings?.freeShippingThreshold != null && subtotal >= Number(shippingSettings.freeShippingThreshold) ? (
+                  {subtotal >= FREE_SHIPPING_THRESHOLD ? (
                     <Typography variant="body2" fontWeight={700} sx={{ color: theme.palette.success?.main || '#2e7d32' }}>
                       Gratuite
                     </Typography>
@@ -246,7 +242,7 @@ export function CartDrawer() {
                     </Typography>
                   )}
                 </Box>
-                {shippingSettings?.freeShippingThreshold != null && subtotal < Number(shippingSettings.freeShippingThreshold) && (
+                {subtotal < FREE_SHIPPING_THRESHOLD && (
                   <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -261,7 +257,7 @@ export function CartDrawer() {
                       Les frais seront gratuits pour les commandes supérieures à
                     </Typography>
                     <Typography variant="caption" fontWeight={700} color="warning.main">
-                       {Number(shippingSettings.freeShippingThreshold).toLocaleString('fr-FR')} FCFA
+                       {FREE_SHIPPING_THRESHOLD.toLocaleString('fr-FR')} FCFA
                     </Typography>
                   </Box>
                 )}

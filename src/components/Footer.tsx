@@ -116,7 +116,7 @@ export function Footer() {
         >
           {/* Brand */}
           <Box>
-            <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} alignItems="center" sx={{ mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
+            <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}>
               <Box
                 sx={{
                   width: { xs: 42, sm: 48, md: 55 },
@@ -155,7 +155,7 @@ export function Footer() {
                 { icon: <Phone sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: '+221 77 133 36 58' },
                 { icon: <Mail sx={{ fontSize: { xs: 18, sm: 19.5, md: 21.25 } }} />, value: 'damedeco1@gmail.com' },
               ].map((item) => (
-                <Stack key={item.value} direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.15, md: 1.25 }}>
+                <Stack key={item.value} direction="row" spacing={{ xs: 1, sm: 1.15, md: 1.25 }} sx={{ alignItems: 'center' }}>
                   <Box sx={{ color: LIGHT, display: 'flex', flexShrink: 0 }}>{item.icon}</Box>
                   <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: alpha('#fff', 0.8) }}>{item.value}</Typography>
                 </Stack>
@@ -231,7 +231,7 @@ export function Footer() {
               © {new Date().getFullYear()} DameDéco · Tous droits réservés · Dakar, Sénégal
           </Typography>
 
-          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} justifyContent="center">
+          <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ justifyContent: 'center' }}>
             {SOCIALS.map(({ Icon, label, href }) => (
               <IconButton
                 key={label}
@@ -260,7 +260,11 @@ export function Footer() {
             ))}
           </Stack>
 
-          <Stack direction="row" spacing={{ xs: 1.5, sm: 2, md: 2.5 }} justifyContent={{ xs: 'center', md: 'flex-end' }} flexWrap="wrap">
+          <Stack
+            direction="row"
+            spacing={{ xs: 1.5, sm: 2, md: 2.5 }}
+            sx={{ justifyContent: { xs: 'center', md: 'flex-end' }, flexWrap: 'wrap' }}
+          >
             {LEGAL_LINKS.map((l) => (
               <MuiLink key={l.label} component={Link} href={l.href} sx={{ ...linkSx, fontSize: { xs: 13, sm: 14, md: 15 } }}>
                 {l.label}

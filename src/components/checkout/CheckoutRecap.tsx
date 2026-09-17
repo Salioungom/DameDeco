@@ -14,7 +14,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  DeleteOutline as Trash2,
+  DeleteOutlined as Trash2,
   Add,
   Remove,
   ShoppingCartOutlined,

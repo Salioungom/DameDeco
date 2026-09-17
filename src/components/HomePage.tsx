@@ -331,8 +331,7 @@ export function HomePage({
           <Grid
             container
             spacing={{ xs: 3, sm: 4, lg: 6 }}
-            alignItems="center"
-            sx={{ minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
+            sx={{ alignItems: 'center', minHeight: { lg: `calc(${heroMinHeight} - 120px)` } }}
           >
             <Grid size={{ xs: 12, lg: 6 }}>
               <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 725 } }}>
@@ -402,7 +401,12 @@ export function HomePage({
                     'Tarifs dégressifs pour les professionnels',
                     'Suivi de commande et livraison express',
                   ].map((pt) => (
-                    <Stack key={pt} direction="row" spacing={{ xs: 1, sm: 1.25 }} alignItems="flex-start">
+                    <Stack
+                      key={pt}
+                      direction="row"
+                      spacing={{ xs: 1, sm: 1.25 }}
+                      sx={{ alignItems: 'flex-start' }}
+                    >
                       <CheckCircle sx={{ fontSize: { xs: 18, sm: 20, md: 21.25 }, color: C.primary, mt: { xs: 0.15, sm: 0.25 }, flexShrink: 0 }} />
                       <Typography sx={{ fontSize: { xs: 14, sm: 15.5, md: 16.875 }, color: C.text, lineHeight: { xs: 1.4, sm: 1.5 } }}>{pt}</Typography>
                     </Stack>
@@ -623,7 +627,7 @@ export function HomePage({
                   }}
                 >
                   {loading ? (
-                    <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                       <Skeleton variant="rounded" width={70} height={70} sx={{ borderRadius: '15px' }} />
                       <Box sx={{ flex: 1 }}>
                         <Skeleton width="50%" height={12.5} sx={{ mb: 1 }} />
@@ -632,10 +636,10 @@ export function HomePage({
                       </Box>
                     </Stack>
                   ) : (
-                    <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                       <HeroProductThumb name={featuredProduct?.name} coverImage={featuredProduct?.cover_image_url} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                           <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
                             Sélection du moment
                           </Typography>
@@ -657,7 +661,7 @@ export function HomePage({
                         >
                           {featuredProduct?.name || 'Découvrir la boutique'}
                         </Typography>
-                        <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mt: 0.5 }}>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', mt: 0.5 }}>
                           <Typography sx={{ fontSize: 18.75, fontWeight: 800, color: C.primary }}>
                             {featuredProduct ? formatPrice(featuredProduct.price) : 'Voir les prix'}
                           </Typography>
@@ -948,7 +952,7 @@ export function HomePage({
                         />
 
                         <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, p: 2.5, zIndex: 2 }}>
-                          <Stack direction="row" alignItems="flex-end" justifyContent="space-between" spacing={1}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
                             <Box>
                               <Typography
                                 sx={{
@@ -1142,7 +1146,7 @@ export function HomePage({
               <Typography sx={{ fontSize: { xs: 17.5, md: 18.75 }, color: alpha('#fff', 0.72), lineHeight: 1.75, maxWidth: 600 }}>
                 Tarifs dégressifs pour les professionnels, devis personnalisé sous 24h et accompagnement dédié.
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: { xs: 2.5, md: 3 } }}>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: { xs: 2.5, md: 3 } }}>
                 {['Devis sous 24h', 'Tarifs négociés', 'Support prioritaire'].map((tag) => (
                   <Chip
                     key={tag}

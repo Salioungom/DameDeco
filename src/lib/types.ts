@@ -24,17 +24,20 @@ export type Product = ApiProduct;
 
 export interface Order {
     id: number;
+    order_id?: number | string;
     order_number: string;
     status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
-    payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded';
+    payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled';
     total_amount: string;
+    shipping_amount?: number | string;
     currency: string;
-    shipping_address: {
-        street: string;
-        city: string;
-        country: string;
+    shipping_address?: {
+        first_name: string;
+        last_name: string;
         phone: string;
+        address: string;
     };
+    mode?: 'home_delivery' | 'store_pickup';
     items: OrderItem[];
     created_at: string;
     items_count?: number;

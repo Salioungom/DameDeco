@@ -22,7 +22,7 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   AdminPanelSettings as AdminIcon,
-  PersonOutline,
+  PersonOutlined,
 } from '@mui/icons-material';
 import { RequireRole } from '@/components/RequireRole';
 import { useAuth } from '@/contexts/AuthContext';
@@ -231,7 +231,7 @@ export default function CreateAdminPage() {
             >
               Retour au tableau de bord
             </Button>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
               <Box
                 sx={{
                   width: 52,
@@ -276,7 +276,7 @@ export default function CreateAdminPage() {
                 borderBottom: `1px solid ${BRAND.border}`,
               }}
             >
-              <Stack direction="row" spacing={1.5} alignItems="center">
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                 <AdminIcon sx={{ color: BRAND.primary }} />
                 <Box>
                   <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>
@@ -321,12 +321,14 @@ export default function CreateAdminPage() {
                       error={!!fieldErrors.full_name}
                       helperText={fieldErrors.full_name}
                       sx={fieldSx}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PersonOutline sx={{ color: BRAND.muted, fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonOutlined sx={{ color: BRAND.muted, fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                        },
                       }}
                     />
                   </Grid>
@@ -343,12 +345,14 @@ export default function CreateAdminPage() {
                       error={!!fieldErrors.email}
                       helperText={fieldErrors.email}
                       sx={fieldSx}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <EmailIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EmailIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                        },
                       }}
                     />
                   </Grid>
@@ -364,12 +368,14 @@ export default function CreateAdminPage() {
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
                       sx={fieldSx}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PhoneIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PhoneIcon sx={{ color: BRAND.muted, fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                        },
                       }}
                     />
                   </Grid>
@@ -415,7 +421,7 @@ export default function CreateAdminPage() {
                     }}
                   >
                     {loading ? (
-                      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center">
+                      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', justifyContent: 'center' }}>
                         <CircularProgress size={20} sx={{ color: BRAND.white }} />
                         <span>Envoi en cours…</span>
                       </Stack>

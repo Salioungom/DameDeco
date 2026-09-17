@@ -7,6 +7,7 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { Product, Category, Order, Customer, DeliveryOption, PromoCodeValidation, PromoCodeRequest } from './types';
+import type { DeliveryMode, PaymentMethod, ShippingAddress } from './delivery';
 import { getCsrfHeader, CSRF_HEADER } from './csrf';
 
 // Types pour les logs structurés
@@ -252,7 +253,7 @@ const createApiInstance = (): AxiosInstance => {
               : REFRESH_BACKOFF_MS[Math.min(refreshAttempts, REFRESH_BACKOFF_MS.length - 1)];
             refreshAttempts++;
 
-            processQueue(new Error('Rate limited'), null);
+            processQueue(new Error('Trop de requêtes. Veuillez réessayer dans quelques minutes.'), null);
 
             if (refreshAttempts < REFRESH_MAX_ATTEMPTS) {
               await sleep(delayMs);
@@ -298,7 +299,9 @@ const createApiInstance = (): AxiosInstance => {
         statusCode = error.response.status;
         const responseData = error.response.data as any;
 
-        if (Array.isArray(responseData)) {
+        if (statusCode === 429) {
+          errorMessage = 'Trop de requêtes. Veuillez réessayer dans quelques minutes.';
+        } else if (Array.isArray(responseData)) {
           errorMessage = responseData.map((err) => err?.msg || err?.message || JSON.stringify(err)).join(', ');
         } else if (typeof responseData === 'object') {
           if (Array.isArray(responseData?.detail)) {
@@ -499,19 +502,12 @@ export const createOrder = async (orderData: {
         quantity: number;
         unit_price: number;
     }[];
-    shipping_address: {
-        first_name: string;
-        last_name: string;
-        address: string;
-        street: string;
-        city: string;
-        country: string;
-        phone: string;
-    };
+    mode: DeliveryMode;
+    shipping_address?: ShippingAddress;
     currency?: string;
-    payment_method: string;
+    payment_method?: PaymentMethod;
     order_type?: string;
-    mode?: string;
+    payment_phone?: string;
 }): Promise<Order> => {
     const response = await api.post<Order>('/api/v1/orders/', orderData);
     return response.data;

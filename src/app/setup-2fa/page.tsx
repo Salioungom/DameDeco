@@ -163,7 +163,7 @@ export default function Setup2FAPage() {
         }}
       >
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
             <CircularProgress sx={{ color: '#fff' }} />
           </Box>
         </Container>
@@ -416,12 +416,20 @@ export default function Setup2FAPage() {
         </Box>
 
         {/* Dialog TOTP Setup */}
-        <Dialog open={verifyDialogOpen} onClose={() => setVerifyDialogOpen(false)} maxWidth="sm" fullWidth PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-          },
-        }}>
+        <Dialog
+          open={verifyDialogOpen}
+          onClose={() => setVerifyDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: '16px',
+                boxShadow: '0 8px 32px rgba(4, 44, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              },
+            },
+          }}
+        >
           <DialogTitle sx={{ fontWeight: 700, color: '#042C53' }}>Configurer l'authentification TOTP</DialogTitle>
         <DialogContent>
           {totpSetup && (
@@ -430,7 +438,7 @@ export default function Setup2FAPage() {
                 1. Scannez ce QR code avec votre application d'authentification :
               </Typography>
               
-              <Box display="flex" justifyContent="center" sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
                 <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 1 }}>
                   <QRCodeSVG value={totpSetup.qrCode} size={200} />
                 </Box>
@@ -443,12 +451,14 @@ export default function Setup2FAPage() {
               <TextField
                 fullWidth
                 value={totpSetup.secret}
-                InputProps={{
-                  readOnly: true,
-                  sx: {
-                    borderRadius: '10px',
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                    sx: {
+                      borderRadius: '10px',
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem',
+                    },
                   },
                 }}
                 sx={{

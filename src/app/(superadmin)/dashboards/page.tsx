@@ -52,7 +52,7 @@ import {
   AdminPanelSettings as AdminPanelSettingsIcon,
   Dashboard as DashboardIcon,
   ManageAccounts as ManageAccountsIcon,
-  CheckCircleOutline,
+  CheckCircleOutlined,
   CancelOutlined,
   ShieldOutlined,
   ArrowForward,
@@ -112,7 +112,7 @@ function StatCard({
       }}
     >
       <CardContent sx={{ p: 2.5 }}>
-        <Stack direction="row" spacing={2} alignItems="flex-start">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
           <Box
             sx={{
               width: 48,
@@ -507,9 +507,9 @@ export default function SuperAdminDashboardPage() {
           }}
         />
         <Box sx={{ position: 'relative', zIndex: 1, maxWidth: 1200, mx: 'auto' }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}>
             <Box>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
                 <Box
                   sx={{
                     width: 44,
@@ -530,7 +530,7 @@ export default function SuperAdminDashboardPage() {
               <Typography sx={{ fontSize: 15, opacity: 0.9, mb: 2 }}>
                 Bienvenue, <strong>{user?.full_name || 'SuperAdmin'}</strong> — gestion de la plateforme DameDéco
               </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                 <Chip
                   icon={<ShieldOutlined sx={{ fontSize: '16px !important', color: `${BRAND.white} !important` }} />}
                   label="Accès sécurisé"
@@ -627,7 +627,7 @@ export default function SuperAdminDashboardPage() {
                   title="Actifs"
                   value={activeCount}
                   subtitle="Comptes actuellement actifs"
-                  icon={<CheckCircleOutline />}
+                  icon={<CheckCircleOutlined />}
                   accent="#0D7A4A"
                 />
               </Grid>
@@ -940,7 +940,7 @@ export default function SuperAdminDashboardPage() {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                               <Avatar
                                 sx={{
                                   width: 40,
@@ -1075,7 +1075,11 @@ export default function SuperAdminDashboardPage() {
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{ sx: { borderRadius: '16px', maxWidth: 440 } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: '16px', maxWidth: 440 },
+          },
+        }}
       >
         <DialogTitle sx={{ fontWeight: 700, color: BRAND.dark, pb: 1 }}>
           Confirmer la suppression
@@ -1112,7 +1116,11 @@ export default function SuperAdminDashboardPage() {
         onClose={() => setEditDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px' } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: '16px' },
+          },
+        }}
       >
         <DialogTitle sx={{ fontWeight: 700, color: BRAND.dark, pb: 1 }}>
           Modifier l&apos;administrateur

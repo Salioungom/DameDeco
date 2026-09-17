@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
-import { ErrorOutline } from '@mui/icons-material';
+import { ErrorOutlined } from '@mui/icons-material';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -51,7 +51,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               textAlign: 'center',
             }}
           >
-            <ErrorOutline sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
+            <ErrorOutlined sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
             <Typography variant="h5" fontWeight={700} gutterBottom>
               Une erreur est survenue
             </Typography>

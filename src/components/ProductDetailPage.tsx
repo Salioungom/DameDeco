@@ -154,7 +154,7 @@ export function ProductDetailPage({
         const response = await fetch(`${API_BASE_URL}/api/v1/products/${product.id}/images`);
         if (response.ok) {
           const galleryData = await response.json();
-          if (mounted) setGalleryImages(galleryData.items || []);
+          if (mounted) setGalleryImages(galleryData.images || []);
         }
       } catch {
         /* galerie optionnelle */
@@ -399,7 +399,7 @@ export function ProductDetailPage({
               boxShadow: `0 12px 40px ${alpha(C.dark, 0.06)}`,
             }}
           >
-            <Stack direction="row" flexWrap="wrap" gap={{ xs: 0.75, sm: 1 }} alignItems="center" sx={{ mb: { xs: 1.5, sm: 2 } }}>
+            <Stack direction="row" gap={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: { xs: 1.5, sm: 2 } }}>
               {(product.popular || product.is_featured) && (
                 <Chip
                   label="Populaire"
@@ -432,10 +432,18 @@ export function ProductDetailPage({
                 onClick={() => onToggleFavorite(productIdStr)}
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 sx={{
-                  border: `1px solid ${C.border}`,
-                  borderRadius: { xs: '10px', sm: '11px', md: '12.5px' },
-                  color: isFavorite ? '#e11d48' : C.muted,
-                  bgcolor: isFavorite ? alpha('#e11d48', 0.06) : C.surface,
+                  border: '1.5px solid rgba(25, 118, 210, 0.5)',
+                  borderRadius: '50%',
+                  width: 45,
+                  height: 45,
+                  color: isFavorite ? '#ff4d6d' : '#fff',
+                  bgcolor: 'rgba(25, 118, 210, 0.15)',
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: 'rgba(25, 118, 210, 0.25)',
+                    transform: 'scale(1.1)',
+                  },
                 }}
               >
                 {isFavorite ? <FavoriteIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} /> : <FavoriteBorderIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />}
@@ -457,7 +465,7 @@ export function ProductDetailPage({
             </Typography>
 
             {product.average_rating && Number(product.average_rating) > 0 && (
-              <Stack direction="row" spacing={{ xs: 0.5, sm: 0.75 }} alignItems="center" sx={{ mb: { xs: 1.5, sm: 2 } }}>
+              <Stack direction="row" spacing={{ xs: 0.5, sm: 0.75 }} sx={{ alignItems: 'center', mb: { xs: 1.5, sm: 2 } }}>
                 <StarIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: '#fbbf24' }} />
                 <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, sm: 16, md: 17.5 }, color: C.dark }}>
                   {Number(product.average_rating).toFixed(1)}
@@ -469,7 +477,7 @@ export function ProductDetailPage({
             )}
 
             <Box sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
-              <Stack direction="row" alignItems="baseline" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} flexWrap="wrap">
+              <Stack direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                 <Typography sx={{ fontSize: { xs: '1.5rem', sm: '1.65rem', md: '1.75rem', lg: '2rem' }, fontWeight: 800, color: C.dark, letterSpacing: '-0.02em' }}>
                   {formatPrice(price)}
                 </Typography>
@@ -481,7 +489,7 @@ export function ProductDetailPage({
               </Stack>
 
               {discountPercent != null && userType !== 'wholesale' && (
-                <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} alignItems="center" flexWrap="wrap" sx={{ mt: { xs: 1, sm: 1.25 } }}>
+                <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', mt: { xs: 1, sm: 1.25 } }}>
                   <Chip
                     label={`-${discountPercent}%`}
                     size="small"
@@ -510,9 +518,9 @@ export function ProductDetailPage({
 
             <Divider sx={{ borderColor: C.border, mb: { xs: 2, sm: 2.5, md: 3 } }} />
 
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: { xs: 2, sm: 2.5, md: 3 } }}>
               <Typography sx={{ fontSize: { xs: 15, sm: 16, md: 17.5 }, fontWeight: 700, color: C.dark }}>Quantité</Typography>
-              <Stack direction="row" alignItems="center" spacing={{ xs: 0.25, sm: 0.5 }}>
+              <Stack direction="row" spacing={{ xs: 0.25, sm: 0.5 }} sx={{ alignItems: 'center' }}>
                 <IconButton
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   size="small"
@@ -582,7 +590,7 @@ export function ProductDetailPage({
 
             <Stack spacing={{ xs: 1.25, sm: 1.5, md: 1.75 }}>
               {trustPoints.map(({ icon: Icon, text }) => (
-                <Stack key={text} direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} alignItems="flex-start">
+                <Stack key={text} direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'flex-start' }}>
                   <Box
                     sx={{
                       width: { xs: 38, sm: 42, md: 45 },

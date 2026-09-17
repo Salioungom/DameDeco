@@ -32,7 +32,7 @@ import {
 } from '@mui/material';
 import {
   ShoppingCartOutlined,
-  PersonOutline,
+  PersonOutlined,
   Menu as MenuIcon,
   Search as SearchIcon,
   Close as CloseIcon,
@@ -44,7 +44,7 @@ import {
   StorefrontOutlined,
   HomeOutlined,
   InfoOutlined,
-  MailOutline,
+  EmailOutlined,
   KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useStore } from '@/store/useStore';
@@ -61,7 +61,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Accueil', path: '/', icon: <HomeOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
   { label: 'Boutique', path: '/shop', icon: <StorefrontOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
   { label: 'À propos', path: '/about', icon: <InfoOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
-  { label: 'Contact', path: '/contact', icon: <MailOutline sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
+  { label: 'Contact', path: '/contact', icon: <EmailOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE } }} /> },
 ];
 
 /** Bouton d'action à taille fixe — évite tout décalage au clic / hover */
@@ -131,7 +131,11 @@ const NavActionButton = memo(function NavActionButton({
 const Brand = memo(function Brand() {
   const theme = useTheme();
   return (
-    <Stack direction="row" spacing={{ xs: 1, sm: 1.25 }} alignItems="center" sx={{ flexShrink: 0 }}>
+    <Stack
+      direction="row"
+      spacing={{ xs: 1, sm: 1.25 }}
+      sx={{ alignItems: 'center', flexShrink: 0 }}
+    >
       <Box
         sx={{
           width: { xs: 42, sm: 46, md: 50 },
@@ -422,7 +426,14 @@ export function Navigation() {
                   <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>{item.icon}</ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ fontSize: { xs: 16, sm: 17.5 }, fontWeight: active ? 600 : 500 }}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: { xs: 16, sm: 17.5 },
+                          fontWeight: active ? 600 : 500,
+                        },
+                      },
+                    }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -445,7 +456,17 @@ export function Navigation() {
                   <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}>
                     <AdminPanelSettingsOutlined fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText primary="Mode Admin" primaryTypographyProps={{ fontWeight: 600, color: 'error.main' }} />
+                  <ListItemText
+                    primary="Mode Admin"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 600,
+                          color: 'error.main',
+                        },
+                      },
+                    }}
+                  />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -455,7 +476,7 @@ export function Navigation() {
 
       <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
         {user ? (
-          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center">
+          <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ alignItems: 'center' }}>
             <Avatar src={user.avatar} sx={{ width: { xs: 44, sm: 48, md: 52.5 }, height: { xs: 44, sm: 48, md: 52.5 }, bgcolor: 'primary.main' }}>
               {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
             </Avatar>
@@ -484,7 +505,7 @@ export function Navigation() {
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.25)}`,
                 }}
               >
-                <PersonOutline sx={{ fontSize: { xs: 24, sm: 27.5 }, color: '#fff' }} />
+                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 27.5 }, color: '#fff' }} />
               </Box>
               <Typography fontSize={{ xs: 15, sm: 17.5 }} fontWeight={700} color="text.primary">
                 Bienvenue !
@@ -593,7 +614,7 @@ export function Navigation() {
           )}
         </>
       ) : (
-        <PersonOutline sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
+        <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: ICON_SIZE }, color: 'text.secondary' }} />
       )}
     </Box>
   );
@@ -627,7 +648,7 @@ export function Navigation() {
             }}
           >
             {/* Gauche */}
-            <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} alignItems="center" sx={{ flexShrink: 0 }}>
+            <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
               <Box sx={{ display: { lg: 'none' } }}>
                 <NavActionButton
                   ariaLabel="Ouvrir le menu"
@@ -651,8 +672,7 @@ export function Navigation() {
             <Stack
               direction="row"
               spacing={0.5}
-              alignItems="center"
-              sx={{ display: { xs: 'none', lg: 'flex' }, flex: 1, justifyContent: 'center' }}
+              sx={{ display: { xs: 'none', lg: 'flex' }, flex: 1, alignItems: 'center', justifyContent: 'center' }}
             >
               {NAV_ITEMS.map((item) => (
                 <NavLink key={item.path} item={item} active={pathname === item.path} />
@@ -663,8 +683,7 @@ export function Navigation() {
             <Stack
               direction="row"
               spacing={{ xs: 0.5, sm: 0.75 }}
-              alignItems="center"
-              sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 } }}
+              sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 }, alignItems: 'center' }}
             >
               <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                 <SearchField
@@ -791,8 +810,10 @@ export function Navigation() {
               overflow: 'hidden',
             },
           },
+          list: {
+            sx: { py: { xs: 0.75, sm: 1 } },
+          },
         }}
-        MenuListProps={{ sx: { py: { xs: 0.75, sm: 1 } } }}
         disableScrollLock
       >
         {user && (
@@ -808,7 +829,7 @@ export function Navigation() {
               bgcolor: alpha(theme.palette.primary.main, 0.04),
             }}
           >
-            <Stack direction="row" spacing={{ xs: 0.75, sm: 1, md: 1.25 }} alignItems="center">
+            <Stack direction="row" spacing={{ xs: 0.75, sm: 1, md: 1.25 }} sx={{ alignItems: 'center' }}>
               <Avatar sx={{ width: { xs: 36, sm: 42, md: 50 }, height: { xs: 36, sm: 42, md: 50 }, bgcolor: 'primary.main', fontSize: { xs: 14, sm: 16, md: 18 }, fontWeight: 700 }}>
                 {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
               </Avatar>
@@ -868,12 +889,21 @@ export function Navigation() {
                   boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
                 }}
               >
-                <PersonOutline sx={{ fontSize: { xs: 24, sm: 26, md: 30 }, color: '#fff' }} />
+                <PersonOutlined sx={{ fontSize: { xs: 24, sm: 26, md: 30 }, color: '#fff' }} />
               </Box>
-              <Typography fontSize={{ xs: 15, sm: 17, md: 18.75 }} fontWeight={700} color="text.primary" lineHeight={1.3} sx={{ mb: { xs: 0.25, sm: 0.5 } }}>
+              <Typography
+                fontSize={{ xs: 15, sm: 17, md: 18.75 }}
+                fontWeight={700}
+                color="text.primary"
+                sx={{ lineHeight: 1.3, mb: { xs: 0.25, sm: 0.5 } }}
+              >
                 Bienvenue !
               </Typography>
-              <Typography fontSize={{ xs: 13, sm: 14, md: 15.625 }} color="text.secondary" lineHeight={1.5}>
+              <Typography
+                fontSize={{ xs: 13, sm: 14, md: 15.625 }}
+                color="text.secondary"
+                sx={{ lineHeight: 1.5 }}
+              >
                 Connectez-vous pour suivre vos commandes, gérer vos favoris et profiter d&apos;offres exclusives.
               </Typography>
             </Box>

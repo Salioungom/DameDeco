@@ -54,12 +54,15 @@ export function CheckoutHeader({ activeStep, onBack }: CheckoutHeaderProps) {
           sx={{
             fontSize: { xs: 26, sm: 28, md: 36, lg: 42.5 },
             letterSpacing: '-0.02em',
-            mb: { xs: 2, sm: 2.5, md: 3 },
+            mb: { xs: 1.25, sm: 1.5, md: 2 },
           }}
         >
           {activeStep === 0 ? 'Votre panier' : 'Finaliser la commande'}
         </Typography>
 
+        <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 2, sm: 2.5, md: 3 }, maxWidth: 820 }}>
+          Vérifiez vos informations de livraison et le mode de paiement avant de confirmer votre commande.
+        </Typography>
         <Stepper
           activeStep={activeStep}
           sx={{

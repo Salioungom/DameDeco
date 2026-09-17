@@ -79,7 +79,7 @@ export default function Page() {
                 <Typography sx={{ color: '#64748B', mb: 3, fontSize: 15 }}>
                     Ce produit n&apos;existe pas ou n&apos;est plus disponible.
                 </Typography>
-                <Stack direction="row" spacing={1.5} justifyContent="center">
+                <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center' }}>
                     <Button component={Link} href="/shop" variant="contained" sx={{ textTransform: 'none', fontWeight: 700 }}>
                         Voir la boutique
                     </Button>

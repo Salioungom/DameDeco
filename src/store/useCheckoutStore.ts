@@ -1,7 +1,8 @@
 import { create } from 'zustand';
+import type { DeliveryMode, PaymentMethod } from '@/lib/delivery';
 
 interface CheckoutState {
-  deliveryMethod: 'delivery' | 'pickup';
+  deliveryMode: DeliveryMode;
   deliveryFee: number;
   estimatedDays: string;
   selectedAddressId: number | null;
@@ -11,19 +12,19 @@ interface CheckoutState {
   address: string;
   city: string;
   specialInstructions: string;
-  paymentMethod: string;
+  selectedPaymentMethod: PaymentMethod | null;
 
-  setDeliveryMethod: (method: 'delivery' | 'pickup') => void;
+  setDeliveryMode: (mode: DeliveryMode) => void;
   setDeliveryFee: (fee: number) => void;
   setEstimatedDays: (days: string) => void;
   setSelectedAddressId: (id: number | null) => void;
   setShippingInfo: (info: Partial<Pick<CheckoutState, 'firstName' | 'lastName' | 'phone' | 'address' | 'city' | 'specialInstructions'>>) => void;
-  setPaymentMethod: (method: string) => void;
+  setSelectedPaymentMethod: (method: PaymentMethod | null) => void;
   resetCheckout: () => void;
 }
 
 const initialState = {
-  deliveryMethod: 'delivery' as const,
+  deliveryMode: 'home_delivery' as const,
   deliveryFee: 0,
   estimatedDays: '',
   selectedAddressId: null,
@@ -33,17 +34,17 @@ const initialState = {
   address: '',
   city: '',
   specialInstructions: '',
-  paymentMethod: 'wave',
+  selectedPaymentMethod: null,
 };
 
 export const useCheckoutStore = create<CheckoutState>()((set) => ({
   ...initialState,
 
-  setDeliveryMethod: (method) => set({ deliveryMethod: method }),
+  setDeliveryMode: (mode) => set({ deliveryMode: mode }),
   setDeliveryFee: (fee) => set({ deliveryFee: fee }),
   setEstimatedDays: (days) => set({ estimatedDays: days }),
   setSelectedAddressId: (id) => set({ selectedAddressId: id }),
   setShippingInfo: (info) => set((state) => ({ ...state, ...info })),
-  setPaymentMethod: (method) => set({ paymentMethod: method }),
+  setSelectedPaymentMethod: (method) => set({ selectedPaymentMethod: method }),
   resetCheckout: () => set(initialState),
 }));

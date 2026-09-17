@@ -122,7 +122,7 @@ function CategoryDialogHeader({
         gap: 2,
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center">
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <Box
           sx={{
             width: 55,
@@ -583,7 +583,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         {/* Stats Cards - Conditionally rendered */}
         {showStats && (
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: BRAND.primary, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
@@ -595,7 +595,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: '#0D7A4A', color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
@@ -607,7 +607,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: BRAND.muted, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
@@ -619,7 +619,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: BRAND.dark, color: 'white', borderRadius: '15px' }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="h4" fontWeight={700}>
@@ -652,7 +652,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         }}
       >
         <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${BRAND.border}`, bgcolor: BRAND.surface }}>
-          <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <FilterIcon sx={{ color: BRAND.primary, fontSize: 25 }} />
             <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
@@ -668,7 +668,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
           </Box>
         </Box>
         <Box sx={{ p: 2.5 }}>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
@@ -679,17 +679,19 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   filters: { ...prev.filters, search: e.target.value },
                   pagination: { ...prev.pagination, skip: 0 },
                 }))}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    borderRadius: '13px',
-                    bgcolor: BRAND.surface,
-                    '&.Mui-focused': {
-                      boxShadow: `0 0 0 2px ${alpha(BRAND.primary, 0.15)}`,
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      borderRadius: '13px',
+                      bgcolor: BRAND.surface,
+                      '&.Mui-focused': {
+                        boxShadow: `0 0 0 2px ${alpha(BRAND.primary, 0.15)}`,
+                      },
                     },
                   },
                 }}
@@ -721,7 +723,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               />
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                 <Button
                   variant={state.filters.is_active === null ? 'contained' : 'outlined'}
                   onClick={() => setState(prev => ({
@@ -829,7 +831,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -860,7 +862,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -891,7 +893,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -922,7 +924,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   top: 0,
                   zIndex: 1,
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
                         p: 0.8,
@@ -954,7 +956,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                   zIndex: 1,
                   textAlign: 'right',
                 }}>
-                  <Box display="flex" alignItems="center" gap={1.5} justifyContent="flex-end">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'flex-end' }}>
                     <Typography variant="subtitle2" fontWeight={700}>
                       Actions
                     </Typography>
@@ -1088,7 +1090,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Box display="flex" gap={0.5} justifyContent="flex-end">
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                         <Tooltip title="Modifier" arrow>
                           <IconButton
                             size="small"
@@ -1213,7 +1215,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         onClose={() => { setCreateDialogOpen(false); resetFormData(); }}
         maxWidth="sm"
         fullWidth
-        PaperProps={dialogPaperProps}
+        slotProps={{ paper: dialogPaperProps }}
       >
         <CategoryDialogHeader
           icon={<AddIcon sx={{ color: BRAND.white }} />}
@@ -1225,19 +1227,19 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
           <Stack spacing={2.5}>
             <CategoryImageUpload previewUrl={previewUrl} selectedImage={selectedImage} onSelect={handleImageSelect} />
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} helperText="Vide = généré auto" sx={fieldSx} />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}
@@ -1264,7 +1266,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
         onClose={() => { setEditDialogOpen(false); resetFormData(); setSelectedCategory(null); }}
         maxWidth="sm"
         fullWidth
-        PaperProps={dialogPaperProps}
+        slotProps={{ paper: dialogPaperProps }}
       >
         <CategoryDialogHeader
           icon={<EditIcon sx={{ color: BRAND.white }} />}
@@ -1281,19 +1283,19 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
               existingLabel={selectedCategory?.cover_image_url ? 'Remplacez l’image actuelle si besoin' : undefined}
             />
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth required label="Nom" value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, name: e.target.value }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth label="Slug (URL)" value={formData.slug} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, slug: e.target.value }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField fullWidth label="Description" multiline rows={3} value={formData.description} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, description: e.target.value }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth type="number" label="Ordre d'affichage" value={formData.sort_order} onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setFormData((p) => ({ ...p, sort_order: parseInt(e.target.value, 10) || 0 }))} sx={fieldSx} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Paper variant="outlined" sx={{ px: 2, py: 1, borderRadius: '13px', borderColor: BRAND.border, bgcolor: BRAND.white, height: 70, display: 'flex', alignItems: 'center' }}>
                   <FormControlLabel
                     control={<Switch checked={formData.is_active} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((p) => ({ ...p, is_active: e.target.checked }))} color="primary" />}

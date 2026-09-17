@@ -39,9 +39,20 @@ vi.mock('@/lib/cart-logger', () => ({
 // ─── Import AFTER mocks ─────────────────────────────────────────────────────
 
 import { useStore } from '../useStore';
-import { cartService } from '@/services/cart.service';
+import { cartService, type CartItem } from '@/services/cart.service';
 
 const svc = vi.mocked(cartService);
+
+const makeCartItem = (overrides: Partial<CartItem> = {}): CartItem => ({
+  id: 1,
+  product_id: 10,
+  quantity: 1,
+  unit_price: '5000',
+  price_type: 'retail',
+  created_at: '',
+  updated_at: '',
+  ...overrides,
+});
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -104,7 +115,7 @@ describe('useStore — loadCart', () => {
   it('loads guest cart when not authenticated', async () => {
     useStore.setState({ sessionId: 'guest-123' });
     svc.getGuestCart.mockResolvedValue({
-      data: { items: [{ id: 1, product_id: 10, quantity: 2, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }], total_items: 1, total_unique_products: 1 },
+      data: { items: [makeCartItem({ quantity: 2 })], total_items: 1, total_unique_products: 1 },
       error: null,
     });
 
@@ -149,9 +160,9 @@ describe('useStore — addToCart', () => {
 
   it('adds to guest cart when not authenticated', async () => {
     useStore.setState({ sessionId: 'guest-123' });
-    svc.addToGuestCart.mockResolvedValue({ data: { id: 1 }, error: null });
+    svc.addToGuestCart.mockResolvedValue({ data: makeCartItem(), error: null });
     svc.getGuestCart.mockResolvedValue({
-      data: { items: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }], total_items: 1, total_unique_products: 1 },
+      data: { items: [makeCartItem()], total_items: 1, total_unique_products: 1 },
       error: null,
     });
 
@@ -163,9 +174,9 @@ describe('useStore — addToCart', () => {
 
   it('adds to user cart when authenticated', async () => {
     useStore.setState({ user: { id: '1', name: 'Test', email: '', role: 'client', type: 'retail' } as any });
-    svc.addToCart.mockResolvedValue({ data: { id: 1 }, error: null });
+    svc.addToCart.mockResolvedValue({ data: makeCartItem(), error: null });
     svc.getCart.mockResolvedValue({
-      data: { items: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }], total_items: 1, total_unique_products: 1 },
+      data: { items: [makeCartItem()], total_items: 1, total_unique_products: 1 },
       error: null,
     });
 
@@ -184,7 +195,7 @@ describe('useStore — removeFromCart', () => {
   it('optimistically removes item from local cart', async () => {
     useStore.setState({
       sessionId: 'guest-123',
-      cart: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }],
+      cart: [makeCartItem()],
     });
 
     svc.removeGuestCartItem.mockResolvedValue({ data: null, error: null });
@@ -201,7 +212,7 @@ describe('useStore — removeFromCart', () => {
   it('rolls back on API error', async () => {
     useStore.setState({
       sessionId: 'guest-123',
-      cart: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }],
+      cart: [makeCartItem()],
     });
 
     svc.removeGuestCartItem.mockResolvedValue({ data: null, error: 'Network error' });
@@ -222,7 +233,7 @@ describe('useStore — setUser', () => {
   it('clears cart on logout and reinits guest session', async () => {
     useStore.setState({
       user: { id: '1', name: 'Test', email: '', role: 'client', type: 'retail' } as any,
-      cart: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }],
+      cart: [makeCartItem()],
     });
 
     svc.initGuestSession.mockResolvedValue({
@@ -243,7 +254,7 @@ describe('useStore — setUser', () => {
   it('clears cart when switching to different user', async () => {
     useStore.setState({
       user: { id: '1', name: 'Test', email: '', role: 'client', type: 'retail' } as any,
-      cart: [{ id: 1, product_id: 10, quantity: 1, unit_price: '5000', price_type: 'retail', created_at: '', updated_at: '' }],
+      cart: [makeCartItem()],
     });
 
     useStore.getState().setUser({ id: '2', name: 'Other', email: '', role: 'client', type: 'retail' } as any);

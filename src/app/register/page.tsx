@@ -259,15 +259,17 @@ function RegisterForm() {
                     <Cancel sx={{ color: 'grey.400', fontSize: 16 }} />
                 )}
             </ListItemIcon>
-            <ListItemText 
+            <ListItemText
                 primary={text}
-                primaryTypographyProps={{
-                    variant: 'caption',
-                    color: met ? 'text.primary' : 'text.secondary',
-                    sx: { 
-                        textDecoration: met ? 'none' : 'line-through',
-                        fontSize: '0.75rem'
-                    }
+                slotProps={{
+                    primary: {
+                        variant: 'caption',
+                        color: met ? 'text.primary' : 'text.secondary',
+                        sx: {
+                            textDecoration: met ? 'none' : 'line-through',
+                            fontSize: '0.75rem',
+                        },
+                    },
                 }}
             />
         </ListItem>
@@ -443,9 +445,9 @@ function RegisterForm() {
                         <Box component="form" onSubmit={handleSubmit} noValidate>
                             <Box sx={{ maxWidth: 600, mx: 'auto' }}>
                                 {/* Layout à deux colonnes responsive avec alignement strict */}
-                                <Grid container spacing={3} alignItems="center">
+                                <Grid container spacing={3} sx={{ alignItems: 'center' }}>
                                     {/* Ligne 1: Nom complet (gauche) et Email (droite) */}
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
                                         <ClientOnly>
                                             <TextField
                                                 required
@@ -481,7 +483,7 @@ function RegisterForm() {
                                             />
                                         </ClientOnly>
                                     </Grid>
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
                                         <ClientOnly>
                                             <TextField
                                                 required
@@ -518,7 +520,7 @@ function RegisterForm() {
                                     </Grid>
 
                                     {/* Ligne 2: Téléphone (gauche) et Mot de passe (droite) */}
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
                                         <ClientOnly>
                                             <TextField
                                                 required
@@ -553,7 +555,7 @@ function RegisterForm() {
                                             />
                                         </ClientOnly>
                                     </Grid>
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
                                         <ClientOnly>
                                             <TextField
                                                 required
@@ -569,24 +571,26 @@ function RegisterForm() {
                                                 onBlur={() => setPasswordFocused(false)}
                                                 error={!!fieldErrors.password}
                                                 helperText={fieldErrors.password}
-                                                InputProps={{
-                                                    endAdornment: (
-                                                        <InputAdornment position="end">
-                                                            <IconButton
-                                                                onClick={() => setShowPassword(!showPassword)}
-                                                                edge="end"
-                                                                sx={{
-                                                                    color: '#888780',
-                                                                    '&:hover': {
-                                                                        color: BRAND_BLUE,
-                                                                        bgcolor: 'rgba(24, 95, 165, 0.08)',
-                                                                    },
-                                                                }}
-                                                            >
-                                                                {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                                                            </IconButton>
-                                                        </InputAdornment>
-                                                    ),
+                                                slotProps={{
+                                                    input: {
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton
+                                                                    onClick={() => setShowPassword(!showPassword)}
+                                                                    edge="end"
+                                                                    sx={{
+                                                                        color: '#888780',
+                                                                        '&:hover': {
+                                                                            color: BRAND_BLUE,
+                                                                            bgcolor: 'rgba(24, 95, 165, 0.08)',
+                                                                        },
+                                                                    }}
+                                                                >
+                                                                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        ),
+                                                    },
                                                 }}
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {
@@ -613,7 +617,7 @@ function RegisterForm() {
                                     </Grid>
 
                                     {/* Ligne 3: Confirmation mot de passe (pleine largeur) */}
-                                    <Grid item xs={12} sm={12}>
+                                    <Grid size={{ xs: 12, sm: 12 }}>
                                         <ClientOnly>
                                             <TextField
                                                 required
@@ -627,23 +631,25 @@ function RegisterForm() {
                                                 onChange={handleChange}
                                                 error={!!fieldErrors.confirmPassword}
                                                 helperText={fieldErrors.confirmPassword}
-                                                InputProps={{
-                                                    endAdornment: (
-                                                        <InputAdornment position="end">
-                                                            <IconButton
-                                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                                edge="end"
-                                                                sx={{
-                                                                    color: theme.palette.text.secondary,
-                                                                    '&:hover': {
-                                                                        color: theme.palette.primary.main,
-                                                                    },
-                                                                }}
-                                                            >
-                                                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                                            </IconButton>
-                                                        </InputAdornment>
-                                                    ),
+                                                slotProps={{
+                                                    input: {
+                                                        endAdornment: (
+                                                            <InputAdornment position="end">
+                                                                <IconButton
+                                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                                    edge="end"
+                                                                    sx={{
+                                                                        color: theme.palette.text.secondary,
+                                                                        '&:hover': {
+                                                                            color: theme.palette.primary.main,
+                                                                        },
+                                                                    }}
+                                                                >
+                                                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        ),
+                                                    },
                                                 }}
                                                 sx={{
                                                     mb: 2.5,

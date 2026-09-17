@@ -7,12 +7,7 @@ import {
   Typography,
   Button,
   TextField,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Divider,
-  Tabs,
-  Tab,
   Stack,
   Paper,
   Chip,
@@ -22,8 +17,6 @@ import {
   alpha,
 } from '@mui/material';
 import {
-  Smartphone,
-  AttachMoney as DollarSign,
   LocationOn,
   LocalShippingOutlined,
   StoreOutlined,
@@ -36,20 +29,12 @@ import { ClientOnly } from '@/components/ClientOnly';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { getImageUrl } from '@/lib/imageUtils';
-import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { computeDeliveryFee, type DeliveryMode } from '@/lib/delivery';
 
-type TabPanelProps = {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-};
-
-const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
-  if (value !== index) return null;
-  return <Box sx={{ pt: 3 }}>{children}</Box>;
-};
+  
 
 export interface OrderCheckoutData {
+  fullName: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -57,46 +42,61 @@ export interface OrderCheckoutData {
   address: string;
   city: string;
   country: string;
-  paymentMethod: string;
-  paymentPhone?: string;
-  deliveryMethod: string;
+  deliveryMode: DeliveryMode;
   instructions?: string;
 }
+
+export type CheckoutStage = 'idle' | 'creating_order' | 'initializing_payment' | 'redirecting_to_paytech';
 
 interface CheckoutFinalizeProps {
   items: CartItemWithProduct[];
   onPlaceOrder: (data: OrderCheckoutData) => void;
   isProcessing?: boolean;
+  stage?: CheckoutStage;
+  /** Reprise du paiement d'une commande existante : aucun formulaire à revalider. */
+  orderMode?: boolean;
   error?: string | null;
+  /**
+   * Montant total renvoyé par le backend (commande déjà créée).
+   * Lorsqu'il est fourni, il a priorité sur l'estimation frontend.
+   */
+  serverTotal?: number | null;
+  /**
+   * Frais de livraison renvoyés par le backend, s'ils sont disponibles.
+   * Prioritaires sur l'estimation frontend.
+   */
+  serverDeliveryFee?: number | null;
 }
 
-export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, error = null }: CheckoutFinalizeProps) {
+export function CheckoutFinalize({
+  items,
+  onPlaceOrder,
+  isProcessing = false,
+  stage = 'idle',
+  orderMode = false,
+  error = null,
+  serverTotal = null,
+  serverDeliveryFee = null,
+}: CheckoutFinalizeProps) {
   const theme = useTheme();
   const brandBlue = theme.palette.primary.main;
 
   const {
-    deliveryMethod,
+    deliveryMode,
     deliveryFee,
-    estimatedDays,
-    paymentMethod,
-    setDeliveryMethod,
+    setDeliveryMode,
     setDeliveryFee,
-    setEstimatedDays,
-    setPaymentMethod,
     setShippingInfo,
   } = useCheckoutStore();
 
-  const [tabValue, setTabValue] = useState(0);
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [paymentPhone, setPaymentPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const { settings: shippingSettings, loading: settingsLoading } = useShippingSettings();
 
   const subtotal = useMemo(
     () =>
@@ -109,13 +109,24 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
     [items]
   );
 
-  const total = subtotal + deliveryFee;
+  /**
+   * Estimation frontend des frais de livraison (règle 0 / 1500 / 25000).
+   * Le backend reste l'autorité pour le montant final facturé : serverDeliveryFee
+   * et serverTotal, lorsqu'ils sont fournis, ont priorité sur cette estimation.
+   */
+  const estimatedDeliveryFee = deliveryFee;
+  const displayDeliveryFee = serverDeliveryFee ?? estimatedDeliveryFee;
+  const displayTotal = serverTotal ?? subtotal + estimatedDeliveryFee;
 
   const validateField = (name: string, value: string) => {
     let error = '';
     switch (name) {
-      case 'fullName':
-        if (!value.trim()) error = 'Le nom complet est obligatoire';
+      case 'firstName':
+        if (!value.trim()) error = 'Le prénom est obligatoire';
+        else if (value.trim().length < 2) error = 'Minimum 2 caractères';
+        break;
+      case 'lastName':
+        if (!value.trim()) error = 'Le nom est obligatoire';
         else if (value.trim().length < 2) error = 'Minimum 2 caractères';
         break;
       case 'phone':
@@ -140,40 +151,28 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
     return /^(\+?221)?[73]\d{8}$/.test(digits);
   };
 
-  const isPaymentMethodMobile = paymentMethod === 'wave' || paymentMethod === 'orange';
-
   const isFormValid = (() => {
-    if (deliveryMethod === 'delivery') {
-      if (!fullName.trim() || !phone.trim() || !city.trim() || !address.trim()) return false;
+    // En reprise de paiement, la commande existe déjà : rien à valider.
+    if (orderMode) return true;
+    if (deliveryMode === 'home_delivery') {
+      if (!firstName.trim() || !lastName.trim() || !phone.trim() || !city.trim() || !address.trim()) return false;
     }
-    if (isPaymentMethodMobile && !isPhoneValid(paymentPhone)) return false;
     return true;
   })();
 
-  // Calculate shipping locally based on delivery method and threshold
+  // Frais de livraison : règle backend unique (mode de livraison + sous-total).
   useEffect(() => {
-    if (settingsLoading) return;
-
-    if (deliveryMethod === 'pickup') {
-      setDeliveryFee(0);
-      setEstimatedDays('');
-      return;
-    }
-
-    const threshold = Number(shippingSettings?.freeShippingThreshold || 0);
-    const standardCost = Number(shippingSettings?.standardShippingCost || 0);
-    const cost = threshold > 0 && subtotal >= threshold ? 0 : standardCost;
-    setDeliveryFee(cost);
-    setEstimatedDays(cost === 0 ? '' : '2-5 jours ouvrables');
-  }, [subtotal, deliveryMethod, settingsLoading, shippingSettings, setDeliveryFee, setEstimatedDays]);
+    setDeliveryFee(computeDeliveryFee(deliveryMode, subtotal));
+  }, [deliveryMode, subtotal, setDeliveryFee]);
 
   const handlePlaceOrder = () => {
     if (isProcessing) return;
 
-    // Validate all fields for delivery mode
-    if (deliveryMethod === 'delivery') {
+    // Validation des champs uniquement pour la livraison à domicile (hors reprise de paiement).
+    if (!orderMode && deliveryMode === 'home_delivery') {
       const newErrors: Record<string, string> = {};
-      newErrors.fullName = validateField('fullName', fullName);
+      newErrors.firstName = validateField('firstName', firstName);
+      newErrors.lastName = validateField('lastName', lastName);
       newErrors.phone = validateField('phone', phone);
       newErrors.city = validateField('city', city);
       newErrors.address = validateField('address', address);
@@ -182,24 +181,20 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
       if (Object.values(newErrors).some((e) => e)) return;
     }
 
-    // Split full name into first/last
-    const nameParts = fullName.trim().split(/\s+/);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
-
-    setShippingInfo({ firstName, lastName, phone, address, city });
+    if (!orderMode) {
+      setShippingInfo({ firstName: firstName.trim(), lastName: lastName.trim(), phone, address, city });
+    }
 
     onPlaceOrder({
-      firstName,
-      lastName,
+      fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       email,
       phone,
       address,
       city,
       country: 'Sénégal',
-      paymentMethod,
-      paymentPhone,
-      deliveryMethod,
+      deliveryMode,
       instructions,
     });
   };
@@ -222,35 +217,43 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
       <Container maxWidth="xl" sx={{ py: { xs: 4, md: 5 } }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 4 }}>
           <Box>
-            <Stack spacing={3.5}>
+              <Stack spacing={3.5}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0 }}>
+                  Vérifiez et complétez vos coordonnées. Les champs marqués d'un * sont obligatoires.
+                </Typography>
               {/* Section 1: Mode de livraison */}
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <LocalShippingOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
                   <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Mode de livraison</Typography>
                 </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: { xs: 1.5, sm: 2 } }}>
                   <Box
-                    onClick={() => setDeliveryMethod('delivery')}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={deliveryMode === 'home_delivery'}
+                    onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') setDeliveryMode('home_delivery'); }}
+                    onClick={() => setDeliveryMode('home_delivery')}
                     sx={{
                       p: { xs: 1.5, sm: 2.5 },
                       border: '2px solid',
-                      borderColor: deliveryMethod === 'delivery' ? brandBlue : alpha(theme.palette.divider, 0.8),
+                      borderColor: deliveryMode === 'home_delivery' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
                       cursor: 'pointer',
-                      bgcolor: deliveryMethod === 'delivery' ? alpha(brandBlue, 0.06) : 'background.paper',
+                      bgcolor: deliveryMode === 'home_delivery' ? alpha(brandBlue, 0.06) : 'background.paper',
                       transition: 'all 0.2s ease',
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
+                      '&:focus-visible': { outline: `3px solid ${brandBlue}`, outlineOffset: 3 },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
-                      <LocalShippingOutlined sx={{ color: deliveryMethod === 'delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMethod === 'delivery' ? 'text.primary' : 'text.secondary'}>
+                      <LocalShippingOutlined sx={{ color: deliveryMode === 'home_delivery' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'home_delivery' ? 'text.primary' : 'text.secondary'}>
                         Livraison à la maison
                       </Typography>
                     </Box>
                     
-                    {deliveryMethod === 'delivery' && (
+                    {deliveryMode === 'home_delivery' && (
                       <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
                         <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
@@ -259,28 +262,33 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   </Box>
 
                   <Box
-                    onClick={() => setDeliveryMethod('pickup')}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={deliveryMode === 'store_pickup'}
+                    onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') setDeliveryMode('store_pickup'); }}
+                    onClick={() => setDeliveryMode('store_pickup')}
                     sx={{
                       p: { xs: 1.5, sm: 2.5 },
                       border: '2px solid',
-                      borderColor: deliveryMethod === 'pickup' ? brandBlue : alpha(theme.palette.divider, 0.8),
+                      borderColor: deliveryMode === 'store_pickup' ? brandBlue : alpha(theme.palette.divider, 0.8),
                       borderRadius: 3,
                       cursor: 'pointer',
-                      bgcolor: deliveryMethod === 'pickup' ? alpha(brandBlue, 0.06) : 'background.paper',
+                      bgcolor: deliveryMode === 'store_pickup' ? alpha(brandBlue, 0.06) : 'background.paper',
                       transition: 'all 0.2s ease',
                       '&:hover': { borderColor: alpha(brandBlue, 0.4), bgcolor: alpha(brandBlue, 0.03) },
+                      '&:focus-visible': { outline: `3px solid ${brandBlue}`, outlineOffset: 3 },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, mb: { xs: 0.5, sm: 1 } }}>
-                      <StoreOutlined sx={{ color: deliveryMethod === 'pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
-                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMethod === 'pickup' ? 'text.primary' : 'text.secondary'}>
+                      <StoreOutlined sx={{ color: deliveryMode === 'store_pickup' ? brandBlue : 'text.secondary', fontSize: { xs: 24, sm: 30 } }} />
+                      <Typography variant={{ xs: 'body2', sm: 'subtitle1' }} fontWeight={700} color={deliveryMode === 'store_pickup' ? 'text.primary' : 'text.secondary'}>
                         Retrait en boutique
                       </Typography>
                     </Box>
                     <Typography variant={{ xs: 'caption', sm: 'body2' }} color="text.secondary">
                       Gratuit 
                     </Typography>
-                    {deliveryMethod === 'pickup' && (
+                    {deliveryMode === 'store_pickup' && (
                       <Box sx={{ mt: { xs: 1, sm: 1.5 }, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <CheckCircle2 sx={{ color: brandBlue, fontSize: { xs: 18, sm: 22.5 } }} />
                         <Typography variant={{ xs: 'caption', sm: 'caption' }} fontWeight={600} color={brandBlue}>Sélectionné</Typography>
@@ -290,7 +298,7 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                 </Box>
               </Box>
 
-              {deliveryMethod === 'pickup' && (
+                  {deliveryMode === 'store_pickup' && (
                 <Box sx={{ ...sectionSx, bgcolor: alpha(brandBlue, 0.04) }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <StoreOutlined sx={{ color: brandBlue, fontSize: 27.5 }} />
@@ -304,8 +312,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               )}
 
               {/* Section 2: Informations de livraison (uniquement si livraison à la maison) */}
-              {deliveryMethod === 'delivery' && (
-                <Box sx={sectionSx}>
+              {deliveryMode === 'home_delivery' && (
+                <Box sx={sectionSx} component="form" noValidate>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                     <LocationOn sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
                     <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Informations de livraison</Typography>
@@ -314,23 +322,46 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>
                     <ClientOnly>
                       <TextField
+                        id="firstName"
+                        name="firstName"
                         fullWidth
-                        label="Nom complet"
-                        placeholder="Votre nom complet"
-                        value={fullName}
+                        label="Prénom"
+                        placeholder="Votre prénom"
+                        value={firstName}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setFullName(e.target.value);
-                          setErrors((prev) => ({ ...prev, fullName: validateField('fullName', e.target.value) }));
+                          setFirstName(e.target.value);
+                          setErrors((prev) => ({ ...prev, firstName: validateField('firstName', e.target.value) }));
                         }}
                         required
-                        error={!!errors.fullName}
-                        helperText={errors.fullName}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName}
                         sx={inputSx}
                       />
                     </ClientOnly>
 
                     <ClientOnly>
                       <TextField
+                        id="lastName"
+                        name="lastName"
+                        fullWidth
+                        label="Nom"
+                        placeholder="Votre nom"
+                        value={lastName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setLastName(e.target.value);
+                          setErrors((prev) => ({ ...prev, lastName: validateField('lastName', e.target.value) }));
+                        }}
+                        required
+                        error={!!errors.lastName}
+                        helperText={errors.lastName}
+                        sx={inputSx}
+                      />
+                    </ClientOnly>
+
+                    <ClientOnly>
+                      <TextField
+                        id="email"
+                        name="email"
                         fullWidth
                         label="Email"
                         placeholder="exemple@email.com"
@@ -343,6 +374,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
 
                     <ClientOnly>
                       <TextField
+                        id="phone"
+                        name="phone"
                         fullWidth
                         label="Téléphone"
                         placeholder="+221 77 123 45 67"
@@ -360,6 +393,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
 
                     <ClientOnly>
                       <TextField
+                        id="city"
+                        name="city"
                         select
                         fullWidth
                         label="Ville"
@@ -381,6 +416,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
 
                     <ClientOnly>
                       <TextField
+                        id="address"
+                        name="address"
                         fullWidth
                         label="Adresse complète"
                         placeholder="Rue, quartier, repères..."
@@ -398,6 +435,8 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
 
                     <ClientOnly>
                       <TextField
+                        id="instructions"
+                        name="instructions"
                         fullWidth
                         label="Instructions (optionnel)"
                         placeholder="Instructions de livraison, repères, étage..."
@@ -417,98 +456,69 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
               <Box sx={sectionSx}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 2, sm: 3 } }}>
                   <PaymentOutlined sx={{ color: brandBlue, fontSize: { xs: 24, sm: 27.5 } }} />
-                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Méthode de paiement</Typography>
-                </Box>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={(_: React.SyntheticEvent, newValue: number) => {
-                      setTabValue(newValue);
-                      setPaymentMethod(['wave', 'cod'][newValue]);
-                    }}
-                    variant="fullWidth"
-                    sx={{
-                      '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: { xs: 14, sm: 17.5 } },
-                      '& .Mui-selected': { color: `${brandBlue} !important` },
-                      '& .MuiTabs-indicator': { bgcolor: brandBlue },
-                    }}
-                  >
-                    <Tab icon={<Smartphone />} iconPosition="start" label="Mobile Money" />
-                    <Tab icon={<DollarSign />} iconPosition="start" label="À la livraison" />
-                  </Tabs>
+                  <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700}>Mode de paiement</Typography>
                 </Box>
 
-                <TabPanel value={tabValue} index={0}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-                    Sélectionnez votre opérateur
+                <Box
+                  sx={{
+                    p: { xs: 2, sm: 2.5 },
+                    border: '2px solid',
+                    borderColor: brandBlue,
+                    borderRadius: 3,
+                    bgcolor: alpha(brandBlue, 0.06),
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        bgcolor: brandBlue,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'white' }} />
+                    </Box>
+                    <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                      Paiement en ligne sécurisé
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, lineHeight: 1.6 }}>
+                    Vous serez redirigé vers PayTech pour choisir votre moyen de paiement.
                   </Typography>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value)}
-                  >
-                    {['wave', 'orange'].map((method) => (
-                      <Paper
-                        key={method}
-                        variant="outlined"
-                        onClick={() => setPaymentMethod(method)}
-                        sx={{
-                          mb: 1.5,
-                          p: 1.5,
-                          borderRadius: 2,
-                          borderColor: paymentMethod === method ? brandBlue : alpha(theme.palette.divider, 0.8),
-                          cursor: 'pointer',
-                          bgcolor: paymentMethod === method ? alpha(brandBlue, 0.06) : 'background.paper',
-                          transition: 'all 0.2s ease',
-                          '&:hover': { borderColor: alpha(brandBlue, 0.4) },
-                        }}
-                      >
-                        <ClientOnly>
-                          <FormControlLabel
-                            value={method}
-                            control={<Radio sx={{ '&.Mui-checked': { color: brandBlue } }} />}
-                            label={method === 'wave' ? 'Wave' : 'Orange Money'}
-                            sx={{ width: '100%', m: 0, '& .MuiTypography-root': { fontWeight: 600, fontSize: 17.5 } }}
-                          />
-                        </ClientOnly>
-                      </Paper>
-                    ))}
-                  </RadioGroup>
-                  <ClientOnly>
-                    <TextField
-                      fullWidth
-                      label="Numéro de téléphone pour le paiement"
-                      placeholder="77 123 45 67"
-                      value={paymentPhone}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentPhone(e.target.value)}
-                      required
-                      error={isPaymentMethodMobile && paymentPhone.length > 0 && !isPhoneValid(paymentPhone)}
-                      helperText={
-                        isPaymentMethodMobile && paymentPhone.length > 0 && !isPhoneValid(paymentPhone)
-                          ? 'Ex: 77 123 45 67 ou +221 77 123 45 67'
-                          : `Numéro ${paymentMethod === 'wave' ? 'Wave' : 'Orange Money'} utilisé pour le paiement`
-                      }
-                      sx={{ mt: 2.5, ...inputSx }}
-                    />
-                  </ClientOnly>
-                </TabPanel>
-
-                <TabPanel value={tabValue} index={1}>
-                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                    Vous paierez en espèces lors de la réception de votre commande.
-                  </Typography>
-                </TabPanel>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                      Wave
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">•</Typography>
+                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                      Orange Money
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">•</Typography>
+                    <Typography variant="caption" fontWeight={600} color="text.secondary">
+                      Carte bancaire
+                    </Typography>
+                  </Stack>
+                </Box>
               </Box>
             </Stack>
           </Box>
 
           {/* Récapitulatif sticky */}
-          <Box>
+            <Box>
             <Box
               sx={{
                 ...sectionSx,
                 position: 'sticky',
                 top: 100,
+                maxHeight: 'calc(100vh - 140px)',
+                overflow: 'auto',
+                pr: { xs: 0, sm: 0 },
               }}
+              aria-live="polite"
             >
               <Typography variant={{ xs: 'subtitle1', sm: 'h6' }} fontWeight={700} sx={{ mb: { xs: 2, sm: 3 } }}>
                 Récapitulatif
@@ -565,24 +575,20 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    {deliveryMethod === 'pickup' ? 'Retrait' : 'Livraison'}
+                    {deliveryMode === 'store_pickup' ? 'Retrait' : 'Livraison'}
                   </Typography>
-                  {settingsLoading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Chip
-                      label={deliveryFee === 0 ? 'Gratuite' : `${deliveryFee.toLocaleString('fr-FR')} FCFA`}
-                      size="small"
-                      sx={{
-                        height: 27.5,
-                        fontSize: 13.75,
-                        fontWeight: 600,
-                        bgcolor: deliveryFee === 0 ? alpha(theme.palette.success.main, 0.1) : alpha(brandBlue, 0.1),
-                        color: deliveryFee === 0 ? 'success.main' : brandBlue,
-                        border: 'none',
-                      }}
-                    />
-                  )}
+                  <Chip
+                    label={displayDeliveryFee === 0 ? 'Gratuite' : `${displayDeliveryFee.toLocaleString('fr-FR')} FCFA`}
+                    size="small"
+                    sx={{
+                      height: 27.5,
+                      fontSize: 13.75,
+                      fontWeight: 600,
+                      bgcolor: displayDeliveryFee === 0 ? alpha(theme.palette.success.main, 0.1) : alpha(brandBlue, 0.1),
+                      color: displayDeliveryFee === 0 ? 'success.main' : brandBlue,
+                      border: 'none',
+                    }}
+                  />
                 </Box>
 
                 <Divider />
@@ -590,40 +596,48 @@ export function CheckoutFinalize({ items, onPlaceOrder, isProcessing = false, er
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" fontWeight={800}>Total</Typography>
                   <Typography variant="subtitle1" fontWeight={800} color="primary">
-                    {total.toLocaleString('fr-FR')} FCFA
+                    {displayTotal.toLocaleString('fr-FR')} FCFA
                   </Typography>
                 </Box>
 
                 <Box>
                   {error && (
-                    <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.error.main, 0.08), borderRadius: 2, border: `1px solid ${alpha(theme.palette.error.main, 0.15)}` }}>
-                      <Typography variant="body2" color="error" fontWeight={500}>{error}</Typography>
-                    </Box>
-                  )}
+                      <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.error.main, 0.08), borderRadius: 2, border: `1px solid ${alpha(theme.palette.error.main, 0.15)}` }} role="alert">
+                        <Typography variant="body2" color="error" fontWeight={500}>{error}</Typography>
+                      </Box>
+                    )}
                   <Button
                     variant="contained"
                     size="large"
                     fullWidth
                     onClick={handlePlaceOrder}
-                    disabled={isProcessing || !isFormValid}
+                    disabled={isProcessing || (!orderMode && !isFormValid)}
                     endIcon={isProcessing ? undefined : <ArrowForward />}
                       sx={{
                         borderRadius: 2,
                         py: { xs: 1.4, sm: 1.6 },
                         fontWeight: 700,
                         fontSize: { xs: 15, sm: 18.75 },
-                      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+                      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.28)}`,
+                      '&:disabled': { opacity: 0.65 },
+                      '&:focus-visible': { outline: `3px solid ${alpha(theme.palette.primary.main, 0.18)}`, outlineOffset: 3 },
                     }}
                   >
                     {isProcessing ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress size={20} color="inherit" />
-                        Traitement...
+                        {stage === 'creating_order'
+                          ? 'Création de votre commande...'
+                          : stage === 'initializing_payment'
+                            ? 'Initialisation du paiement sécurisé...'
+                            : stage === 'redirecting_to_paytech'
+                              ? 'Redirection vers PayTech...'
+                              : 'Traitement...'}
                       </Box>
-                    ) : !isFormValid ? (
-                      isPaymentMethodMobile && !isPhoneValid(paymentPhone)
-                        ? 'Saisissez un numéro valide pour le paiement'
-                        : 'Remplissez les champs obligatoires'
+                    ) : !orderMode && !isFormValid ? (
+                      'Remplissez les champs obligatoires'
+                    ) : orderMode ? (
+                      'Reprendre le paiement'
                     ) : (
                       'Confirmer la commande'
                     )}

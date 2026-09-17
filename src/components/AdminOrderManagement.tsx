@@ -77,10 +77,10 @@ interface Order {
   currency: string;
   created_at: string;
   shipping_address: {
-    full_name?: string;
+    first_name?: string;
+    last_name?: string;
     phone?: string;
     address?: string;
-    city?: string;
   } | null;
   customer: {
     id: number;
@@ -191,7 +191,7 @@ export function AdminOrderManagement() {
   // Helper to get Customer Name
   const getOrderCustomerName = (order: Order) => {
     if (order.customer?.name) return order.customer.name;
-    if (order.shipping_address?.full_name) return order.shipping_address.full_name;
+    if (order.shipping_address?.first_name) return `${order.shipping_address.first_name} ${order.shipping_address.last_name || ''}`.trim();
     return 'Client invité';
   };
 
@@ -282,8 +282,10 @@ export function AdminOrderManagement() {
           value={searchQuery}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
           sx={{ flex: 1, minWidth: 220 }}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
+          slotProps={{
+            input: {
+              startAdornment: <SearchIcon sx={{ color: BRAND.muted, mr: 1, fontSize: 20 }} />,
+            },
           }}
         />
 
@@ -444,10 +446,12 @@ export function AdminOrderManagement() {
         onClose={handleCloseDialog}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '16px',
-            p: 1.5,
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              p: 1.5,
+            },
           },
         }}
       >

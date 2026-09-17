@@ -4,63 +4,98 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useCartWithProducts } from '@/hooks/useCartWithProducts';
 import { useStore } from '@/store/useStore';
-import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckoutHeader } from '@/components/checkout/CheckoutHeader';
-import { CheckoutFinalize, OrderCheckoutData } from '@/components/checkout/CheckoutFinalize';
-import OrderService, { OrderResponse, OrderItem } from '@/services/order.service';
+import { CheckoutFinalize, OrderCheckoutData, CheckoutStage } from '@/components/checkout/CheckoutFinalize';
+import { ApiErrorHandler } from '@/lib/error-handler';
+import OrderService, { OrderResponse, OrderItem, ShippingAddress } from '@/services/order.service';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { Product } from '@/lib/types';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 
 function orderItemsToCartItems(order: OrderResponse): CartItemWithProduct[] {
-  return (order.items || []).map((item: OrderItem) => ({
-    id: item.id,
-    product_id: item.product_id,
-    quantity: item.quantity,
-    unit_price: item.unit_price,
-    price_type: 'retail' as const,
-    created_at: order.created_at,
-    updated_at: order.created_at,
-    product: {
-      id: String(item.product.id),
-      name: item.product.name,
-      slug: '',
-      price: Number(item.unit_price),
-      wholesale_price: Number(item.unit_price),
-      sku: item.product.sku,
-      inventory_quantity: 0,
-      min_order_quantity: 1,
-      status: 'active' as const,
-      is_featured: false,
-      is_new: false,
-      category_id: 0,
-      cover_image_url: (item.product as any).cover_image_url,
-      images: (item.product as any).images?.map((img: any) => ({
-        id: img.id,
-        image_url: img.image_url,
-        alt_text: img.alt_text || '',
-        is_cover: img.is_cover,
-      })),
+  return (order.items || []).map((item: OrderItem) => {
+    const product = item.product;
+    return {
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      price_type: 'retail' as const,
       created_at: order.created_at,
       updated_at: order.created_at,
-    } as Product,
-  }));
+      product: {
+        id: String(product.id),
+        name: product.name,
+        slug: '',
+        price: Number(item.unit_price),
+        wholesale_price: Number(item.unit_price),
+        sku: product.sku,
+        inventory_quantity: 0,
+        min_order_quantity: 1,
+        status: 'active' as const,
+        is_featured: false,
+        is_new: false,
+        category_id: 0,
+        cover_image_url: product.cover_image_url,
+        images: (product.images || []).map((img) => ({
+          id: img.id,
+          product_id: String(product.id),
+          image_url: img.image_url,
+          alt_text: img.alt_text ?? '',
+          is_cover: img.is_cover,
+          sort_order: 0,
+          created_at: order.created_at,
+        })),
+        created_at: order.created_at,
+        updated_at: order.created_at,
+      } as Product,
+    };
+  });
+}
+
+function OrderLoadError({ message, onBackToOrders }: { message: string; onBackToOrders: () => void }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
+        <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
+          Commande indisponible
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.7 }}>
+          {message}
+        </Typography>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={onBackToOrders}
+          sx={{ borderRadius: 2, py: 1.2, px: 3, fontWeight: 700 }}
+        >
+          Retour à mes commandes
+        </Button>
+      </Box>
+    </div>
+  );
 }
 
 function CheckoutFinalizeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const rawOrderId = searchParams.get('orderId');
+  // Les identifiants de commande sont numériques ; un orderId invalide ne doit
+  // pas être envoyé à l'API (supression du risque de crash / mauvaise commande).
+  const hasInvalidOrderId = rawOrderId !== null && !/^\d+$/.test(rawOrderId);
+  const orderId = hasInvalidOrderId ? null : rawOrderId;
 
-  const { cart: storeCart, clearCart } = useStore();
-  const { cart: cartWithProducts, loading, invalidateProductsCache } = useCartWithProducts();
-  const { resetCheckout } = useCheckoutStore();
+  const { cart: storeCart } = useStore();
+  const { cart: cartWithProducts, loading } = useCartWithProducts();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stage, setStage] = useState<CheckoutStage>('idle');
   const [error, setError] = useState<string | null>(null);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const redirectRef = useRef(false);
+  // Garde synchrone : empêche toute double soumission avant le re-render de `isProcessing`.
+  const submittingRef = useRef(false);
 
   const [orderItems, setOrderItems] = useState<CartItemWithProduct[] | null>(null);
   const [orderDetails, setOrderDetails] = useState<OrderResponse | null>(null);
@@ -81,17 +116,23 @@ function CheckoutFinalizeInner() {
         try {
           setOrderLoading(true);
           const order = await OrderService.getOrderDetails(orderId!);
+          if (order.payment_status === 'paid') {
+            redirectRef.current = true;
+            router.replace(`/checkout/success?orderId=${orderId}`);
+            return;
+          }
           setOrderDetails(order);
           setOrderItems(orderItemsToCartItems(order));
-        } catch (err: any) {
-          setError(err.message || 'Impossible de charger les détails de la commande');
+        } catch (err) {
+          const apiError = ApiErrorHandler.classifyError(err);
+          setError(apiError.message || 'Impossible de charger les détails de la commande');
         } finally {
           setOrderLoading(false);
         }
       };
       fetchOrder();
     }
-  }, [isOrderMode, orderId, initialLoadDone, orderItems, orderLoading]);
+  }, [isOrderMode, orderId, initialLoadDone, orderItems, orderLoading, router]);
 
   useEffect(() => {
     if (redirectRef.current || authLoading || !initialLoadDone) return;
@@ -107,14 +148,36 @@ function CheckoutFinalizeInner() {
   }, [initialLoadDone, isAuthenticated, authLoading, storeCart.length, router, isOrderMode, orderId]);
 
   const handlePlaceOrder = async (data: OrderCheckoutData) => {
-    if (displayItems.length === 0) {
-      setError('Aucun article à valider');
+    // Garde synchrone : deux clics dans la même frame ne créent jamais 2 commandes/paiements.
+    if (submittingRef.current) {
       return;
     }
+    submittingRef.current = true;
+    setIsProcessing(true);
+    setError(null);
+
+    // Permet de contextualiser le message d'erreur selon l'étape en cours.
+    let phase: 'creating_order' | 'initializing_payment' = 'creating_order';
 
     try {
-      setIsProcessing(true);
-      setError(null);
+      // Reprise d'une commande existante : initier directement le paiement PayTech.
+      if (isOrderMode && orderDetails) {
+        phase = 'initializing_payment';
+        setStage('initializing_payment');
+        const paymentResp = await OrderService.initiatePayment(orderDetails.id);
+        const redirectUrl = paymentResp?.redirect_url;
+        if (!redirectUrl) {
+          throw new Error(paymentResp?.message || 'Le paiement n\'a pas fourni d\'URL de redirection');
+        }
+        setStage('redirecting_to_paytech');
+        redirectRef.current = true;
+        window.location.href = redirectUrl;
+        return;
+      }
+
+      if (displayItems.length === 0) {
+        throw new Error('Aucun article à valider');
+      }
 
       const normalizePhone = (val: string) => {
         let p = val.trim().replace(/\s+/g, '');
@@ -124,64 +187,82 @@ function CheckoutFinalizeInner() {
         return p.replace(/[^\d+]/g, '');
       };
 
-      const shippingAddress = data.deliveryMethod === 'pickup'
-        ? { first_name: '', last_name: '', address: '', street: '', city: '', country: 'Sénégal', phone: '' }
-        : {
-            first_name: data.firstName?.trim() || '',
-            last_name: data.lastName?.trim() || '',
-            address: data.address?.trim() || '',
-            street: data.address?.trim() || '',
-            city: data.city?.trim() || 'Dakar, Sénégal',
-            country: data.country?.trim() || 'Sénégal',
-            phone: normalizePhone(data.phone || '') || '',
-          };
+      const mode = data.deliveryMode;
 
-      if (data.deliveryMethod !== 'pickup') {
+      // Adresse conforme au schéma backend ShippingAddress (first_name, last_name, phone, address).
+      const shippingAddress: ShippingAddress = {
+        first_name: (data.firstName || '').trim(),
+        last_name: (data.lastName || '').trim(),
+        phone: normalizePhone(data.phone || ''),
+        address: [data.address?.trim(), data.city?.trim()].filter(Boolean).join(', '),
+      };
+
+      if (mode === 'home_delivery') {
         if (!shippingAddress.first_name || !shippingAddress.last_name || !shippingAddress.phone || !shippingAddress.address) {
           throw new Error('Veuillez remplir tous les champs de livraison');
         }
       }
 
-      if (isOrderMode && orderDetails) {
-        redirectRef.current = true;
-        resetCheckout();
-        router.push(`/checkout/success?orderId=${orderDetails.id}`);
-        return;
-      }
-
-      const paymentMethodMap: Record<string, string> = {
-        wave: 'wave',
-        orange: 'orange_money',
-        'Orange Money': 'orange_money',
-        cod: 'cash',
-        cash: 'cash',
-      };
-
-      const deliveryMethodMap: Record<string, string> = {
-        delivery: 'home_delivery',
-        pickup: 'store_pickup',
-      };
-
-      await OrderService.createOrderFromCart(
+      // payment_method est volontairement omis : PayTech détermine le moyen réel,
+      // renseigné par le backend après IPN. shipping_address est omis en store_pickup.
+      setStage('creating_order');
+      const orderResult = await OrderService.createOrderFromCart(
         cartWithProducts,
-        shippingAddress,
-        paymentMethodMap[data.paymentMethod] || data.paymentMethod,
-        'FCFA',
-        deliveryMethodMap[data.deliveryMethod] || data.deliveryMethod,
-        data.paymentPhone,
+        mode,
+        mode === 'home_delivery' ? shippingAddress : undefined,
       );
 
+      const createdOrderId = orderResult.id ?? orderResult.order_id;
+      if (!createdOrderId) {
+        throw new Error('Impossible de récupérer l\'identifiant de la commande');
+      }
+
+      // Le backend exige order_id et fournit l'URL de redirection PayTech.
+      phase = 'initializing_payment';
+      setStage('initializing_payment');
+      const paymentResp = await OrderService.initiatePayment(createdOrderId);
+      const redirectUrl = paymentResp?.redirect_url;
+      if (!redirectUrl) {
+        throw new Error(paymentResp?.message || 'Le paiement n\'a pas fourni d\'URL de redirection');
+      }
+
+      // Ne PAS vider le panier ici : il sera vidé après confirmation backend.
+      setStage('redirecting_to_paytech');
       redirectRef.current = true;
-      clearCart();
-      invalidateProductsCache();
-      resetCheckout();
-      router.push('/checkout/success');
-    } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
-    } finally {
+      window.location.href = redirectUrl;
+    } catch (err) {
+      const apiError = ApiErrorHandler.classifyError(err);
+      const fallback =
+        phase === 'initializing_payment'
+          ? 'Impossible d\'initialiser le paiement. Votre commande est créée, réessayez depuis vos commandes.'
+          : 'Impossible de créer la commande. Veuillez réessayer.';
+      setError(apiError.message || fallback);
+      // On ne réarme la garde qu'en cas d'échec : en cas de redirection la page est déchargée.
+      submittingRef.current = false;
+      setStage('idle');
       setIsProcessing(false);
     }
   };
+
+  if (hasInvalidOrderId) {
+    return (
+      <OrderLoadError
+        message="La référence de commande est invalide. Vérifiez le lien utilisé."
+        onBackToOrders={() => router.push('/account/orders')}
+      />
+    );
+  }
+
+  // En reprise de paiement, si la commande est introuvable ou le chargement a échoué,
+  // on affiche une erreur claire plutôt qu'un récapitulatif vide.
+  if (isOrderMode && !orderLoading && !orderItems && error) {
+    return (
+      <OrderLoadError
+        message={error || 'Impossible de charger les détails de la commande.'}
+        onBackToOrders={() => router.push('/account/orders')}
+      />
+    );
+  }
 
   if (!initialLoadDone || (isOrderMode && orderLoading)) {
     return (
@@ -206,7 +287,15 @@ function CheckoutFinalizeInner() {
         items={displayItems}
         onPlaceOrder={handlePlaceOrder}
         isProcessing={isProcessing}
+        stage={stage}
+        orderMode={isOrderMode}
         error={error}
+        serverTotal={isOrderMode && orderDetails ? Number(orderDetails.total_amount) || null : null}
+        serverDeliveryFee={
+          isOrderMode && orderDetails && orderDetails.shipping_amount != null
+            ? Number(orderDetails.shipping_amount)
+            : null
+        }
       />
     </div>
   );

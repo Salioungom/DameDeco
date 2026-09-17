@@ -252,24 +252,26 @@ export default function PasswordPage() {
                 value={currentPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
                 required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        edge="end"
-                        sx={{
-                          color: '#888780',
-                          '&:hover': {
-                            color: BRAND_BLUE,
-                            bgcolor: 'rgba(24, 95, 165, 0.08)',
-                          },
-                        }}
-                      >
-                        {showCurrentPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          edge="end"
+                          sx={{
+                            color: '#888780',
+                            '&:hover': {
+                              color: BRAND_BLUE,
+                              bgcolor: 'rgba(24, 95, 165, 0.08)',
+                            },
+                          }}
+                        >
+                          {showCurrentPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{
                   mb: 2.5,
@@ -300,24 +302,26 @@ export default function PasswordPage() {
                 value={newPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
                 required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        edge="end"
-                        sx={{
-                          color: '#888780',
-                          '&:hover': {
-                            color: BRAND_BLUE,
-                            bgcolor: 'rgba(24, 95, 165, 0.08)',
-                          },
-                        }}
-                      >
-                        {showNewPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          edge="end"
+                          sx={{
+                            color: '#888780',
+                            '&:hover': {
+                              color: BRAND_BLUE,
+                              bgcolor: 'rgba(24, 95, 165, 0.08)',
+                            },
+                          }}
+                        >
+                          {showNewPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{
                   mb: 2.5,
@@ -353,24 +357,26 @@ export default function PasswordPage() {
                 value={confirmPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                 required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        edge="end"
-                        sx={{
-                          color: '#888780',
-                          '&:hover': {
-                            color: BRAND_BLUE,
-                            bgcolor: 'rgba(24, 95, 165, 0.08)',
-                          },
-                        }}
-                      >
-                        {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          edge="end"
+                          sx={{
+                            color: '#888780',
+                            '&:hover': {
+                              color: BRAND_BLUE,
+                              bgcolor: 'rgba(24, 95, 165, 0.08)',
+                            },
+                          }}
+                        >
+                          {showConfirmPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{
                   mb: 3,

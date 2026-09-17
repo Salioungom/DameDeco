@@ -297,24 +297,26 @@ function LoginForm() {
                                 }}
                                 error={!!fieldErrors.password}
                                 helperText={fieldErrors.password}
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                edge="end"
-                                                sx={{
-                                                    color: '#888780',
-                                                    '&:hover': {
-                                                        color: BRAND_BLUE,
-                                                        bgcolor: 'rgba(24, 95, 165, 0.08)',
-                                                    },
-                                                }}
-                                            >
-                                                {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    edge="end"
+                                                    sx={{
+                                                        color: '#888780',
+                                                        '&:hover': {
+                                                            color: BRAND_BLUE,
+                                                            bgcolor: 'rgba(24, 95, 165, 0.08)',
+                                                        },
+                                                    }}
+                                                >
+                                                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    },
                                 }}
                                 sx={{
                                     mb: 1.5,

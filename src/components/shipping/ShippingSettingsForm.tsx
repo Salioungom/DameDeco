@@ -135,8 +135,10 @@ export default function ShippingSettingsForm() {
                 }
                 placeholder="60000"
                 sx={fieldSx}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
+                slotProps={{
+                  input: {
+                    endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
+                  },
                 }}
               />
               <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.75 }}>
@@ -156,8 +158,10 @@ export default function ShippingSettingsForm() {
                 }
                 placeholder="3000"
                 sx={fieldSx}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
+                slotProps={{
+                  input: {
+                    endAdornment: <InputAdornment position="end">FCFA</InputAdornment>,
+                  },
                 }}
               />
               <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.75 }}>
