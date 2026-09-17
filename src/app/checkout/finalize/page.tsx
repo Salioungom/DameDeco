@@ -124,8 +124,7 @@ function CheckoutFinalizeInner() {
           setOrderDetails(order);
           setOrderItems(orderItemsToCartItems(order));
         } catch (err) {
-          const apiError = ApiErrorHandler.classifyError(err);
-          setError(apiError.message || 'Impossible de charger les détails de la commande');
+          setError(ApiErrorHandler.getOrderError(err, 'load'));
         } finally {
           setOrderLoading(false);
         }
@@ -231,12 +230,8 @@ function CheckoutFinalizeInner() {
       redirectRef.current = true;
       window.location.href = redirectUrl;
     } catch (err) {
-      const apiError = ApiErrorHandler.classifyError(err);
-      const fallback =
-        phase === 'initializing_payment'
-          ? 'Impossible d\'initialiser le paiement. Votre commande est créée, réessayez depuis vos commandes.'
-          : 'Impossible de créer la commande. Veuillez réessayer.';
-      setError(apiError.message || fallback);
+      // 403/404 → messages distincts ; timeout/réseau → résultat inconnu (jamais « paiement échoué »).
+      setError(ApiErrorHandler.getOrderError(err, phase === 'creating_order' ? 'create' : 'pay'));
       // On ne réarme la garde qu'en cas d'échec : en cas de redirection la page est déchargée.
       submittingRef.current = false;
       setStage('idle');

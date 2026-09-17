@@ -114,10 +114,8 @@ function OrderConfirmationInner() {
                     timer = setTimeout(() => run(attempt + 1), POLL_INTERVAL_MS);
                 } else {
                     setPhase('error');
-                    setError(
-                        classified.message ||
-                        'Impossible de vérifier le statut du paiement. Vérifiez votre connexion puis réessayez.'
-                    );
+                    // Timeout/réseau : résultat inconnu, jamais interprété comme paiement échoué.
+                    setError(ApiErrorHandler.getOrderError(err, 'check'));
                 }
             }
         };

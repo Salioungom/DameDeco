@@ -57,6 +57,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
 import { OrderResponse, Payment } from '@/services/order.service';
+import { ApiErrorHandler } from '@/lib/error-handler';
 import { getImageUrl } from '@/lib/imageUtils';
 import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
@@ -166,8 +167,11 @@ function OrderDetailContent() {
     const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [errorStatus, setErrorStatus] = useState<number | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
+    const [paying, setPaying] = useState(false);
+    const [saving, setSaving] = useState(false);
     const validatingRef = useRef(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingQuantities, setEditingQuantities] = useState<{ [key: number]: number }>({});
@@ -193,7 +197,9 @@ function OrderDetailContent() {
                 console.warn('Impossible de récupérer les paiements:', paymentError);
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors du chargement de la commande');
+            const classified = ApiErrorHandler.classifyError(err);
+            setError(ApiErrorHandler.getOrderError(err, 'load'));
+            setErrorStatus(classified.status ?? null);
         } finally {
             setLoading(false);
         }
@@ -227,11 +233,11 @@ function OrderDetailContent() {
             router.push(`/checkout/success?orderId=${order.id}`);
             return;
         }
-        // Garde synchrone contre un double clic avant le re-render de `cancelling`.
+        // Garde synchrone contre un double clic avant le re-render de `paying`.
         if (validatingRef.current) return;
         validatingRef.current = true;
         try {
-            setCancelling(true);
+            setPaying(true);
             // Le backend exige order_id et renvoie l'URL de redirection PayTech.
             const paymentResp = await OrderService.initiatePayment(order.id);
             const redirectUrl = paymentResp?.redirect_url;
@@ -244,10 +250,11 @@ function OrderDetailContent() {
             window.location.href = redirectUrl;
         } catch (error) {
             console.error('Erreur lors de la validation:', error);
-            setError('Impossible d\'initialiser le paiement. Veuillez réessayer.');
+            // 403/404 → messages distincts ; timeout/réseau → résultat inconnu, jamais « paiement échoué ».
+            setError(ApiErrorHandler.getOrderError(error, 'pay'));
             validatingRef.current = false;
         } finally {
-            setCancelling(false);
+            setPaying(false);
         }
     };
 
@@ -324,7 +331,7 @@ function OrderDetailContent() {
         }
 
         try {
-            setCancelling(true);
+            setSaving(true);
             const { isAuthenticated } = await import('@/lib/authUtils');
 
             if (!isAuthenticated()) {
@@ -354,7 +361,7 @@ function OrderDetailContent() {
                 setError(errorMessage);
             }
         } finally {
-            setCancelling(false);
+            setSaving(false);
         }
     };
 
@@ -415,7 +422,7 @@ function OrderDetailContent() {
                     >
                         <CancelIcon sx={{ fontSize: 64, color: 'error.main', mb: 2 }} />
                         <Typography variant="h5" fontWeight="bold" gutterBottom>
-                            Commande introuvable
+                            {errorStatus === 403 ? 'Accès refusé' : 'Commande introuvable'}
                         </Typography>
                         <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 480, mx: 'auto' }}>
                             {error || 'La commande que vous recherchez n\'existe pas ou a été supprimée.'}
@@ -436,7 +443,7 @@ function OrderDetailContent() {
                 autoHideDuration={6000}
                 onClose={() => setError(null)}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                TransitionComponent={Zoom}
+                slots={{ transition: Zoom }}
             >
                 <Alert onClose={() => setError(null)} severity="error" variant="outlined" sx={{ width: '100%' }}>
                     {error}
@@ -448,7 +455,7 @@ function OrderDetailContent() {
                 autoHideDuration={4000}
                 onClose={() => setSuccess(null)}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                TransitionComponent={Zoom}
+                slots={{ transition: Zoom }}
             >
                 <Alert onClose={() => setSuccess(null)} severity="success" variant="filled" sx={{ width: '100%', borderRadius: 2, boxShadow: 3 }}>
                     {success}
@@ -889,16 +896,16 @@ function OrderDetailContent() {
                                                         variant="contained"
                                                         color="success"
                                                         onClick={handleSaveOrder}
-                                                        disabled={cancelling}
-                                                        startIcon={cancelling ? <CircularProgress size={18} /> : <CheckIcon />}
+                                                        disabled={saving || cancelling}
+                                                        startIcon={saving ? <CircularProgress size={18} /> : <CheckIcon />}
                                                         size="large"
                                                     >
-                                                        {cancelling ? 'Sauvegarde...' : 'Sauvegarder'}
+                                                        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                                                     </Button>
                                                     <Button
                                                         variant="outlined"
                                                         onClick={handleCancelEditing}
-                                                        disabled={cancelling}
+                                                        disabled={saving || cancelling}
                                                         startIcon={<CancelIcon />}
                                                         size="large"
                                                     >
@@ -911,17 +918,17 @@ function OrderDetailContent() {
                                                         variant="contained"
                                                         color="success"
                                                         onClick={handleValidateOrder}
-                                                        disabled={cancelling}
-                                                        startIcon={cancelling ? <CircularProgress size={18} /> : <CheckCircleIcon />}
+                                                        disabled={paying || cancelling}
+                                                        startIcon={paying ? <CircularProgress size={18} /> : <CheckCircleIcon />}
                                                         size="large"
                                                     >
-                                                        {cancelling ? 'Redirection...' : 'Payer la commande'}
+                                                        {paying ? 'Redirection...' : 'Payer la commande'}
                                                     </Button>
                                                     <Button
                                                         variant="outlined"
                                                         color="error"
                                                         onClick={handleCancelOrder}
-                                                        disabled={cancelling}
+                                                        disabled={cancelling || paying}
                                                         startIcon={cancelling ? <CircularProgress size={18} /> : <CancelIcon />}
                                                         size="large"
                                                     >
