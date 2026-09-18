@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 import OrderService, { Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
+import { resolveCancelPhase } from '@/lib/payment-status';
 
 /**
  * Parcours d'annulation PayTech.
@@ -20,8 +21,13 @@ import { ApiErrorHandler } from '@/lib/error-handler';
  * ne redirige jamais vers /checkout/success. Une vérification API optionnelle
  * et non bloquante permet toutefois d'afficher le statut réel si le backend
  * confirme déjà le paiement (IPN) — sans navigation.
+ *
+ * Une COMMANDE annulée (order.status = cancelled) est distincte d'une
+ * annulation de paiement : elle est affichée comme telle et ne propose aucun
+ * « Réessayer le paiement ». À l'inverse, sale_canceled laisse la commande
+ * active et le retry possible.
  */
-type CancelPhase = 'verifying' | 'cancelled' | 'pending' | 'paid' | 'unknown';
+type CancelPhase = 'verifying' | 'cancelled' | 'pending' | 'paid' | 'order_cancelled' | 'order_refunded' | 'unknown';
 
 function CheckoutCancelInner() {
   const theme = useTheme();
@@ -51,22 +57,16 @@ function CheckoutCancelInner() {
           // Les paiements sont informatifs : leur échec n'est pas bloquant.
         }
 
-        const statuses = payments.map((p) => p.status);
-        const isPaid =
-          order.payment_status === 'paid' ||
-          statuses.some((s) => s === 'paid' || s === 'completed');
-
-        if (isPaid) {
-          setPhase('paid');
-          return;
-        }
-
-        const isPending =
-          order.payment_status === 'pending' ||
-          order.payment_status === 'processing' ||
-          statuses.some((s) => s === 'pending' || s === 'processing');
-
-        setPhase(isPending ? 'pending' : 'cancelled');
+        // Une commande annulée/remboursée est un état final : affichée comme
+        // telle, sans retry. Un paiement confirmé reste « payé ». Une simple
+        // annulation de paiement laisse la commande active.
+        setPhase(
+          resolveCancelPhase({
+            orderStatus: order.status,
+            paymentStatus: order.payment_status,
+            payments,
+          }),
+        );
       } catch (err) {
         // Timeout/réseau : résultat inconnu, jamais interprété comme paiement échoué.
         setPhase('unknown');
@@ -91,9 +91,21 @@ function CheckoutCancelInner() {
   }
 
   const isPaid = phase === 'paid';
-  const accent = isPaid ? theme.palette.success.main : theme.palette.warning.main;
+  const isOrderFinal = phase === 'order_cancelled' || phase === 'order_refunded';
+  const accent = isPaid
+    ? theme.palette.success.main
+    : isOrderFinal
+      ? theme.palette.error.main
+      : theme.palette.warning.main;
 
-  const title = isPaid ? 'Paiement confirmé' : 'Paiement interrompu';
+  const title =
+    isPaid
+      ? 'Paiement confirmé'
+      : phase === 'order_cancelled'
+        ? 'Commande annulée'
+        : phase === 'order_refunded'
+          ? 'Commande remboursée'
+          : 'Paiement interrompu';
 
   const description =
     phase === 'paid'
@@ -102,7 +114,11 @@ function CheckoutCancelInner() {
         ? 'Votre paiement a été interrompu ou est encore en cours de traitement. Si un montant a été débité, il sera remboursé automatiquement.'
         : phase === 'unknown'
           ? "Nous n'avons pas pu vérifier le statut de votre paiement. Si un montant a été débité, il sera automatiquement remboursé. Vérifiez vos commandes avant de réessayer."
-          : 'Votre paiement n\'a pas été finalisé. Si un montant a été débité, il sera automatiquement remboursé. Vous pouvez reprendre le paiement depuis vos commandes.';
+          : phase === 'order_cancelled'
+            ? 'Cette commande a été annulée et ne peut plus être payée ni relancée.'
+            : phase === 'order_refunded'
+              ? 'Cette commande a été remboursée et ne peut plus être payée.'
+              : 'Votre paiement n\'a pas été finalisé. Si un montant a été débité, il sera automatiquement remboursé. Vous pouvez reprendre le paiement depuis vos commandes.';
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -163,6 +179,14 @@ function CheckoutCancelInner() {
             </Alert>
           )}
 
+          {isOrderFinal && (
+            <Alert severity="warning" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
+              {phase === 'order_refunded'
+                ? 'La commande et le paiement ont été remboursés. Aucun paiement ne peut être relancé.'
+                : 'Aucun paiement ne peut être relancé pour une commande annulée.'}
+            </Alert>
+          )}
+
           {note && (
             <Alert severity="error" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
               {note}
@@ -170,7 +194,7 @@ function CheckoutCancelInner() {
           )}
 
           <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            {!isPaid && orderId && (
+            {!isPaid && !isOrderFinal && orderId && (
               <Button
                 variant="contained"
                 size="large"

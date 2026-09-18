@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { CheckoutHeader } from '@/components/checkout/CheckoutHeader';
 import { CheckoutFinalize, OrderCheckoutData, CheckoutStage } from '@/components/checkout/CheckoutFinalize';
 import { ApiErrorHandler } from '@/lib/error-handler';
+import { isNonPayableOrder } from '@/lib/payment-status';
 import OrderService, { OrderResponse, OrderItem, ShippingAddress } from '@/services/order.service';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { Product } from '@/lib/types';
@@ -77,6 +78,31 @@ function OrderLoadError({ message, onBackToOrders }: { message: string; onBackTo
   );
 }
 
+function OrderFinalStateDisplay({ status, onBackToOrders }: { status: 'cancelled' | 'refunded'; onBackToOrders: () => void }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <Box sx={{ textAlign: 'center', maxWidth: 520 }}>
+        <Typography variant="h6" fontWeight={700} color="error.main" gutterBottom>
+          {status === 'refunded' ? 'Commande remboursée' : 'Commande annulée'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.7 }}>
+          {status === 'refunded'
+            ? 'Cette commande a été remboursée et ne peut plus être payée.'
+            : 'Cette commande a été annulée et ne peut plus être payée ni relancée.'}
+        </Typography>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={onBackToOrders}
+          sx={{ borderRadius: 2, py: 1.2, px: 3, fontWeight: 700 }}
+        >
+          Retour à mes commandes
+        </Button>
+      </Box>
+    </div>
+  );
+}
+
 function CheckoutFinalizeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -99,6 +125,7 @@ function CheckoutFinalizeInner() {
 
   const [orderItems, setOrderItems] = useState<CartItemWithProduct[] | null>(null);
   const [orderDetails, setOrderDetails] = useState<OrderResponse | null>(null);
+  const [orderFinalState, setOrderFinalState] = useState<'cancelled' | 'refunded' | null>(null);
   const [orderLoading, setOrderLoading] = useState(false);
 
   const isOrderMode = !!orderId;
@@ -111,11 +138,18 @@ function CheckoutFinalizeInner() {
   }, [loading, initialLoadDone]);
 
   useEffect(() => {
-    if (isOrderMode && initialLoadDone && !orderItems && !orderLoading) {
+    if (isOrderMode && initialLoadDone && !orderFinalState && !orderItems && !orderLoading) {
       const fetchOrder = async () => {
         try {
           setOrderLoading(true);
           const order = await OrderService.getOrderDetails(orderId!);
+          // Une commande annulée/remboursée n'est jamais payable : aucun
+          // paiement ne doit être initié, aucun bouton de paiement affiché.
+          if (isNonPayableOrder(order.status)) {
+            setOrderDetails(order);
+            setOrderFinalState(order.status === 'refunded' ? 'refunded' : 'cancelled');
+            return;
+          }
           if (order.payment_status === 'paid') {
             redirectRef.current = true;
             router.replace(`/checkout/success?orderId=${orderId}`);
@@ -131,7 +165,7 @@ function CheckoutFinalizeInner() {
       };
       fetchOrder();
     }
-  }, [isOrderMode, orderId, initialLoadDone, orderItems, orderLoading, router]);
+  }, [isOrderMode, orderId, initialLoadDone, orderFinalState, orderItems, orderLoading, router]);
 
   useEffect(() => {
     if (redirectRef.current || authLoading || !initialLoadDone) return;
@@ -147,6 +181,11 @@ function CheckoutFinalizeInner() {
   }, [initialLoadDone, isAuthenticated, authLoading, storeCart.length, router, isOrderMode, orderId]);
 
   const handlePlaceOrder = async (data: OrderCheckoutData) => {
+    // Commande annulée/remboursée : aucun paiement ne peut être initié,
+    // quel que soit le contenu du formulaire.
+    if (orderFinalState) {
+      return;
+    }
     // Garde synchrone : deux clics dans la même frame ne créent jamais 2 commandes/paiements.
     if (submittingRef.current) {
       return;
@@ -254,6 +293,17 @@ function CheckoutFinalizeInner() {
     return (
       <OrderLoadError
         message={error || 'Impossible de charger les détails de la commande.'}
+        onBackToOrders={() => router.push('/account/orders')}
+      />
+    );
+  }
+
+  // Commande annulée/remboursée : jamais de parcours de paiement, juste un
+  // état final lisible, sans bouton « Reprendre le paiement ».
+  if (isOrderMode && !orderLoading && orderFinalState) {
+    return (
+      <OrderFinalStateDisplay
+        status={orderFinalState}
         onBackToOrders={() => router.push('/account/orders')}
       />
     );

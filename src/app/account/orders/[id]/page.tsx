@@ -58,6 +58,7 @@ import { useParams, useRouter } from 'next/navigation';
 import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
 import { OrderResponse, Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
+import { shouldBlockPayment } from '@/lib/payment-status';
 import { getImageUrl } from '@/lib/imageUtils';
 import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
@@ -182,6 +183,12 @@ function OrderDetailContent() {
         unit_price?: number;
     }>>([]);
 
+    // Garde UX : un paiement déjà en cours (pending/processing) ne doit pas
+    // pouvoir être relancé depuis le bouton. Le backend reste l'autorité finale.
+    const paymentBlocked = order
+        ? shouldBlockPayment({ paymentStatus: order.payment_status, payments })
+        : false;
+
     const fetchOrderDetails = useCallback(async () => {
         try {
             setLoading(true);
@@ -231,6 +238,11 @@ function OrderDetailContent() {
         // Commande déjà réglée : ne jamais relancer un paiement.
         if (order.payment_status === 'paid') {
             router.push(`/checkout/success?orderId=${order.id}`);
+            return;
+        }
+        // Un paiement est déjà en cours : ne pas en déclencher un second.
+        if (shouldBlockPayment({ paymentStatus: order.payment_status, payments })) {
+            setError('Un paiement est déjà en cours pour cette commande. Attendez sa confirmation avant d\'en relancer un.');
             return;
         }
         // Garde synchrone contre un double clic avant le re-render de `paying`.
@@ -918,11 +930,11 @@ function OrderDetailContent() {
                                                         variant="contained"
                                                         color="success"
                                                         onClick={handleValidateOrder}
-                                                        disabled={paying || cancelling}
+                                                        disabled={paying || cancelling || paymentBlocked}
                                                         startIcon={paying ? <CircularProgress size={18} /> : <CheckCircleIcon />}
                                                         size="large"
                                                     >
-                                                        {paying ? 'Redirection...' : 'Payer la commande'}
+                                                        {paying ? 'Redirection...' : paymentBlocked ? 'Paiement en cours...' : 'Payer la commande'}
                                                     </Button>
                                                     <Button
                                                         variant="outlined"
@@ -1096,7 +1108,7 @@ function OrderDetailContent() {
                                                     icon={getPaymentStatusIcon(payment.status)}
                                                     label={OrderService.getPaymentStatusLabel(payment.status)}
                                                     size="small"
-                                                    color={payment.status === 'paid' ? 'success' : 'warning'}
+                                                    color={payment.status === 'paid' || payment.status === 'completed' ? 'success' : 'warning'}
                                                     sx={{ fontWeight: 600, fontSize: '0.7rem' }}
                                                 />
                                             </Box>

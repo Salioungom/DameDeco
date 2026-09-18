@@ -371,7 +371,10 @@ export class OrderService {
       'pending': 'En attente',
       'processing': 'En traitement',
       'paid': 'Payé',
+      'completed': 'Payé',
       'failed': 'Échoué',
+      'cancelled': 'Annulé',
+      'expired': 'Expiré',
       'refunded': 'Remboursé'
     };
     return labels[status] || status;

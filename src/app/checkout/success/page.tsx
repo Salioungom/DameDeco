@@ -23,9 +23,10 @@ import {
 } from '@mui/icons-material';
 import OrderService, { Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
+import { resolveSuccessPhase, wasPaymentConfirmed } from '@/lib/payment-status';
 import { useStore } from '@/store/useStore';
 
-type Phase = 'checking' | 'paid' | 'pending' | 'failed' | 'error';
+type Phase = 'checking' | 'paid' | 'pending' | 'failed' | 'error' | 'order_cancelled' | 'order_refunded';
 
 const MAX_ATTEMPTS = 6;
 const POLL_INTERVAL_MS = 2000;
@@ -40,6 +41,7 @@ function OrderConfirmationInner() {
 
     const [phase, setPhase] = useState<Phase>('checking');
     const [error, setError] = useState<string | null>(null);
+    const [confirmedPayment, setConfirmedPayment] = useState(false);
     const [retryKey, setRetryKey] = useState(0);
     const cartClearedRef = useRef(false);
 
@@ -68,18 +70,17 @@ function OrderConfirmationInner() {
 
                 if (cancelled) return;
 
-                const statuses = payments.map((p) => p.status);
                 // Le retour sur cette page n'est PAS une preuve de paiement :
-                // seule la confirmation du backend (statut de paiement) compte.
-                const isPaid =
-                    order.payment_status === 'paid' ||
-                    statuses.some((s) => s === 'paid' || s === 'completed');
-                const isFailed =
-                    order.payment_status === 'failed' ||
-                    order.status === 'cancelled' ||
-                    statuses.some((s) => s === 'failed' || s === 'cancelled' || s === 'expired');
+                // seule la confirmation du backend (statut du paiement courant) compte.
+                // Un ancien paiement annulé/échoué/expiré ne domine jamais un
+                // paiement plus récent (pending/processing/completed).
+                const phase = resolveSuccessPhase({
+                    orderStatus: order.status,
+                    paymentStatus: order.payment_status,
+                    payments,
+                });
 
-                if (isPaid) {
+                if (phase === 'paid') {
                     if (!cartClearedRef.current) {
                         cartClearedRef.current = true;
                         // Vidage uniquement lorsque le backend confirme le paiement.
@@ -89,11 +90,24 @@ function OrderConfirmationInner() {
                     return;
                 }
 
-                if (isFailed) {
+                if (phase === 'order_cancelled' || phase === 'order_refunded') {
+                    setConfirmedPayment(
+                        wasPaymentConfirmed({
+                            paymentStatus: order.payment_status,
+                            payments,
+                        }),
+                    );
+                    setPhase(phase);
+                    return;
+                }
+
+                if (phase === 'failed') {
                     setPhase('failed');
                     return;
                 }
 
+                // pending / processing / résultat inconnu : on interroge jusqu'à
+                // la confirmation backend ; sinon « vérification en cours ».
                 if (attempt < MAX_ATTEMPTS) {
                     timer = setTimeout(() => run(attempt + 1), POLL_INTERVAL_MS);
                 } else {
@@ -142,9 +156,10 @@ function OrderConfirmationInner() {
     }
 
     const isSuccess = phase === 'paid';
+    const isOrderFinal = phase === 'order_cancelled' || phase === 'order_refunded';
     const accent = isSuccess
         ? theme.palette.success.main
-        : phase === 'failed' || phase === 'error'
+        : isOrderFinal || phase === 'failed' || phase === 'error'
           ? theme.palette.error.main
           : theme.palette.warning.main;
 
@@ -155,7 +170,11 @@ function OrderConfirmationInner() {
               ? 'Paiement échoué'
               : phase === 'error'
                 ? 'Vérification impossible'
-                : 'Paiement en cours de vérification';
+                : phase === 'order_cancelled'
+                  ? 'Commande annulée'
+                  : phase === 'order_refunded'
+                    ? 'Commande remboursée'
+                    : 'Paiement en cours de vérification';
 
     const description =
         phase === 'paid'
@@ -164,7 +183,11 @@ function OrderConfirmationInner() {
               ? 'Le paiement n\'a pas abouti. Aucun montant n\'a été débité définitivement.'
               : phase === 'error'
                 ? error || 'Nous n\'avons pas pu vérifier le statut de votre paiement.'
-                : 'Votre paiement est en cours de traitement. La confirmation définitive interviendra dès réception de la validation du service de paiement.';
+                : phase === 'order_cancelled'
+                  ? 'Cette commande a été annulée et ne peut plus être payée ni relancée.'
+                  : phase === 'order_refunded'
+                    ? 'Cette commande a été remboursée et ne peut plus être payée.'
+                    : 'Votre paiement est en cours de traitement. La confirmation définitive interviendra dès réception de la validation du service de paiement.';
 
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -194,7 +217,7 @@ function OrderConfirmationInner() {
                     >
                         {phase === 'paid' && <CheckCircleIcon sx={{ fontSize: 48, color: accent }} />}
                         {phase === 'pending' && <HourglassIcon sx={{ fontSize: 48, color: accent }} />}
-                        {(phase === 'failed' || phase === 'error') && (
+                        {(phase === 'failed' || phase === 'error' || isOrderFinal) && (
                             <ErrorIcon sx={{ fontSize: 48, color: accent }} />
                         )}
                     </Box>
@@ -264,6 +287,20 @@ function OrderConfirmationInner() {
                         </Alert>
                     )}
 
+                    {isOrderFinal && confirmedPayment && (
+                        <Alert severity="info" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
+                            Le paiement a bien été reçu. La commande a ensuite été {phase === 'order_refunded' ? 'remboursée et annulée' : 'annulée'}.
+                        </Alert>
+                    )}
+
+                    {isOrderFinal && (
+                        <Alert severity="warning" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
+                            {phase === 'order_refunded'
+                                ? 'Le paiement et la commande ont été remboursés. Aucun paiement ne peut être relancé.'
+                                : 'Aucun paiement ne peut être relancé pour une commande annulée.'}
+                        </Alert>
+                    )}
+
                     {phase === 'error' && error && (
                         <Alert severity="error" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
                             {error}
@@ -297,6 +334,7 @@ function OrderConfirmationInner() {
                                     onClick={() => {
                                         setPhase('checking');
                                         setError(null);
+                                        setConfirmedPayment(false);
                                         setRetryKey((k) => k + 1);
                                     }}
                                     startIcon={<RefreshIcon />}
