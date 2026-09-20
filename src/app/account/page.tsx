@@ -57,7 +57,7 @@ function AccountPageContent() {
                 totalOrders: userStats.totalOrders,
                 totalSpent: userStats.totalSpent,
                 pendingOrders: userStats.pendingOrders,
-                favoritesCount: userStats.totalFavorites,
+                favoritesCount: userStats.totalFavorites,           
                 currency: 'FCFA',
             });
             setRecentOrders(userStats.recentOrders);
@@ -76,10 +76,14 @@ function AccountPageContent() {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'warning';
+            // 'confirmed' est legacy uniquement (anciennes commandes).
+            case 'confirmed': return 'primary';
             case 'processing': return 'info';
             case 'shipped': return 'primary';
             case 'delivered': return 'success';
             case 'cancelled': return 'error';
+            // 'refunded' : compatibilité d'affichage, jamais déclenché par l'UI.
+            case 'refunded': return 'error';
             default: return 'default';
         }
     };
@@ -87,10 +91,12 @@ function AccountPageContent() {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'pending': return 'En attente';
-            case 'processing': return 'En cours';
+            case 'confirmed': return 'Confirmée';
+            case 'processing': return 'En préparation';
             case 'shipped': return 'Expédiée';
             case 'delivered': return 'Livrée';
             case 'cancelled': return 'Annulée';
+            case 'refunded': return 'Remboursée';
             default: return 'Inconnu';
         }
     };

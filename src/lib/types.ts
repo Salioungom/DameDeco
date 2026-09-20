@@ -26,7 +26,18 @@ export interface Order {
     id: number;
     order_id?: number | string;
     order_number: string;
+    /**
+     * Machine d'état Order (backend) : pending → processing → shipped → delivered,
+     * avec branche d'annulation depuis pending/processing/shipped → cancelled.
+     * `confirmed` est LEGACY uniquement (anciennes commandes, à ne plus générer).
+     * `refunded` est conservé pour compatibilité (aucun workflow de remboursement créé).
+     */
     status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+    /**
+     * État agrégé du paiement (géré par le backend).
+     * `pending` = commande nouvellement créée / intent non transmis à PayTech.
+     * Une commande `status = pending` + `payment_status = paid` est UNE COMMANDE PAYÉE.
+     */
     payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled';
     total_amount: string;
     shipping_amount?: number | string;
@@ -53,6 +64,13 @@ export interface OrderItem {
         id: number;
         name: string;
         sku: string;
+        cover_image_url?: string;
+        images?: Array<{
+            id: number;
+            image_url: string;
+            alt_text?: string;
+            is_cover: boolean;
+        }>;
     };
 }
 

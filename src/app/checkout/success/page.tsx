@@ -37,7 +37,7 @@ function OrderConfirmationInner() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('orderId');
 
-    const { clearCart } = useStore();
+    const clearCart = useStore((s) => s.clearCart);
 
     const [phase, setPhase] = useState<Phase>('checking');
     const [error, setError] = useState<string | null>(null);

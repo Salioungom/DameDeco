@@ -50,7 +50,8 @@ async function fetchProducts(): Promise<Product[]> {
 }
 
 export function useCartWithProducts() {
-  const { cart, cartLoading } = useStore();
+  const cart = useStore((s) => s.cart);
+  const cartLoading = useStore((s) => s.cartLoading);
   const [productsMap, setProductsMap] = useState<Map<string, Product>>(new Map());
   const [productsLoading, setProductsLoading] = useState(false);
   const cartSignatureRef = useRef('');

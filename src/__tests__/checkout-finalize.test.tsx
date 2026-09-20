@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 const replace = vi.fn();
@@ -81,5 +81,48 @@ describe('Test 5 — /checkout/finalize : commande annulée', () => {
     expect(await screen.findByText(/Commande remboursée/)).toBeInTheDocument();
     expect(initiatePayment).not.toHaveBeenCalled();
     expect(screen.queryByText(/Reprendre le paiement/)).toBeNull();
+  });
+
+  it('§6 — commande annulée MAIS payée : « Paiement effectué », jamais « Remboursée »', async () => {
+    vi.spyOn(OrderService, 'getOrderDetails').mockResolvedValue({
+      ...(baseOrder as object),
+      status: 'cancelled',
+      payment_status: 'paid',
+    } as never);
+    const initiatePayment = vi.spyOn(OrderService, 'initiatePayment').mockResolvedValue({});
+
+    render(<CheckoutFinalizePage />);
+
+    expect(await screen.findByText(/Commande annulée/)).toBeInTheDocument();
+    expect(await screen.findByText(/Paiement effectué/)).toBeInTheDocument();
+    expect(initiatePayment).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalledWith(expect.stringContaining('/checkout/success'));
+  });
+
+  it('§3 — commande pending déjà payée (paid/completed) : redirection /checkout/success', async () => {
+    vi.spyOn(OrderService, 'getOrderDetails').mockResolvedValue({
+      ...(baseOrder as object),
+      payment_status: 'completed',
+    } as never);
+
+    render(<CheckoutFinalizePage />);
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith('/checkout/success?orderId=123');
+    });
+  });
+
+  it('session PayTech live (processing) : aucun bouton de paiement, panel « Paiement en cours »', async () => {
+    vi.spyOn(OrderService, 'getOrderDetails').mockResolvedValue({
+      ...(baseOrder as object),
+      payment_status: 'processing',
+    } as never);
+    const initiatePayment = vi.spyOn(OrderService, 'initiatePayment').mockResolvedValue({});
+
+    render(<CheckoutFinalizePage />);
+
+    expect(await screen.findByText(/Paiement en cours/)).toBeInTheDocument();
+    expect(screen.queryByText(/Reprendre le paiement/)).toBeNull();
+    expect(initiatePayment).not.toHaveBeenCalled();
   });
 });

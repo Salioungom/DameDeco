@@ -5,7 +5,7 @@
  * @author DameDéco Team
  */
 
-import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments } from '@/lib/api';
+import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments, confirmOrderDelivery } from '@/lib/api';
 import api from '@/lib/api';
 import { Order, CartItem } from '@/lib/types';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
@@ -14,6 +14,9 @@ import type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/deliver
 // Réexport du contrat partagé (livraison / paiement).
 export type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
 export { PAYMENT_GATEWAY } from '@/lib/delivery';
+
+// Type unique des articles de commande (source unique : lib/types).
+export type { OrderItem } from '@/lib/types';
 
 // Types pour les statuts de commande
 export const ORDER_STATUS = {
@@ -29,8 +32,11 @@ export const ORDER_STATUS = {
 export const PAYMENT_STATUS = {
   PENDING: 'pending' as const,
   PROCESSING: 'processing' as const,
+  COMPLETED: 'completed' as const,
   PAID: 'paid' as const,
   FAILED: 'failed' as const,
+  CANCELLED: 'cancelled' as const,
+  EXPIRED: 'expired' as const,
   REFUNDED: 'refunded' as const
 };
 
@@ -40,26 +46,6 @@ export interface OrderResponse extends Order {
   payment_status: 'pending' | 'processing' | 'paid' | 'failed' | 'refunded' | 'cancelled';
   currency: string;
   items_count?: number;
-}
-
-export interface OrderItem {
-  id: number;
-  product_id: number;
-  quantity: number;
-  unit_price: string;
-  total_price: string;
-  product: {
-    id: number;
-    name: string;
-    sku: string;
-    cover_image_url?: string;
-    images?: Array<{
-      id: number;
-      image_url: string;
-      alt_text?: string;
-      is_cover: boolean;
-    }>;
-  };
 }
 
 export interface Payment {
@@ -100,16 +86,39 @@ export interface CreateOrderData {
 }
 
 /**
+ * Erreur enrichie par les services : elle conserve le statut HTTP d'origine
+ * (posé par l'intercepteur api.ts) ainsi que la réponse brute de l'API et la
+ * cause réelle, afin de garder le `detail` backend identifiable derrière le
+ * message métier.
+ */
+interface ServiceError extends Error {
+  status?: number;
+  code?: string;
+  response?: unknown;
+  config?: unknown;
+  cause?: unknown;
+}
+
+/**
  * Enrichit une erreur levée par le service avec le statut HTTP d'origine
  * (l'intercepteur api.ts le pose sur l'erreur Axios). Permet aux appels
  * (pages success / finalize) de réagir précisément, ex. 404 = commande introuvable.
+ *
+ * La cause réelle n'est jamais détruite : `response.data` (vrai `detail` de
+ * l'API), `config` et l'erreur source sont conservés pour diagnostiquer une
+ * erreur serveur (ex. HTTP 500 sur les paiements).
  */
 function withStatus(error: unknown, message: string): Error {
-  const out = new Error(message) as Error & { status?: number; code?: string };
-  const status = (error as { status?: number } | null)?.status;
-  const code = (error as { code?: string } | null)?.code;
-  if (typeof status === 'number') out.status = status;
-  if (code) out.code = code;
+  const source = error as ServiceError | null;
+  const out: ServiceError = new Error(message);
+
+  if (error instanceof Error) out.cause = error;
+  else if (source?.cause) out.cause = source.cause;
+  if (typeof source?.status === 'number') out.status = source.status;
+  if (source?.code) out.code = source.code;
+  if (source?.response !== undefined) out.response = source.response;
+  if (source?.config !== undefined) out.config = source.config;
+
   return out;
 }
 
@@ -204,6 +213,21 @@ export class OrderService {
     } catch (error) {
       console.error('Erreur annulation commande:', error);
       throw withStatus(error, 'Impossible d\'annuler la commande');
+    }
+  }
+
+  /**
+   * Confirmer la réception d'une commande livrée (action client dédiée).
+   * Le statut est posé par le backend : le frontend ne modifie jamais
+   * order.status directement.
+   */
+  static async confirmDelivery(orderId: string | number): Promise<OrderResponse> {
+    try {
+      const confirmedOrder = await confirmOrderDelivery(orderId);
+      return confirmedOrder;
+    } catch (error) {
+      console.error('Erreur confirmation réception:', error);
+      throw withStatus(error, 'Impossible de confirmer la réception de la commande');
     }
   }
 
@@ -353,11 +377,13 @@ export class OrderService {
   static getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       'pending': 'En attente',
+      // 'confirmed' est legacy uniquement : conservé pour l'affichage d'anciennes commandes.
       'confirmed': 'Confirmée',
-      'processing': 'En traitement',
+      'processing': 'En préparation',
       'shipped': 'Expédiée',
       'delivered': 'Livrée',
       'cancelled': 'Annulée',
+      // 'refunded' n'est pas déclenché par l'UI : simple compatibilité d'affichage.
       'refunded': 'Remboursée'
     };
     return labels[status] || status;

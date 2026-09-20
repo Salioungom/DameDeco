@@ -47,7 +47,7 @@ function payment(status: string) {
   };
 }
 
-describe('Test 8/9 — bouton « Payer la commande » indisponible si paiement en cours', () => {
+describe('Matrice §15 — bouton « Payer » selon l\'état de paiement', () => {
   beforeEach(() => {
     push.mockClear();
   });
@@ -57,18 +57,17 @@ describe('Test 8/9 — bouton « Payer la commande » indisponible si paiement e
     vi.restoreAllMocks();
   });
 
-  it('paiement pending : bouton désactivé et aucun second paiement déclenché', async () => {
+  it('paiement pending : bouton « Payer la commande » DISPONIBLE (matrice ligne 1)', async () => {
     vi.spyOn(OrderService, 'getOrderDetails').mockResolvedValue(pendingOrder);
     vi.spyOn(OrderService, 'getOrderPayments').mockResolvedValue([payment('pending')] as never);
     const initiatePayment = vi.spyOn(OrderService, 'initiatePayment').mockResolvedValue({});
 
     render(<OrderDetailPage />);
 
-    const button = await screen.findByRole('button', { name: /Paiement en cours/ });
-    expect(button).toBeDisabled();
+    const button = await screen.findByRole('button', { name: /^Payer la commande$/ });
+    expect(button).toBeEnabled();
     fireEvent.click(button);
-    expect(initiatePayment).not.toHaveBeenCalled();
-    expect(screen.queryByRole('button', { name: /^Payer la commande$/ })).toBeNull();
+    expect(initiatePayment).toHaveBeenCalled();
   }, 30000);
 
   it('paiement processing : bouton désactivé et aucun second paiement déclenché', async () => {
@@ -87,7 +86,7 @@ describe('Test 8/9 — bouton « Payer la commande » indisponible si paiement e
     expect(initiatePayment).not.toHaveBeenCalled();
   }, 30000);
 
-  it('Test 7 — paiement annulé + commande active : bouton « Payer la commande » disponible', async () => {
+  it('Test 7 — paiement annulé + commande active : bouton « Payer à nouveau » disponible (spec §11)', async () => {
     vi.spyOn(OrderService, 'getOrderDetails').mockResolvedValue({
       ...(pendingOrder as object),
       payment_status: 'cancelled',
@@ -96,7 +95,7 @@ describe('Test 8/9 — bouton « Payer la commande » indisponible si paiement e
 
     render(<OrderDetailPage />);
 
-    const button = await screen.findByRole('button', { name: /^Payer la commande$/ });
+    const button = await screen.findByRole('button', { name: /^Payer à nouveau$/ });
     expect(button).toBeEnabled();
   }, 30000);
 });

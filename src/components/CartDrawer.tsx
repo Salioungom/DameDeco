@@ -30,7 +30,13 @@ import { FREE_SHIPPING_THRESHOLD } from '@/lib/delivery';
 
 
 export function CartDrawer() {
-  const { isCartOpen, toggleCart, updateQuantity, removeFromCart, cartLoading, cartError, loadCart } = useStore();
+  const isCartOpen = useStore((s) => s.isCartOpen);
+  const toggleCart = useStore((s) => s.toggleCart);
+  const updateQuantity = useStore((s) => s.updateQuantity);
+  const removeFromCart = useStore((s) => s.removeFromCart);
+  const cartLoading = useStore((s) => s.cartLoading);
+  const cartError = useStore((s) => s.cartError);
+  const loadCart = useStore((s) => s.loadCart);
   const { cart: cartWithProducts } = useCartWithProducts();
   const router = useRouter();
   const theme = useTheme();

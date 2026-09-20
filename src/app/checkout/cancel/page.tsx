@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 import OrderService, { Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
-import { resolveCancelPhase } from '@/lib/payment-status';
+import { resolveCancelPhase, wasPaymentConfirmed } from '@/lib/payment-status';
 
 /**
  * Parcours d'annulation PayTech.
@@ -41,6 +41,8 @@ function CheckoutCancelInner() {
   const checkedRef = useRef(false);
   const [phase, setPhase] = useState<CancelPhase>(orderId ? 'verifying' : 'cancelled');
   const [note, setNote] = useState<string | null>(null);
+  // §6 : commande annulée MAIS paiement confirmé → afficher « Paiement effectué ».
+  const [wasPaidConfirmed, setWasPaidConfirmed] = useState(false);
 
   useEffect(() => {
     if (!orderId || checkedRef.current) return;
@@ -60,13 +62,17 @@ function CheckoutCancelInner() {
         // Une commande annulée/remboursée est un état final : affichée comme
         // telle, sans retry. Un paiement confirmé reste « payé ». Une simple
         // annulation de paiement laisse la commande active.
-        setPhase(
-          resolveCancelPhase({
-            orderStatus: order.status,
-            paymentStatus: order.payment_status,
-            payments,
-          }),
-        );
+        const resolved = resolveCancelPhase({
+          orderStatus: order.status,
+          paymentStatus: order.payment_status,
+          payments,
+        });
+        setPhase(resolved);
+        if (resolved === 'order_cancelled' || resolved === 'order_refunded') {
+          setWasPaidConfirmed(
+            wasPaymentConfirmed({ paymentStatus: order.payment_status, payments }),
+          );
+        }
       } catch (err) {
         // Timeout/réseau : résultat inconnu, jamais interprété comme paiement échoué.
         setPhase('unknown');
@@ -176,6 +182,12 @@ function CheckoutCancelInner() {
             <Alert severity="info" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
               Résultat inconnu : vérifiez le statut de votre commande dans vos commandes avant de
               réessayer. Aucun paiement ne sera relancé automatiquement.
+            </Alert>
+          )}
+
+          {isOrderFinal && wasPaidConfirmed && (
+            <Alert severity="info" variant="outlined" sx={{ mb: 4, textAlign: 'left' }}>
+              Paiement effectué : le montant réglé reste acquis à cette commande.
             </Alert>
           )}
 

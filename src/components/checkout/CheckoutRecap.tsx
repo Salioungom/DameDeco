@@ -37,7 +37,8 @@ interface CheckoutRecapProps {
 export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading, checkingAuth = false }: CheckoutRecapProps) {
   const theme = useTheme();
   const brandBlue = theme.palette.primary.main;
-  const { updateQuantity, removeFromCart } = useStore();
+  const updateQuantity = useStore((s) => s.updateQuantity);
+  const removeFromCart = useStore((s) => s.removeFromCart);
 
   const subtotal = useMemo(
     () =>

@@ -29,6 +29,10 @@ import {
     Tooltip,
     Zoom,
     Fade,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import {
     ArrowBack as ArrowBackIcon,
@@ -52,13 +56,24 @@ import {
     KeyboardArrowRight as ChevronRightIcon,
     Receipt as ReceiptIcon,
     Info as InfoIcon,
+    Replay as ReplayIcon,
+    HourglassTop as HourglassTopIcon,
+    ErrorOutlined as ErrorOutlineIcon,
 } from '@mui/icons-material';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import OrderService, { ORDER_STATUS, PAYMENT_STATUS } from '@/services/order.service';
+import OrderService, { ORDER_STATUS } from '@/services/order.service';
 import { OrderResponse, Payment } from '@/services/order.service';
 import { ApiErrorHandler } from '@/lib/error-handler';
-import { shouldBlockPayment } from '@/lib/payment-status';
+import {
+    getOrderActions,
+    getOrderStatusLabel,
+    getPaymentDisplayLabel,
+    getPayActionLabel,
+    PAYMENT_DISPLAY_TONE,
+    PaymentDisplayState,
+    resolvePaymentDisplayState,
+} from '@/lib/payment-status';
 import { getImageUrl } from '@/lib/imageUtils';
 import { getPaymentMethodLabel } from '@/lib/delivery';
 import { stepConnectorClasses } from '@mui/material/StepConnector';
@@ -71,9 +86,11 @@ interface ProductWithImage {
     cover_image_url?: string;
 }
 
+// Machine d'état Order : pending → processing → shipped → delivered.
+// « confirmed » (legacy) n'a PAS sa place ici : les anciennes commandes sont
+// repliées sur l'étape « Traitement » pour l'affichage uniquement.
 const orderSteps = [
     { label: 'En attente', value: 'pending', icon: <PendingIcon /> },
-    { label: 'Confirmée', value: 'confirmed', icon: <CheckCircleIcon /> },
     { label: 'Traitement', value: 'processing', icon: <ScheduleIcon /> },
     { label: 'Expédiée', value: 'shipped', icon: <ShippingIcon /> },
     { label: 'Livrée', value: 'delivered', icon: <CheckCircleIcon /> },
@@ -140,6 +157,11 @@ function ColorlibStepIcon(props: { active?: boolean; completed?: boolean; icon?:
 }
 
 function getCurrentStep(status: string): number {
+    // « confirmed » (legacy) est replié sur l'étape « Traitement » sans être
+    // réintroduit comme état actif de la machine.
+    if (status === 'confirmed') {
+        return orderSteps.findIndex(s => s.value === 'processing') + 1;
+    }
     const idx = orderSteps.findIndex(s => s.value === status);
     return idx >= 0 ? idx + 1 : 1;
 }
@@ -166,14 +188,19 @@ function OrderDetailContent() {
 
     const [order, setOrder] = useState<OrderResponse | null>(null);
     const [payments, setPayments] = useState<Payment[]>([]);
+    const [paymentsError, setPaymentsError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [errorStatus, setErrorStatus] = useState<number | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [cancelling, setCancelling] = useState(false);
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [paying, setPaying] = useState(false);
     const [saving, setSaving] = useState(false);
     const validatingRef = useRef(false);
+    const [confirmDeliveryDialogOpen, setConfirmDeliveryDialogOpen] = useState(false);
+    const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+    const [confirmDeliveryError, setConfirmDeliveryError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editingQuantities, setEditingQuantities] = useState<{ [key: number]: number }>({});
     const [modifications, setModifications] = useState<Array<{
@@ -183,11 +210,13 @@ function OrderDetailContent() {
         unit_price?: number;
     }>>([]);
 
-    // Garde UX : un paiement déjà en cours (pending/processing) ne doit pas
-    // pouvoir être relancé depuis le bouton. Le backend reste l'autorité finale.
-    const paymentBlocked = order
-        ? shouldBlockPayment({ paymentStatus: order.payment_status, payments })
-        : false;
+    // Décision centralisée (payment-status.ts) : le backend reste l'autorité
+    // finale. Seule une session PayTech live (processing) verrouille le
+    // paiement ; `pending` reste payable (matrice : nouvelle commande payable).
+    const orderActions = order
+        ? getOrderActions({ orderStatus: order.status, paymentStatus: order.payment_status, payments })
+        : null;
+    const paymentBlocked = orderActions?.isPaymentProcessing ?? false;
 
     const fetchOrderDetails = useCallback(async () => {
         try {
@@ -200,7 +229,13 @@ function OrderDetailContent() {
             try {
                 const paymentsData = await OrderService.getOrderPayments(orderId);
                 setPayments(paymentsData);
+                setPaymentsError(null);
             } catch (paymentError) {
+                const paymentErrorState = paymentError as { cause?: { message?: string }; response?: { data?: { detail?: string } } } | null | undefined;
+                const responseDetail = paymentErrorState?.response?.data?.detail;
+                const causeMessage = paymentErrorState?.cause?.message;
+                setPayments([]);
+                setPaymentsError(responseDetail ?? causeMessage ?? 'Impossible de récupérer les paiements.');
                 console.warn('Impossible de récupérer les paiements:', paymentError);
             }
         } catch (err) {
@@ -233,15 +268,33 @@ function OrderDetailContent() {
         }
     };
 
+    const handleConfirmDelivery = async () => {
+        if (!order || confirmingDelivery) return;
+        setConfirmingDelivery(true);
+        setConfirmDeliveryError(null);
+        try {
+            const updated = await OrderService.confirmDelivery(order.id);
+            setOrder(updated);
+            setConfirmDeliveryDialogOpen(false);
+            setSuccess('Réception confirmée : votre commande est marquée comme livrée.');
+        } catch (error) {
+            console.error('Erreur lors de la confirmation de réception:', error);
+            setConfirmDeliveryError(error instanceof Error ? error.message : 'Impossible de confirmer la réception. Veuillez réessayer.');
+        } finally {
+            setConfirmingDelivery(false);
+        }
+    };
+
     const handleValidateOrder = async () => {
         if (!order) return;
-        // Commande déjà réglée : ne jamais relancer un paiement.
-        if (order.payment_status === 'paid') {
+        // Commande déjà réglée : ne jamais relancer un paiement (pending+paid =
+        // commande PAYÉE en attente de traitement, cf. matrice).
+        if (orderActions?.isPaid) {
             router.push(`/checkout/success?orderId=${order.id}`);
             return;
         }
-        // Un paiement est déjà en cours : ne pas en déclencher un second.
-        if (shouldBlockPayment({ paymentStatus: order.payment_status, payments })) {
+        // Une session PayTech est live : ne pas en déclencher une seconde.
+        if (orderActions?.isPaymentProcessing) {
             setError('Un paiement est déjà en cours pour cette commande. Attendez sa confirmation avant d\'en relancer un.');
             return;
         }
@@ -397,13 +450,43 @@ function OrderDetailContent() {
     const getPaymentStatusIcon = (status: string) => {
         switch (status) {
             case 'paid':
+            case 'completed':
                 return <CheckCircleIcon />;
             case 'failed':
+            case 'cancelled':
+            case 'expired':
                 return <CancelIcon />;
+            case 'refunded':
+                return <ReplayIcon />;
             default:
                 return <PendingIcon />;
         }
     };
+
+    const getPaymentDisplayIcon = (state: PaymentDisplayState) => {
+        switch (state) {
+            case 'paid':
+                return <CheckCircleIcon />;
+            case 'payment_processing':
+                return <HourglassTopIcon />;
+            case 'payment_failed':
+                return <ErrorOutlineIcon />;
+            case 'payment_cancelled':
+                return <CancelIcon />;
+            case 'refunded':
+                return <ReplayIcon />;
+            case 'anomaly':
+                return <ErrorOutlineIcon />;
+            case 'unpaid':
+            default:
+                return <PendingIcon />;
+        }
+    };
+
+    const paymentDisplay = order
+        ? resolvePaymentDisplayState({ orderStatus: order.status, paymentStatus: order.payment_status, payments })
+        : undefined;
+    const payActionLabel = paymentDisplay ? getPayActionLabel(paymentDisplay) : 'Payer la commande';
 
     if (loading) {
         return (
@@ -559,7 +642,7 @@ function OrderDetailContent() {
                             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
                                 <Chip
                                     icon={order && getStatusIcon(order.status)}
-                                    label={order && OrderService.getStatusLabel(order.status)}
+                                    label={order && getOrderStatusLabel({ orderStatus: order.status, paymentStatus: order.payment_status, payments })}
                                     size="small"
                                     sx={{
                                         bgcolor: 'rgba(255,255,255,0.18)',
@@ -572,8 +655,8 @@ function OrderDetailContent() {
                                     }}
                                 />
                                 <Chip
-                                    icon={order && getPaymentStatusIcon(order.payment_status)}
-                                    label={order && OrderService.getPaymentStatusLabel(order.payment_status)}
+                                    icon={order && paymentDisplay && getPaymentDisplayIcon(paymentDisplay)}
+                                    label={order && paymentDisplay ? `Paiement : ${getPaymentDisplayLabel(paymentDisplay)}` : 'Paiement'}
                                     size="small"
                                     sx={{
                                         bgcolor: 'rgba(255,255,255,0.18)',
@@ -690,7 +773,7 @@ function OrderDetailContent() {
                             }
                             subheader="Détails des produits de votre commande"
                             action={
-                                order?.status === ORDER_STATUS.PENDING && (
+                                orderActions?.canModify && (
                                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', pr: 1 }}>
                                         {isEditing && modifications.length > 0 && (
                                             <Fade in>
@@ -878,7 +961,7 @@ function OrderDetailContent() {
                     </Card>
 
                     {/* Actions */}
-                    {order?.status === ORDER_STATUS.PENDING && (
+                    {order?.status === ORDER_STATUS.PENDING && (isEditing || orderActions?.canPay || orderActions?.canModify) && (
                         <Fade in>
                             <Card
                                 sx={{
@@ -934,12 +1017,12 @@ function OrderDetailContent() {
                                                         startIcon={paying ? <CircularProgress size={18} /> : <CheckCircleIcon />}
                                                         size="large"
                                                     >
-                                                        {paying ? 'Redirection...' : paymentBlocked ? 'Paiement en cours...' : 'Payer la commande'}
+                                                        {paying ? 'Redirection...' : paymentBlocked ? 'Paiement en cours...' : payActionLabel}
                                                     </Button>
                                                     <Button
                                                         variant="outlined"
                                                         color="error"
-                                                        onClick={handleCancelOrder}
+                                                        onClick={() => setCancelDialogOpen(true)}
                                                         disabled={cancelling || paying}
                                                         startIcon={cancelling ? <CircularProgress size={18} /> : <CancelIcon />}
                                                         size="large"
@@ -949,6 +1032,80 @@ function OrderDetailContent() {
                                                 </>
                                             )}
                                         </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Fade>
+                    )}
+
+                    {/* Actions : commande en préparation → annulation encore possible */}
+                    {order?.status === ORDER_STATUS.PROCESSING && orderActions?.canCancel && (
+                        <Fade in>
+                            <Card
+                                sx={{
+                                    borderRadius: 3,
+                                    bgcolor: alpha(theme.palette.warning.main, 0.04),
+                                    border: '1px solid',
+                                    borderColor: alpha(theme.palette.warning.main, 0.15),
+                                }}
+                            >
+                                <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                                        <Box>
+                                            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                                                Votre commande est en préparation
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                                                Elle ne peut plus être modifiée ni payée, mais vous pouvez encore l'annuler tant qu'elle n'est pas expédiée.
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            onClick={() => setCancelDialogOpen(true)}
+                                            disabled={cancelling}
+                                            startIcon={cancelling ? <CircularProgress size={18} /> : <CancelIcon />}
+                                            size="large"
+                                        >
+                                            {cancelling ? 'Annulation...' : 'Annuler la commande'}
+                                        </Button>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Fade>
+                    )}
+
+                    {/* Action : confirmer la réception d'une commande expédiée */}
+                    {orderActions?.canConfirmDelivery && (
+                        <Fade in>
+                            <Card
+                                sx={{
+                                    borderRadius: 3,
+                                    bgcolor: alpha(theme.palette.success.main, 0.04),
+                                    border: '1px solid',
+                                    borderColor: alpha(theme.palette.success.main, 0.15),
+                                }}
+                            >
+                                <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                                        <Box>
+                                            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                                                Votre commande a été expédiée
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                                                L'avez-vous reçue ? Confirmez la réception pour la marquer comme livrée.
+                                            </Typography>
+                                        </Box>
+                                        <Button
+                                            variant="contained"
+                                            color="success"
+                                            onClick={() => { setConfirmDeliveryError(null); setConfirmDeliveryDialogOpen(true); }}
+                                            disabled={confirmingDelivery}
+                                            startIcon={confirmingDelivery ? <CircularProgress size={18} /> : <ShippingIcon />}
+                                            size="large"
+                                        >
+                                            {confirmingDelivery ? 'Confirmation...' : 'Confirmer la réception'}
+                                        </Button>
                                     </Box>
                                 </CardContent>
                             </Card>
@@ -988,14 +1145,24 @@ function OrderDetailContent() {
                                         Sous-total
                                     </Typography>
                                     <Typography variant="body2" fontWeight="600">
-                                        {order && OrderService.formatAmount(order.total_amount, order.currency)}
+                                        {order && order.shipping_amount != null
+                                            ? OrderService.formatAmount(Math.max(0, Number(order.total_amount) - Number(order.shipping_amount)), order.currency)
+                                            : order && (order.items?.length || 0) > 0
+                                                ? OrderService.formatAmount(order.items.reduce((sum, item) => sum + Number(item.total_price || 0), 0), order.currency)
+                                                : 'N/C'}
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Typography variant="body2" color="text.secondary">
                                         Livraison
                                     </Typography>
-                                    <Chip label="Gratuit" size="small" color="success" variant="outlined" sx={{ fontWeight: 600, height: 24, fontSize: '0.7rem' }} />
+                                    <Typography variant="body2" fontWeight="600">
+                                        {order && order.shipping_amount != null
+                                            ? OrderService.formatAmount(order.shipping_amount, order.currency)
+                                            : order?.mode === 'store_pickup'
+                                                ? OrderService.formatAmount(0, order.currency)
+                                                : 'N/C'}
+                                    </Typography>
                                 </Box>
                                 <Divider />
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1006,26 +1173,66 @@ function OrderDetailContent() {
                                         {order && OrderService.formatAmount(order.total_amount, order.currency)}
                                     </Typography>
                                 </Box>
-                                {order && (
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1 }}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Statut paiement
-                                        </Typography>
-                                        <Chip
-                                            icon={getPaymentStatusIcon(order.payment_status)}
-                                            label={OrderService.getPaymentStatusLabel(order.payment_status)}
-                                            size="small"
-                                            color={order.payment_status === 'paid' ? 'success' : 'warning'}
-                                            sx={{ fontWeight: 600, fontSize: '0.7rem' }}
-                                        />
+                                {order && paymentDisplay && (
+                                    <Box sx={{ pt: 1 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Statut paiement
+                                            </Typography>
+                                            <Chip
+                                                icon={getPaymentDisplayIcon(paymentDisplay)}
+                                                label={getPaymentDisplayLabel(paymentDisplay)}
+                                                size="small"
+                                                color={PAYMENT_DISPLAY_TONE[paymentDisplay]}
+                                                sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+                                            />
+                                        </Box>
+                                        {paymentDisplay === 'anomaly' && (
+                                            <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.75, lineHeight: 1.4 }}>
+                                                Le paiement de cette commande est à vérifier auprès du support.
+                                            </Typography>
+                                        )}
                                     </Box>
                                 )}
                             </Stack>
                         </CardContent>
                     </Card>
 
+                    {/* Retrait en boutique */}
+                    {order?.mode === 'store_pickup' && (
+                        <Card sx={{ mb: 3, borderRadius: 3 }}>
+                            <CardHeader
+                                avatar={
+                                    <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+                                        <HomeIcon sx={{ fontSize: 20 }} />
+                                    </Avatar>
+                                }
+                                title={<Typography variant="subtitle1" fontWeight="bold">Retrait en boutique</Typography>}
+                                subheader="Votre commande sera disponible au point de retrait"
+                                sx={{ pb: 1 }}
+                            />
+                            <Divider />
+                            <CardContent sx={{ pt: 2 }}>
+                                <Stack spacing={2}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <LocationIcon color="action" sx={{ fontSize: 20, flexShrink: 0 }} />
+                                        <Typography variant="body2">
+                                            Retrait gratuit en boutique
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <InfoIcon color="action" sx={{ fontSize: 20, flexShrink: 0 }} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            Vous serez informé·e dès que la commande sera prête à être retirée.
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Adresse de livraison */}
-                    {order?.shipping_address && (
+                    {order?.shipping_address && order?.mode !== 'store_pickup' && (
                         <Card sx={{ mb: 3, borderRadius: 3 }}>
                             <CardHeader
                                 avatar={
@@ -1063,6 +1270,31 @@ function OrderDetailContent() {
                     )}
 
                     {/* Informations de paiement */}
+                    {paymentsError && (
+                        <Card sx={{ borderRadius: 3 }}>
+                            <CardHeader
+                                avatar={
+                                    <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+                                        <PaymentIcon sx={{ fontSize: 20 }} />
+                                    </Avatar>
+                                }
+                                title={<Typography variant="subtitle1" fontWeight="bold">Paiement</Typography>}
+                                subheader="Échec du chargement des transactions"
+                                sx={{ pb: 1 }}
+                            />
+                            <Divider />
+                            <CardContent sx={{ pt: 2 }}>
+                                <Alert severity="error" variant="outlined">
+                                    <Typography variant="body2" color="error.dark">
+                                        Les détails de paiement de cette commande n'ont pas pu être chargés.
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                        {paymentsError}
+                                    </Typography>
+                                </Alert>
+                            </CardContent>
+                        </Card>
+                    )}
                     {payments.length > 0 && (
                         <Card sx={{ borderRadius: 3 }}>
                             <CardHeader
@@ -1134,6 +1366,140 @@ function OrderDetailContent() {
                     )}
                 </Grid>
             </Grid>
+
+            {/* Dialogue de confirmation d'annulation */}
+            <Dialog
+                open={cancelDialogOpen}
+                onClose={() => {
+                    if (!cancelling) setCancelDialogOpen(false);
+                }}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: 'error.light', width: 38, height: 38 }}>
+                        <CancelIcon sx={{ fontSize: 20 }} />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                            Annuler la commande ?
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            Cette action est définitive
+                        </Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ pt: 1, pb: 1 }}>
+                    {order && (
+                        <Stack spacing={1.5}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Commande
+                                </Typography>
+                                <Typography variant="body2" fontWeight="600">
+                                    {OrderService.formatAmount(order.total_amount, order.currency)}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Articles
+                                </Typography>
+                                <Typography variant="body2" fontWeight="600">
+                                    {order.items?.length || 0}
+                                </Typography>
+                            </Box>
+                            <Typography variant="caption" color="text.disabled">
+                                La commande sera annulée et ne pourra plus être modifiée.
+                            </Typography>
+                        </Stack>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        color="inherit"
+                        disabled={cancelling}
+                        onClick={() => setCancelDialogOpen(false)}
+                    >
+                        Retour
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        disabled={cancelling}
+                        startIcon={cancelling ? <CircularProgress size={18} /> : <CancelIcon />}
+                        onClick={handleCancelOrder}
+                    >
+                        {cancelling ? 'Annulation...' : 'Confirmer l\'annulation'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialogue de confirmation de réception */}
+            <Dialog
+                open={confirmDeliveryDialogOpen}
+                onClose={() => {
+                    if (!confirmingDelivery) setConfirmDeliveryDialogOpen(false);
+                }}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: 'success.light', width: 38, height: 38 }}>
+                        <ShippingIcon sx={{ fontSize: 20 }} />
+                    </Avatar>
+                    <Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                            Confirmer la réception ?
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            Votre commande sera marquée comme livrée
+                        </Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ pt: 1, pb: 1 }}>
+                    {order && (
+                        <Stack spacing={1.5}>
+                            <Typography variant="body2" color="text.secondary">
+                                Vous avez bien reçu votre commande{' '}
+                                <strong>{order.order_number}</strong> ? Cette action est définitive.
+                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Montant
+                                </Typography>
+                                <Typography variant="body2" fontWeight="600">
+                                    {OrderService.formatAmount(order.total_amount, order.currency)}
+                                </Typography>
+                            </Box>
+                            {confirmDeliveryError && (
+                                <Alert severity="error" sx={{ mt: 0.5 }}>
+                                    {confirmDeliveryError}
+                                </Alert>
+                            )}
+                        </Stack>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        color="inherit"
+                        disabled={confirmingDelivery}
+                        onClick={() => setConfirmDeliveryDialogOpen(false)}
+                    >
+                        Plus tard
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="success"
+                        disabled={confirmingDelivery}
+                        startIcon={confirmingDelivery ? <CircularProgress size={18} /> : <CheckIcon />}
+                        onClick={handleConfirmDelivery}
+                    >
+                        {confirmingDelivery ? 'Confirmation...' : 'Confirmer la réception'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 }

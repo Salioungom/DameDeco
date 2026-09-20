@@ -18,7 +18,9 @@ interface ProvidersProps {
 }
 
 function CartInitializer() {
-  const { loadCart, initGuestSession, flushOfflineQueue } = useStore();
+  const loadCart = useStore((s) => s.loadCart);
+  const initGuestSession = useStore((s) => s.initGuestSession);
+  const flushOfflineQueue = useStore((s) => s.flushOfflineQueue);
   const { loading: authLoading } = useAuth();
 
   useEffect(() => {

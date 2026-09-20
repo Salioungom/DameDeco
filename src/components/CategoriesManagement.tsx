@@ -657,7 +657,7 @@ export function CategoriesManagement({ showStats = false }: CategoriesManagement
             <Typography sx={{ fontSize: 19, fontWeight: 700, color: BRAND.dark }}>
               Filtres et recherche
             </Typography>
-            <Box flexGrow={1} />
+            <Box sx={{ flexGrow: 1 }} />
             <IconButton
               onClick={() => setState(prev => ({ ...prev, filters: { search: '', is_active: null }, pagination: { ...prev.pagination, skip: 0 } }))}
               title="Réinitialiser les filtres"

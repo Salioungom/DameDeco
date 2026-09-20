@@ -10,7 +10,7 @@ import { CheckoutRecap } from '@/components/checkout/CheckoutRecap';
 
 export default function CheckoutRecapPage() {
   const router = useRouter();
-  const { cart: storeCart } = useStore();
+  const storeCart = useStore((s) => s.cart);
   const { cart: cartWithProducts, loading } = useCartWithProducts();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [initialLoadDone, setInitialLoadDone] = useState(false);

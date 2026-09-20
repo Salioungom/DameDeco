@@ -299,12 +299,10 @@ export function AdminOrderManagement() {
           >
             <MenuItem value="all">Tous les statuts</MenuItem>
             <MenuItem value="pending">En attente (pending)</MenuItem>
-            <MenuItem value="confirmed">Confirmée (confirmed)</MenuItem>
-            <MenuItem value="processing">En traitement (processing)</MenuItem>
+            <MenuItem value="processing">En préparation (processing)</MenuItem>
             <MenuItem value="shipped">Expédiée (shipped)</MenuItem>
             <MenuItem value="delivered">Livrée (delivered)</MenuItem>
             <MenuItem value="cancelled">Annulée (cancelled)</MenuItem>
-            <MenuItem value="refunded">Remboursée (refunded)</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -474,12 +472,10 @@ export function AdminOrderManagement() {
                 onChange={(e: SelectChangeEvent) => setNewStatus(e.target.value)}
               >
                 <MenuItem value="pending">En attente (pending)</MenuItem>
-                <MenuItem value="confirmed">Confirmée (confirmed)</MenuItem>
-                <MenuItem value="processing">En traitement (processing)</MenuItem>
+                <MenuItem value="processing">En préparation (processing)</MenuItem>
                 <MenuItem value="shipped">Expédiée (shipped)</MenuItem>
                 <MenuItem value="delivered">Livrée (delivered)</MenuItem>
                 <MenuItem value="cancelled">Annulée (cancelled)</MenuItem>
-                <MenuItem value="refunded">Remboursée (refunded)</MenuItem>
               </Select>
             </FormControl>
 

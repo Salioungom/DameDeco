@@ -32,7 +32,11 @@ export default function FavoritesPage() {
     const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { addToCart, userType, favorites: storeFavorites, toggleFavorite, user } = useStore();
+    const addToCart = useStore((s) => s.addToCart);
+    const userType = useStore((s) => s.userType);
+    const storeFavorites = useStore((s) => s.favorites);
+    const toggleFavorite = useStore((s) => s.toggleFavorite);
+    const user = useStore((s) => s.user);
     const router = useRouter();
     const brandBlue = theme.palette.primary.main;
 

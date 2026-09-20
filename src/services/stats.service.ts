@@ -64,7 +64,7 @@ export class StatsService {
       // Calculer les statistiques
       const totalOrders = orders.length;
       const totalSpent = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-      const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+      const activeStatuses = ['pending', 'processing', 'shipped'];
       const pendingOrders = orders.filter(order => activeStatuses.includes(order.status)).length;
 
       // Récupérer le nombre de favoris (avec fallback si l'API n'existe pas)
@@ -137,7 +137,7 @@ export class StatsService {
 
       const totalOrders = orders.length;
       const totalSpent = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-      const activeStatuses = ['pending', 'confirmed', 'processing', 'shipped'];
+      const activeStatuses = ['pending', 'processing', 'shipped'];
       const pendingOrders = orders.filter(order => activeStatuses.includes(order.status)).length;
 
       // Transformer les commandes récentes pour correspondre au format du guide

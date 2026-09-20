@@ -518,6 +518,12 @@ export const cancelOrder = async (id: string | number): Promise<Order> => {
     return response.data;
 };
 
+/** Action client dédiée : confirmation de réception d'une commande livrée. */
+export const confirmOrderDelivery = async (id: string | number): Promise<Order> => {
+    const response = await api.post<Order>(`/api/v1/orders/${id}/confirm-delivery`);
+    return response.data;
+};
+
 export const updateOrderStatus = async (
     id: string | number,
     status: string,

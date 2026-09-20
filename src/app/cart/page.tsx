@@ -30,7 +30,12 @@ import { getImageUrl } from '@/lib/imageUtils';
 export default function CartPage() {
     const theme = useTheme();
     const router = useRouter();
-    const { removeFromCart, updateQuantity, clearCart, loadCart, cartLoading, cartError } = useStore();
+    const removeFromCart = useStore((s) => s.removeFromCart);
+    const updateQuantity = useStore((s) => s.updateQuantity);
+    const clearCart = useStore((s) => s.clearCart);
+    const loadCart = useStore((s) => s.loadCart);
+    const cartLoading = useStore((s) => s.cartLoading);
+    const cartError = useStore((s) => s.cartError);
     const { cart: cartWithProducts, loading: productsLoading } = useCartWithProducts();
     const brandBlue = theme.palette.primary.main;
 

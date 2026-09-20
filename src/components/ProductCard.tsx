@@ -269,6 +269,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
               component="img"
               src={getImageUrl(product.cover_image_url)}
               alt={product.name}
+              loading="lazy"
+              decoding="async"
               onLoad={() => setImageLoading(false)}
               onError={() => { setImageLoading(false); setImageError(true); }}
               sx={{

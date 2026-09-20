@@ -10,7 +10,11 @@ import { Box, Typography, Container, Button, Skeleton, Stack, Paper } from '@mui
 import Link from 'next/link';
 
 export default function Page() {
-    const { addToCart, userType, favorites, toggleFavorite, addReview } = useStore();
+    const addToCart = useStore((s) => s.addToCart);
+    const userType = useStore((s) => s.userType);
+    const favorites = useStore((s) => s.favorites);
+    const toggleFavorite = useStore((s) => s.toggleFavorite);
+    const addReview = useStore((s) => s.addReview);
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;

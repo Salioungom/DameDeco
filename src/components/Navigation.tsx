@@ -304,7 +304,11 @@ export function Navigation() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { user, logout, loading: authLoading } = useAuth();
-  const { isAdmin, toggleAdmin, cart, toggleCart, favorites } = useStore();
+  const isAdmin = useStore((s) => s.isAdmin);
+  const toggleAdmin = useStore((s) => s.toggleAdmin);
+  const cart = useStore((s) => s.cart);
+  const toggleCart = useStore((s) => s.toggleCart);
+  const favorites = useStore((s) => s.favorites);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);

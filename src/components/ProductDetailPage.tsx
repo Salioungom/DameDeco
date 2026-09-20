@@ -320,6 +320,7 @@ export function ProductDetailPage({
                 <ProductImage
                   src={displayImage}
                   alt={product.name}
+                  priority
                   style={{
                     width: '100%',
                     height: '100%',
