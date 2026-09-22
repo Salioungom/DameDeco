@@ -17,13 +17,11 @@ import {
 import {
   ShoppingCart,
   Visibility,
-  WhatsApp,
   Favorite,
   FavoriteBorder,
   Info as InfoIcon,
 } from '@mui/icons-material';
 import { Product } from '../types/product';
-import { toast } from 'sonner';
 import { getImageUrl } from '@/lib/imageUtils';
 
 // ─── Styled components ───────────────────────────────────────────────────────
@@ -43,13 +41,6 @@ const StyledCard = muiStyled(Card, {
   '&:hover': {
     transform: isMobile ? 'none' : 'translateY(-4px)',
     boxShadow: theme.shadows[elevationHover],
-    '& .product-actions': {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-    '& .product-image-inner': {
-      // zoom handled by ImageZone CSS
-    },
   },
   '&:focus-visible': {
     outline: `2px solid ${theme.palette.primary.main}`,
@@ -65,7 +56,7 @@ const StyledCard = muiStyled(Card, {
 const ImageZone = muiStyled(Box)(() => ({
   position: 'relative',
   width: '100%',
-  paddingTop: '72%',        // ratio légèrement carré — optimal cartes produit
+  paddingTop: '100%',       // ratio 1:1 — cartes produit plus grandes et confortables
   overflow: 'hidden',
   backgroundColor: '#0f1923', // fond sombre neutre — fait ressortir le screenshot
   borderBottom: 'none',
@@ -111,16 +102,13 @@ const FavoriteButton = muiStyled(IconButton)(() => ({
   zIndex: 3,
   width: 45,
   height: 45,
-  backgroundColor: 'rgba(25, 118, 210, 0.15)',
-  backdropFilter: 'blur(12px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-  border: '1.5px solid rgba(25, 118, 210, 0.5)',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.5)',
+  backgroundColor: '#185FA5',
+  border: '1px solid #185FA5',
+  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
   transition: 'all 0.2s ease',
   '&:hover': {
-    backgroundColor: 'rgba(25, 118, 210, 0.25)',
-    transform: 'scale(1.1)',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.6)',
+    backgroundColor: '#185FA5',
+    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
   },
 }));
 
@@ -137,7 +125,6 @@ interface ProductCardProps {
   elevation?: number;
   showActions?: boolean;
   showFavorite?: boolean;
-  showWhatsApp?: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -153,7 +140,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   elevation = 2,
   showActions = true,
   showFavorite = true,
-  showWhatsApp = true,
   ...props
 }) => {
   const theme = useMuiTheme();
@@ -176,14 +162,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const handleToggleFavorite = useCallback(
     (e: React.MouseEvent) => { e.stopPropagation(); onToggleFavorite?.(String(product.id)); },
     [onToggleFavorite, product.id],
-  );
-
-  const handleWhatsAppOrder = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      toast.info('Cette fonctionnalité sera disponible bientôt');
-    },
-    [],
   );
 
   const handleCardClick = useCallback(
@@ -359,7 +337,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             >
               {isFavorite
                 ? <Favorite sx={{ fontSize: 22.5, color: '#ff4d6d' }} />
-                : <FavoriteBorder sx={{ fontSize: 22.5, color: 'rgba(255,255,255,0.95)' }} />
+                : <FavoriteBorder sx={{ fontSize: 22.5, color: '#ffffff' }} />
               }
             </FavoriteButton>
           </Tooltip>
@@ -368,7 +346,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       {/* ── FIN IMAGE ZONE ── */}
 
       {/* ── TEXTE / PRIX / ACTIONS — INCHANGÉS ── */}
-      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+      <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
         <Box sx={{ mb: 1 }}>
           {product.category_name && (
             <Typography
@@ -404,7 +382,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
           variant="subtitle1"
           component="h3"
           sx={{
-            fontWeight: 500,
+            fontWeight: 600,
+            fontSize: '1.05rem',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -429,7 +408,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             variant="h6"
             component="div"
             color="primary"
-            sx={{ display: 'inline', fontWeight: 'bold' }}
+            sx={{ display: 'inline', fontWeight: 'bold', fontSize: '1.3rem' }}
           >
             {fmt(displayPrice)}
             {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
@@ -453,7 +432,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     height: 25,
                   }}
                 />
-                <Typography variant="caption" color="success.main" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: '#16a34a' }}>
                   Économisez {fmt(Number(originalPrice) - Number(product.price))}
                 </Typography>
               </Stack>
@@ -474,12 +453,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardActions
           className="product-actions"
           sx={{
-            p: 2,
-            pt: 0,
-            opacity: { xs: 1, md: 0.9 },
-            transform: { md: 'translateY(10px)' },
+            p: 2.5,
+            pt: 0.5,
+            opacity: 1,
             transition: 'all 0.3s ease-in-out',
-            '&:hover': { opacity: 1 },
             '& button': { transition: 'all 0.2s ease-in-out' },
             '& button:hover': { transform: 'scale(1.05)' },
           }}
@@ -488,38 +465,30 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <Tooltip title="Ajouter au panier">
               <IconButton
                 color="primary"
-                size="small"
+                size="medium"
                 onClick={handleAddToCart}
                 sx={{
-                  bgcolor: 'primary.light',
-                  '&:hover': { bgcolor: 'primary.main', color: 'white' },
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
+                  '&:hover': {
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
+                  },
                 }}
               >
                 <ShoppingCart />
               </IconButton>
             </Tooltip>
 
-            {showWhatsApp && (
-              <Tooltip title="Bientôt disponible">
-                <IconButton
-                  color="success"
-                  size="small"
-                  onClick={handleWhatsAppOrder}
-                  sx={{
-                    bgcolor: 'success.light',
-                    '&:hover': { bgcolor: 'success.main', color: 'white' },
-                  }}
-                >
-                  <WhatsApp />
-                </IconButton>
-              </Tooltip>
-            )}
-
             <Box sx={{ flexGrow: 1 }} />
 
             <Tooltip title="Voir les détails">
               <IconButton
-                size="small"
+                size="medium"
                 onClick={handleViewDetails}
                 sx={{
                   bgcolor: 'action.hover',

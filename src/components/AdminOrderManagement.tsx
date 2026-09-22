@@ -30,12 +30,17 @@ import {
   Alert,
   Stack,
   alpha,
+  Grid,
+  Divider,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {
   Search as SearchIcon,
   Edit as EditIcon,
   ShoppingCart as ShoppingCartIcon,
+  Visibility as VisibilityIcon,
+  Person as PersonIcon,
+  LocalShipping as LocalShippingIcon,
 } from '@mui/icons-material';
 import { getAdminOrders, updateOrderStatus } from '@/lib/api';
 import { BRAND_BLUE } from '@/theme';
@@ -79,8 +84,12 @@ interface Order {
   shipping_address: {
     first_name?: string;
     last_name?: string;
+    full_name?: string;
+    email?: string;
     phone?: string;
+    city?: string;
     address?: string;
+    instructions?: string;
   } | null;
   customer: {
     id: number;
@@ -91,7 +100,11 @@ interface Order {
   items: OrderItem[];
 }
 
-export function AdminOrderManagement() {
+interface AdminOrderManagementProps {
+  initialCustomerId?: number | null;
+}
+
+export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagementProps = {}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,6 +112,7 @@ export function AdminOrderManagement() {
   // Filters and Pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [customerFilter, setCustomerFilter] = useState<number | null>(initialCustomerId || null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -108,6 +122,10 @@ export function AdminOrderManagement() {
   const [newStatus, setNewStatus] = useState('');
   const [notes, setNotes] = useState('');
   const [submittingStatus, setSubmittingStatus] = useState(false);
+
+  // Detail Dialog State
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
   // Snackbar Alert State
   const [snackbar, setSnackbar] = useState<{
@@ -150,6 +168,16 @@ export function AdminOrderManagement() {
     setDialogOpen(false);
     setSelectedOrder(null);
     setNotes('');
+  };
+
+  const handleOpenDetailDialog = (order: Order) => {
+    setDetailOrder(order);
+    setDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setDetailDialogOpen(false);
+    setDetailOrder(null);
   };
 
   const handleConfirmStatusChange = async () => {
@@ -195,6 +223,13 @@ export function AdminOrderManagement() {
     return 'Client invité';
   };
 
+  // Get customer name for filter display
+  const getCustomerNameForFilter = () => {
+    if (!customerFilter) return null;
+    const customerOrder = orders.find(o => o.customer_id === customerFilter);
+    return customerOrder?.customer?.name || `Client #${customerFilter}`;
+  };
+
   // Chip Styling per Status
   const getStatusChipSx = (status: string) => {
     const colors: Record<string, { bg: string; color: string }> = {
@@ -220,7 +255,8 @@ export function AdminOrderManagement() {
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-      
+      const matchesCustomer = customerFilter === null || order.customer_id === customerFilter;
+
       const search = searchQuery.toLowerCase().trim();
       const customerName = getOrderCustomerName(order).toLowerCase();
       const orderNumber = order.order_number.toLowerCase();
@@ -229,9 +265,9 @@ export function AdminOrderManagement() {
         orderNumber.includes(search) ||
         customerName.includes(search);
 
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesSearch && matchesCustomer;
     });
-  }, [orders, statusFilter, searchQuery]);
+  }, [orders, statusFilter, searchQuery, customerFilter]);
 
   // Paginated data
   const paginatedOrders = useMemo(() => {
@@ -242,7 +278,7 @@ export function AdminOrderManagement() {
   // Reset page on search or filter change
   useEffect(() => {
     setPage(0);
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, customerFilter]);
 
   return (
     <Paper
@@ -302,9 +338,20 @@ export function AdminOrderManagement() {
             <MenuItem value="processing">En préparation (processing)</MenuItem>
             <MenuItem value="shipped">Expédiée (shipped)</MenuItem>
             <MenuItem value="delivered">Livrée (delivered)</MenuItem>
-            <MenuItem value="cancelled">Annulée (cancelled)</MenuItem>
           </Select>
         </FormControl>
+
+        {customerFilter && (
+          <Chip
+            label={getCustomerNameForFilter()}
+            onDelete={() => setCustomerFilter(null)}
+            sx={{
+              bgcolor: alpha(BRAND.primary, 0.1),
+              color: BRAND.primary,
+              fontWeight: 600,
+            }}
+          />
+        )}
       </Box>
 
       {/* Table Content */}
@@ -349,7 +396,7 @@ export function AdminOrderManagement() {
                   <TableCell>Total</TableCell>
                   <TableCell>Statut</TableCell>
                   <TableCell>Date</TableCell>
-                  <TableCell align="center">Actions</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -389,22 +436,39 @@ export function AdminOrderManagement() {
                         {new Date(order.created_at).toLocaleDateString('fr-FR')}
                       </Typography>
                     </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Modifier le statut">
-                        <IconButton
-                          onClick={() => handleOpenDialog(order)}
-                          sx={{
-                            color: BRAND.primary,
-                            bgcolor: alpha(BRAND.primary, 0.08),
-                            '&:hover': {
-                              bgcolor: alpha(BRAND.primary, 0.15),
-                            },
-                          }}
-                          size="small"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                        <Tooltip title="Voir les détails">
+                          <IconButton
+                            onClick={() => handleOpenDetailDialog(order)}
+                            sx={{
+                              color: BRAND.primary,
+                              bgcolor: alpha(BRAND.primary, 0.08),
+                              '&:hover': {
+                                bgcolor: alpha(BRAND.primary, 0.15),
+                              },
+                            }}
+                            size="small"
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Modifier le statut">
+                          <IconButton
+                            onClick={() => handleOpenDialog(order)}
+                            sx={{
+                              color: BRAND.primary,
+                              bgcolor: alpha(BRAND.primary, 0.08),
+                              '&:hover': {
+                                bgcolor: alpha(BRAND.primary, 0.15),
+                              },
+                            }}
+                            size="small"
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -475,7 +539,6 @@ export function AdminOrderManagement() {
                 <MenuItem value="processing">En préparation (processing)</MenuItem>
                 <MenuItem value="shipped">Expédiée (shipped)</MenuItem>
                 <MenuItem value="delivered">Livrée (delivered)</MenuItem>
-                <MenuItem value="cancelled">Annulée (cancelled)</MenuItem>
               </Select>
             </FormControl>
 
@@ -520,6 +583,224 @@ export function AdminOrderManagement() {
             {submittingStatus ? 'Mise à jour...' : 'Confirmer'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Order Detail Dialog */}
+      <Dialog
+        open={detailDialogOpen}
+        onClose={handleCloseDetailDialog}
+        maxWidth="md"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              p: 0,
+            },
+          },
+        }}
+      >
+        {detailOrder && (
+          <>
+            <DialogTitle sx={{ fontWeight: 700, pb: 2, borderBottom: `1px solid ${BRAND.border}` }}>
+              Détails de la commande {detailOrder.order_number}
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Stack spacing={3}>
+                {/* Customer Information */}
+                <Box>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
+                    <PersonIcon sx={{ color: BRAND.primary, fontSize: 24 }} />
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark }}>
+                      Informations client
+                    </Typography>
+                  </Stack>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: '12px',
+                      border: `1px solid ${BRAND.border}`,
+                      bgcolor: BRAND.surface,
+                    }}
+                  >
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Prénom</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {detailOrder.shipping_address?.first_name || detailOrder.customer?.name?.split(' ')[0] || '—'}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Nom</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {detailOrder.shipping_address?.last_name || detailOrder.customer?.name?.split(' ').slice(1).join(' ') || '—'}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Email</Typography>
+                        <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                          {detailOrder.customer?.email || '—'}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Téléphone</Typography>
+                        <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                          {detailOrder.shipping_address?.phone || detailOrder.customer?.phone || '—'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Box>
+
+                {/* Delivery Information */}
+                <Box>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
+                    <LocalShippingIcon sx={{ color: BRAND.primary, fontSize: 24 }} />
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark }}>
+                      Informations de livraison
+                    </Typography>
+                  </Stack>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: '12px',
+                      border: `1px solid ${BRAND.border}`,
+                      bgcolor: BRAND.surface,
+                    }}
+                  >
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12 }}>
+                        <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Mode de livraison</Typography>
+                        <Chip
+                          label={detailOrder.mode === 'home_delivery' ? 'Livraison à la maison' : 'Retrait en boutique'}
+                          size="small"
+                          sx={{
+                            bgcolor: alpha(BRAND.primary, 0.1),
+                            color: BRAND.primary,
+                            fontWeight: 600,
+                            fontSize: 14,
+                          }}
+                        />
+                      </Grid>
+                      {detailOrder.mode === 'home_delivery' && detailOrder.shipping_address ? (
+                        <>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Prénom</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.first_name || (detailOrder.shipping_address.full_name?.split(' ')[0]) || '—'}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Nom</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.last_name || (detailOrder.shipping_address.full_name?.split(' ').slice(1).join(' ')) || '—'}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Téléphone</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.phone || '—'}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Email</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.email || '—'}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Ville</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.city || '—'}
+                            </Typography>
+                          </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Adresse complète</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {detailOrder.shipping_address.address || '—'}
+                            </Typography>
+                          </Grid>
+                          {detailOrder.shipping_address.instructions && (
+                            <Grid size={{ xs: 12 }}>
+                              <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Instructions</Typography>
+                              <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                                {detailOrder.shipping_address.instructions}
+                              </Typography>
+                            </Grid>
+                          )}
+                        </>
+                      ) : (
+                        <Grid size={{ xs: 12 }}>
+                          <Typography sx={{ fontSize: 16, color: BRAND.muted, fontStyle: 'italic' }}>
+                            Retrait en boutique — aucune adresse de livraison requise
+                          </Typography>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </Paper>
+                </Box>
+
+                {/* Order Summary */}
+                <Box>
+                  <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                    Récapitulatif
+                  </Typography>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: '12px',
+                      border: `1px solid ${BRAND.border}`,
+                      bgcolor: BRAND.surface,
+                    }}
+                  >
+                    <Stack spacing={1.5}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography sx={{ fontSize: 15, color: BRAND.muted }}>Sous-total</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {formatFcfa(Number(detailOrder.subtotal) || 0)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography sx={{ fontSize: 15, color: BRAND.muted }}>Livraison</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {formatFcfa(Number(detailOrder.shipping_amount) || 0)}
+                        </Typography>
+                      </Box>
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>Total</Typography>
+                        <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.primary }}>
+                          {formatFcfa(Number(detailOrder.total_amount) || 0)}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                </Box>
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3, pt: 0 }}>
+              <Button
+                onClick={handleCloseDetailDialog}
+                variant="contained"
+                sx={{
+                  bgcolor: BRAND.primary,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                  px: 3,
+                  '&:hover': {
+                    bgcolor: BRAND.dark,
+                  },
+                }}
+              >
+                Fermer
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
 
       {/* Snackbar Alert */}

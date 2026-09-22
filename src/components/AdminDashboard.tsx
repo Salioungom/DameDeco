@@ -37,7 +37,6 @@ import {
   Settings,
   AttachMoney as DollarSign,
   Category,
-  Star,
   AdminPanelSettings,
   CheckCircle,
   Block,
@@ -209,15 +208,14 @@ export function AdminDashboard() {
   const [clientStatusFilter, setClientStatusFilter] = useState('all');
   const [clientPage, setClientPage] = useState(0);
   const [clientRowsPerPage, setClientRowsPerPage] = useState(10);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
   const stats = useMemo(() => {
     const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-    const whatsappOrders = orders.filter((o) => o.source === 'whatsapp').length;
     const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing').length;
     return {
       totalRevenue,
       totalOrders: orders.length,
-      whatsappOrders,
       pendingOrders,
     };
   }, [orders]);
@@ -441,7 +439,6 @@ export function AdminDashboard() {
             <Tab icon={<Package sx={{ fontSize: 25 }} />} iconPosition="start" label="Produits" />
             <Tab icon={<Category sx={{ fontSize: 25 }} />} iconPosition="start" label="Catégories" />
             <Tab icon={<ShoppingCart sx={{ fontSize: 25 }} />} iconPosition="start" label="Commandes" />
-            <Tab icon={<Star sx={{ fontSize: 25 }} />} iconPosition="start" label="Avis" />
             <Tab icon={<Users sx={{ fontSize: 25 }} />} iconPosition="start" label="Clients" />
             <Tab icon={<Settings sx={{ fontSize: 25 }} />} iconPosition="start" label="Livraison" />
           </Tabs>
@@ -481,15 +478,6 @@ export function AdminDashboard() {
                 subtitle="Catalogue actif"
                 icon={<Package />}
                 loading={loadingStats}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                title="WhatsApp"
-                value={stats.whatsappOrders}
-                subtitle="Commandes via WhatsApp"
-                icon={<ShoppingCart />}
-                loading={loadingOrders}
               />
             </Grid>
           </Grid>
@@ -613,33 +601,11 @@ export function AdminDashboard() {
 
         {/* Commandes */}
         <CustomTabPanel value={activeTab} index={3}>
-          <AdminOrderManagement />
-        </CustomTabPanel>
-
-        {/* Avis */}
-        <CustomTabPanel value={activeTab} index={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              textAlign: 'center',
-              borderRadius: '20px',
-              border: `1px solid ${BRAND.border}`,
-              bgcolor: BRAND.white,
-            }}
-          >
-            <Star sx={{ fontSize: 60, color: BRAND.border, mb: 1 }} />
-            <Typography sx={{ fontSize: 20, fontWeight: 600, color: BRAND.dark }}>
-              Module avis clients
-            </Typography>
-            <Typography sx={{ fontSize: 17.5, color: BRAND.muted, mt: 0.5 }}>
-              Bientôt disponible
-            </Typography>
-          </Paper>
+          <AdminOrderManagement initialCustomerId={selectedCustomerId} />
         </CustomTabPanel>
 
         {/* Clients */}
-        <CustomTabPanel value={activeTab} index={5}>
+        <CustomTabPanel value={activeTab} index={4}>
           <Paper
             elevation={0}
             sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
@@ -747,8 +713,8 @@ export function AdminDashboard() {
                             <Tooltip title="Voir les commandes">
                               <IconButton
                                 onClick={() => {
+                                  setSelectedCustomerId(client.id);
                                   setActiveTab(3);
-                                  setOrderSearch(client.full_name || client.email || '');
                                 }}
                                 sx={{ color: BRAND.primary }}
                               >
@@ -786,7 +752,7 @@ export function AdminDashboard() {
           </Paper>
         </CustomTabPanel>
 
-        <CustomTabPanel value={activeTab} index={6}>
+        <CustomTabPanel value={activeTab} index={5}>
           <ShippingManagement />
         </CustomTabPanel>
       </Box>

@@ -268,10 +268,62 @@ function CheckoutFinalizeInner() {
     let phase: 'creating_order' | 'initializing_payment' = 'creating_order';
 
     try {
-      // Reprise d'une commande existante : initier directement le paiement PayTech.
+      // Reprise d'une commande existante : synchroniser les informations de livraison avant le paiement.
       if (isOrderMode && orderDetails) {
+        // Valider les champs obligatoires selon le mode actuel
+        if (data.deliveryMode === 'home_delivery') {
+          const normalizePhone = (val: string) => {
+            let p = val.trim().replace(/\s+/g, '');
+            if (!p) return '';
+            if (p.startsWith('00221')) p = '+221' + p.slice(5);
+            if (!p.startsWith('+221')) p = '+221' + p;
+            return p.replace(/[^\d+]/g, '');
+          };
+
+          const phoneValid = /^(\+?221)?[73]\d{8}$/.test(data.phone.replace(/\s/g, ''));
+          const firstNameValid = data.firstName.trim().length >= 2;
+          const lastNameValid = data.lastName.trim().length >= 2;
+          const cityValid = data.city.trim().length > 0;
+          const addressValid = data.address.trim().length >= 10;
+
+          if (!firstNameValid || !lastNameValid || !phoneValid || !cityValid || !addressValid) {
+            setError('Veuillez remplir correctement tous les champs de livraison obligatoires.');
+            submittingRef.current = false;
+            setStage('idle');
+            setIsProcessing(false);
+            return;
+          }
+        }
+
+        // Étape 1 : Synchroniser les informations de livraison avec le backend
         phase = 'initializing_payment';
         setStage('initializing_payment');
+
+        const normalizePhone = (val: string) => {
+          let p = val.trim().replace(/\s+/g, '');
+          if (!p) return '';
+          if (p.startsWith('00221')) p = '+221' + p.slice(5);
+          if (!p.startsWith('+221')) p = '+221' + p;
+          return p.replace(/[^\d+]/g, '');
+        };
+
+        const shippingAddressPayload = data.deliveryMode === 'home_delivery' ? {
+          first_name: data.firstName.trim(),
+          last_name: data.lastName.trim(),
+          email: data.email.trim() || undefined,
+          phone: normalizePhone(data.phone),
+          city: data.city.trim(),
+          address: data.address.trim(),
+          instructions: data.instructions?.trim() || undefined,
+        } : undefined;
+
+        await OrderService.updateOrderDelivery(
+          orderDetails.id,
+          data.deliveryMode,
+          shippingAddressPayload
+        );
+
+        // Étape 2 : Une fois la livraison synchronisée, lancer le paiement
         const paymentResp = await OrderService.initiatePayment(orderDetails.id);
         const redirectUrl = paymentResp?.redirect_url;
         if (!redirectUrl) {
@@ -422,6 +474,7 @@ function CheckoutFinalizeInner() {
             ? Number(orderDetails.shipping_amount)
             : null
         }
+        orderDetails={orderDetails}
       />
     </div>
   );

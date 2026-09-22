@@ -30,6 +30,7 @@ import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { getImageUrl } from '@/lib/imageUtils';
 import { computeDeliveryFee, type DeliveryMode } from '@/lib/delivery';
+import { OrderResponse } from '@/services/order.service';
 
   
 
@@ -53,7 +54,7 @@ interface CheckoutFinalizeProps {
   onPlaceOrder: (data: OrderCheckoutData) => void;
   isProcessing?: boolean;
   stage?: CheckoutStage;
-  /** Reprise du paiement d'une commande existante : aucun formulaire à revalider. */
+  /** Reprise du paiement d'une commande existante : formulaire à valider si livraison à domicile. */
   orderMode?: boolean;
   error?: string | null;
   /**
@@ -66,6 +67,11 @@ interface CheckoutFinalizeProps {
    * Prioritaires sur l'estimation frontend.
    */
   serverDeliveryFee?: number | null;
+  /**
+   * Détails de la commande existante (pour reprise de paiement).
+   * Utilisé pour pré-remplir le formulaire et valider le mode de livraison.
+   */
+  orderDetails?: OrderResponse | null;
 }
 
 export function CheckoutFinalize({
@@ -77,6 +83,7 @@ export function CheckoutFinalize({
   error = null,
   serverTotal = null,
   serverDeliveryFee = null,
+  orderDetails = null,
 }: CheckoutFinalizeProps) {
   const theme = useTheme();
   const brandBlue = theme.palette.primary.main;
@@ -97,6 +104,35 @@ export function CheckoutFinalize({
   const [address, setAddress] = useState('');
   const [instructions, setInstructions] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Pré-remplir le formulaire avec les données de la commande existante
+  useEffect(() => {
+    if (orderMode && orderDetails?.shipping_address) {
+      const addr = orderDetails.shipping_address;
+      setFirstName(addr.first_name || '');
+      setLastName(addr.last_name || '');
+      setPhone(addr.phone || '');
+      // Utiliser city directement si disponible, sinon tenter le parsing
+      if (addr.city) {
+        setCity(addr.city);
+        setAddress(addr.address || '');
+      } else {
+        // Fallback : tenter de séparer ville et adresse
+        const fullAddress = addr.address || '';
+        const parts = fullAddress.split(',').map(p => p.trim());
+        if (parts.length > 1) {
+          setCity(parts[parts.length - 1]);
+          setAddress(parts.slice(0, -1).join(', '));
+        } else {
+          setAddress(fullAddress);
+        }
+      }
+    }
+    // Définir le mode de livraison depuis la commande
+    if (orderMode && orderDetails?.mode) {
+      setDeliveryMode(orderDetails.mode);
+    }
+  }, [orderMode, orderDetails, setDeliveryMode]);
 
   const subtotal = useMemo(
     () =>
@@ -152,11 +188,22 @@ export function CheckoutFinalize({
   };
 
   const isFormValid = (() => {
-    // En reprise de paiement, la commande existe déjà : rien à valider.
-    if (orderMode) return true;
-    if (deliveryMode === 'home_delivery') {
+    // En reprise de paiement avec livraison à domicile : valider les champs obligatoires
+    if (orderMode && deliveryMode === 'home_delivery') {
+      if (!firstName.trim() || !lastName.trim() || !phone.trim() || !city.trim() || !address.trim()) return false;
+      // Valider également le format du téléphone
+      if (!isPhoneValid(phone)) return false;
+      // Valider la longueur minimale de l'adresse
+      if (address.trim().length < 10) return false;
+      // Valider la longueur minimale du prénom et nom
+      if (firstName.trim().length < 2 || lastName.trim().length < 2) return false;
+      return true;
+    }
+    // Nouvelle commande avec livraison à domicile
+    if (!orderMode && deliveryMode === 'home_delivery') {
       if (!firstName.trim() || !lastName.trim() || !phone.trim() || !city.trim() || !address.trim()) return false;
     }
+    // Retrait en boutique : pas de validation d'adresse requise
     return true;
   })();
 
@@ -168,8 +215,8 @@ export function CheckoutFinalize({
   const handlePlaceOrder = () => {
     if (isProcessing) return;
 
-    // Validation des champs uniquement pour la livraison à domicile (hors reprise de paiement).
-    if (!orderMode && deliveryMode === 'home_delivery') {
+    // Validation des champs pour la livraison à domicile (y compris en reprise de paiement).
+    if (deliveryMode === 'home_delivery') {
       const newErrors: Record<string, string> = {};
       newErrors.firstName = validateField('firstName', firstName);
       newErrors.lastName = validateField('lastName', lastName);
@@ -611,7 +658,7 @@ export function CheckoutFinalize({
                     size="large"
                     fullWidth
                     onClick={handlePlaceOrder}
-                    disabled={isProcessing || (!orderMode && !isFormValid)}
+                    disabled={isProcessing || !isFormValid}
                     endIcon={isProcessing ? undefined : <ArrowForward />}
                       sx={{
                         borderRadius: 2,
@@ -634,7 +681,7 @@ export function CheckoutFinalize({
                               ? 'Redirection vers PayTech...'
                               : 'Traitement...'}
                       </Box>
-                    ) : !orderMode && !isFormValid ? (
+                    ) : !isFormValid ? (
                       'Remplissez les champs obligatoires'
                     ) : orderMode ? (
                       'Reprendre le paiement'

@@ -14,7 +14,6 @@ export default function Page() {
     const userType = useStore((s) => s.userType);
     const favorites = useStore((s) => s.favorites);
     const toggleFavorite = useStore((s) => s.toggleFavorite);
-    const addReview = useStore((s) => s.addReview);
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
@@ -104,8 +103,6 @@ export default function Page() {
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
             onViewProduct={(p) => router.push(`/product/${p.id}`)}
-            // Review logic disabled for now as per backend schema
-            onAddReview={() => { }}
         />
     );
 }

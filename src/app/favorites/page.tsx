@@ -123,15 +123,15 @@ export default function FavoritesPage() {
                             gridTemplateColumns: {
                                 xs: 'repeat(2, 1fr)',
                                 sm: 'repeat(2, 1fr)',
-                                md: 'repeat(2, 1fr)',
+                                md: 'repeat(3, 1fr)',
                                 lg: 'repeat(3, 1fr)',
-                                xl: 'repeat(4, 1fr)',
+                                xl: 'repeat(3, 1fr)',
                             },
-                            gap: { xs: 2, md: 2.5 },
+                            gap: { xs: 2, sm: 2.5, lg: 4 },
                         }}
                     >
                         {[1, 2, 3, 4].map((i) => (
-                            <Skeleton key={i} variant="rounded" height={380} sx={{ borderRadius: 3 }} />
+                            <Skeleton key={i} variant="rounded" height={460} sx={{ borderRadius: 3 }} />
                         ))}
                     </Box>
                 </Container>
@@ -370,11 +370,11 @@ export default function FavoritesPage() {
                         gridTemplateColumns: {
                             xs: 'repeat(2, 1fr)',
                             sm: 'repeat(2, 1fr)',
-                            md: 'repeat(2, 1fr)',
+                            md: 'repeat(3, 1fr)',
                             lg: 'repeat(3, 1fr)',
-                            xl: 'repeat(4, 1fr)',
+                            xl: 'repeat(3, 1fr)',
                         },
-                        gap: { xs: 2, md: 2.5 },
+                        gap: { xs: 2, sm: 2.5, lg: 4 },
                     }}
                 >
                     {Array.isArray(favoriteProducts) && favoriteProducts.map((product) => (

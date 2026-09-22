@@ -27,7 +27,6 @@ import {
   ChevronRight,
   LocalShipping as Truck,
   Cached as RefreshCw,
-  WhatsApp as MessageCircle,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
   Star as StarIcon,
@@ -37,8 +36,6 @@ import {
 import { Product } from '../types/product';
 import { productService } from '../services/product.service';
 import { ProductImage } from './ProductImage';
-import { orderViaWhatsApp } from '../lib/whatsapp';
-import { toast } from 'sonner';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
 import { BRAND_BLUE } from '@/theme';
@@ -68,7 +65,6 @@ interface ProductDetailPageProps {
   favorites: string[];
   onToggleFavorite: (productId: string) => void;
   onViewProduct: (product: Product) => void;
-  onAddReview?: (review: unknown) => void;
 }
 
 interface TabPanelProps {
@@ -198,10 +194,6 @@ export function ProductDetailPage({
       : null;
   const reviewCount = product.review_count ?? 0;
   const inStock = product.inventory_quantity > 0;
-
-  const handleWhatsAppOrder = () => {
-    toast.info('Cette fonctionnalité sera disponible bientôt');
-  };
 
   const handlePrevImage = () => {
     setSelectedImage((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
@@ -568,25 +560,6 @@ export function ProductDetailPage({
               >
                 Ajouter au panier
               </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                fullWidth
-                startIcon={<MessageCircle sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />}
-                onClick={handleWhatsAppOrder}
-                sx={{
-                  py: { xs: 1.25, sm: 1.4, md: 1.5 },
-                  borderRadius: { xs: '12px', sm: '13px', md: '15px' },
-                  fontWeight: 700,
-                  fontSize: { xs: 14.5, sm: 16, md: 17.5 },
-                  textTransform: 'none',
-                  borderColor: '#25D366',
-                  color: '#15803d',
-                  '&:hover': { borderColor: '#25D366', bgcolor: alpha('#25D366', 0.06) },
-                }}
-              >
-                Commander via WhatsApp
-              </Button>
             </Stack>
 
             <Stack spacing={{ xs: 1.25, sm: 1.5, md: 1.75 }}>
@@ -645,7 +618,6 @@ export function ProductDetailPage({
             }}
           >
             <Tab label="Description" />
-            <Tab label={reviewCount > 0 ? `Avis (${reviewCount})` : 'Avis'} />
             <Tab label="Livraison" />
             <Tab label="Paiement" />
           </Tabs>
@@ -671,10 +643,6 @@ export function ProductDetailPage({
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={1}>
-              <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.muted }}>Les avis clients seront bientôt disponibles.</Typography>
-            </CustomTabPanel>
-
-            <CustomTabPanel value={tabValue} index={2}>
               <Stack spacing={{ xs: 2, sm: 2.25, md: 2.5 }}>
                 <Box>
                   <Typography sx={{ fontWeight: 700, color: C.dark, mb: { xs: 0.35, sm: 0.4, md: 0.5 }, fontSize: { xs: 14.5, sm: 15.5, md: 17.5 } }}>Dakar & banlieue</Typography>
@@ -687,7 +655,7 @@ export function ProductDetailPage({
               </Stack>
             </CustomTabPanel>
 
-            <CustomTabPanel value={tabValue} index={3}>
+            <CustomTabPanel value={tabValue} index={2}>
               <Typography sx={{ fontSize: { xs: 14.5, sm: 16, md: 17.5 }, color: C.text, mb: { xs: 1.5, sm: 1.75, md: 2 } }}>
                 Paiement sécurisé — Wave, Orange Money ou paiement à la livraison.
               </Typography>

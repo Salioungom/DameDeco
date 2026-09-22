@@ -636,7 +636,9 @@ export function Navigation() {
           WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
           borderBottom: '1px solid',
           borderColor: scrolled ? alpha(theme.palette.divider, 0.9) : 'divider',
-          boxShadow: scrolled ? `0 4px 24px ${alpha(theme.palette.common.black, 0.06)}` : 'none',
+          boxShadow: scrolled
+            ? `0 4px 24px ${alpha(theme.palette.common.black, 0.06)}`
+            : `0 2px 12px ${alpha(theme.palette.common.black, 0.04)}`,
           transition: 'background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
           zIndex: theme.zIndex.appBar,
         }}

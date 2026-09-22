@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Product, User, Review } from '@/lib/types';
+import { Product, User } from '@/lib/types';
 import { cartService, CartItem } from '@/services/cart.service';
 import { FavoriteService } from '@/services/favorite.service';
 import { toast } from 'sonner';
@@ -78,7 +78,6 @@ interface StoreState {
     isAdmin: boolean;
     userType: 'retail' | 'wholesale';
     isDark: boolean;
-    reviews: Record<string, Review[]>;
     cartLoading: boolean;
     cartError: string | null;
     sessionId: string;
@@ -97,7 +96,6 @@ interface StoreState {
     toggleAdmin: () => void;
     setUserType: (type: 'retail' | 'wholesale') => void;
     toggleTheme: () => void;
-    addReview: (productId: string, review: Omit<Review, 'id' | 'productId' | 'date'>) => void;
     syncCartWithAPI: () => Promise<void>;
     getSessionId: () => string;
     initGuestSession: () => Promise<void>;
@@ -135,7 +133,6 @@ export const useStore = create<StoreState>()(
             isAdmin: false,
             userType: 'retail',
             isDark: false,
-            reviews: {},
             cartLoading: false,
             cartError: null,
             sessionId: '',
@@ -628,22 +625,6 @@ export const useStore = create<StoreState>()(
             toggleAdmin: () => set((state) => ({ isAdmin: !state.isAdmin })),
             setUserType: (type) => set({ userType: type }),
             toggleTheme: () => set((state) => ({ isDark: !state.isDark })),
-
-            addReview: (productId, review) =>
-                set((state) => {
-                    const newReview: Review = {
-                        ...review,
-                        id: `review-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                        productId,
-                        date: new Date().toISOString(),
-                    };
-                    return {
-                        reviews: {
-                            ...state.reviews,
-                            [productId]: [...(state.reviews[productId] || []), newReview],
-                        },
-                    };
-                }),
         }),
         {
             name: 'ecommerce-store',
@@ -653,7 +634,6 @@ export const useStore = create<StoreState>()(
                 isAdmin: state.isAdmin,
                 userType: state.userType,
                 isDark: state.isDark,
-                reviews: state.reviews,
             }),
         }
     )

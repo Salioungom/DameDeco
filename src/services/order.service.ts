@@ -5,7 +5,7 @@
  * @author DameDéco Team
  */
 
-import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments, confirmOrderDelivery } from '@/lib/api';
+import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments, confirmOrderDelivery, updateOrderDelivery } from '@/lib/api';
 import api from '@/lib/api';
 import { Order, CartItem } from '@/lib/types';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
@@ -322,6 +322,46 @@ export class OrderService {
     } catch (error) {
       console.error('Erreur initialisation paiement:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Mettre à jour les informations de livraison d'une commande existante.
+   * Utilisé lors de la reprise d'une commande sur /checkout/finalize?orderId={orderId}.
+   */
+  static async updateOrderDelivery(
+    orderId: string | number,
+    mode: DeliveryMode,
+    shippingAddress?: {
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      phone?: string;
+      city?: string;
+      address?: string;
+      instructions?: string;
+    }
+  ): Promise<OrderResponse> {
+    try {
+      const payload: any = { mode };
+
+      if (mode === 'home_delivery' && shippingAddress) {
+        payload.shipping_address = {
+          first_name: shippingAddress.first_name,
+          last_name: shippingAddress.last_name,
+          email: shippingAddress.email,
+          phone: shippingAddress.phone,
+          city: shippingAddress.city,
+          address: shippingAddress.address,
+          instructions: shippingAddress.instructions,
+        };
+      }
+
+      const updatedOrder = await updateOrderDelivery(orderId, payload);
+      return updatedOrder;
+    } catch (error) {
+      console.error('Erreur mise à jour livraison:', error);
+      throw withStatus(error, 'Impossible de mettre à jour les informations de livraison');
     }
   }
 

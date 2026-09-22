@@ -533,6 +533,26 @@ export const updateOrderStatus = async (
     return response.data;
 };
 
+export const updateOrderDelivery = async (
+    id: string | number,
+    payload: {
+        mode: 'home_delivery' | 'store_pickup';
+        shipping_address?: {
+            first_name?: string;
+            last_name?: string;
+            full_name?: string;
+            email?: string;
+            phone?: string;
+            city?: string;
+            address?: string;
+            instructions?: string;
+        };
+    }
+): Promise<Order> => {
+    const response = await api.patch<Order>(`/api/v1/orders/${id}/delivery`, payload);
+    return response.data;
+};
+
 export const getOrderPayments = async (id: string | number): Promise<any[]> => {
     const response = await api.get<any[]>(`/api/v1/orders/${id}/payments`);
     return response.data;

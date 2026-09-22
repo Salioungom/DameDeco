@@ -37,7 +37,6 @@ const FAQS = [
   { q:"Quelles sont vos méthodes de paiement ?", a:"Wave, Orange Money, virement bancaire, paiement à la livraison. Facilités possibles pour grosses commandes." },
   { q:"Puis-je retourner un article ?", a:"14 jours pour retourner un article non utilisé dans son emballage d'origine. Frais à la charge du client sauf défaut de fabrication." },
   { q:"Livrez-vous en dehors de Dakar ?", a:"Oui, dans tout le Sénégal. Des frais supplémentaires peuvent s'appliquer selon la distance." },
-  { q:"Comment passer commande par WhatsApp ?", a:"Cliquez sur le bouton WhatsApp, envoyez la référence produit + quantité. Notre équipe vous répond rapidement." },
 ];
 
 interface FormData { name:string; email:string; subject:string; message:string }

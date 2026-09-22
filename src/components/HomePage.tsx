@@ -324,7 +324,8 @@ export function HomePage({
             position: 'relative',
             zIndex: 1,
             px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 6, sm: 8, lg: 10 },
+            pt: { xs: 8, sm: 10, md: 11, lg: 13 },
+            pb: { xs: 7, sm: 9, lg: 11 },
             maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
           }}
         >
@@ -345,7 +346,7 @@ export function HomePage({
                     borderRadius: '100px',
                     px: { xs: 1.25, sm: 1.5, md: 1.75 },
                     py: { xs: 0.5, sm: 0.625 },
-                    mb: { xs: 2, sm: 2.5, md: 3 },
+                    mb: { xs: 2.5, sm: 3, md: 3.5 },
                     boxShadow: '0 2px 12px rgba(4, 44, 83, 0.06)',
                   }}
                 >
@@ -364,7 +365,7 @@ export function HomePage({
                     lineHeight: { xs: 1.15, sm: 1.1, md: 1.08 },
                     letterSpacing: '-0.035em',
                     color: C.dark,
-                    mb: { xs: 2, sm: 2.5 },
+                    mb: { xs: 2.5, sm: 3 },
                   }}
                 >
                   L&apos;art de{' '}
@@ -387,7 +388,7 @@ export function HomePage({
                     fontSize: { xs: 15, sm: 17, md: 18.75, lg: 20 },
                     color: C.text,
                     lineHeight: { xs: 1.6, sm: 1.7, md: 1.75 },
-                    mb: { xs: 2, sm: 2.5, md: 3 },
+                    mb: { xs: 2.5, sm: 3, md: 3.5 },
                     maxWidth: { xs: '100%', sm: 550, md: 600 },
                   }}
                 >
@@ -395,7 +396,7 @@ export function HomePage({
                   qualité contrôlée, livraison partout au Sénégal.
                 </Typography>
 
-                <Stack spacing={{ xs: 1, sm: 1.25 }} sx={{ mb: { xs: 3, sm: 4 } }}>
+                <Stack spacing={{ xs: 1, sm: 1.25 }} sx={{ mb: { xs: 3.5, sm: 4.5 } }}>
                   {[
                     'Sélection rigoureuse chez des fournisseurs certifiés',
                     'Tarifs dégressifs pour les professionnels',
@@ -413,7 +414,7 @@ export function HomePage({
                   ))}
                 </Stack>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3, sm: 4, md: 5 } }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3.5, sm: 4.5, md: 6 } }}>
                   <Button
                     variant="contained"
                     size="large"

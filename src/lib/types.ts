@@ -6,18 +6,6 @@ export interface Category {
     product_count?: number;
 }
 
-export interface Review {
-    id: string;
-    productId: string;
-    customerName: string;
-    customerEmail?: string;
-    rating: number; // 1-5
-    comment: string;
-    date: string;
-    verified?: boolean; // Si le client a acheté le produit
-    helpful?: number; // Nombre de "utile"
-}
-
 import { Product as ApiProduct } from '@/types/product';
 
 export type Product = ApiProduct;
@@ -43,10 +31,14 @@ export interface Order {
     shipping_amount?: number | string;
     currency: string;
     shipping_address?: {
-        first_name: string;
-        last_name: string;
-        phone: string;
-        address: string;
+        first_name?: string;
+        last_name?: string;
+        full_name?: string;
+        email?: string;
+        phone?: string;
+        city?: string;
+        address?: string;
+        instructions?: string;
     };
     mode?: 'home_delivery' | 'store_pickup';
     items: OrderItem[];
