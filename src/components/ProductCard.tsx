@@ -53,10 +53,13 @@ const StyledCard = muiStyled(Card, {
  * Ratio 4/3 (75%) qui s'adapte bien aux images produit.
  * Fond neutre légèrement teinté pour faire ressortir le produit.
  */
-const ImageZone = muiStyled(Box)(() => ({
+const ImageZone = muiStyled(Box)(({ theme }: { theme: any }) => ({
   position: 'relative',
   width: '100%',
-  paddingTop: '100%',       // ratio 1:1 — cartes produit plus grandes et confortables
+  paddingTop: '74%',  // mobile : image plus compacte
+  [theme.breakpoints.up('sm')]: {
+    paddingTop: '100%', // sm et + : ratio 1:1 confortable
+  },
   overflow: 'hidden',
   backgroundColor: '#0f1923', // fond sombre neutre — fait ressortir le screenshot
   borderBottom: 'none',
@@ -95,7 +98,7 @@ const ImageSkeleton = muiStyled(Skeleton)(() => ({
   borderRadius: 0,
 }));
 
-const FavoriteButton = muiStyled(IconButton)(() => ({
+const FavoriteButton = muiStyled(IconButton)(({ theme }: { theme: any }) => ({
   position: 'absolute',
   top: 10,
   right: 10,
@@ -109,6 +112,12 @@ const FavoriteButton = muiStyled(IconButton)(() => ({
   '&:hover': {
     backgroundColor: '#185FA5',
     boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    width: 36,
+    height: 36,
+    top: 8,
+    right: 8,
   },
 }));
 
@@ -298,31 +307,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           }}
         />
 
-        {/* ── Badges (stock + remise) — inchangés ── */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 10,
-            left: 10,
-            zIndex: 3,       // au-dessus du gradient overlay
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.75,
-            alignItems: 'flex-start',
-          }}
-        >
-          {product.inventory_quantity !== undefined && product.inventory_quantity < 20 && (
-            <Chip
-              label="Stock limité"
-              color="error"
-              size="small"
-              sx={{ fontWeight: 'bold' }}
-            />
-          )}
-        
-        </Box>
-
-        {/* ── Bouton favori — inchangé ── */}
+        {/* ── Bouton favori ── */}
         {onToggleFavorite && showFavorite && (
           <Tooltip
             title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
@@ -336,8 +321,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
               aria-pressed={isFavorite}
             >
               {isFavorite
-                ? <Favorite sx={{ fontSize: 22.5, color: '#ff4d6d' }} />
-                : <FavoriteBorder sx={{ fontSize: 22.5, color: '#ffffff' }} />
+                ? <Favorite sx={{ fontSize: { xs: 18, sm: 22.5 }, color: '#ff4d6d' }} />
+                : <FavoriteBorder sx={{ fontSize: { xs: 18, sm: 22.5 }, color: '#ffffff' }} />
               }
             </FavoriteButton>
           </Tooltip>
@@ -346,8 +331,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
       {/* ── FIN IMAGE ZONE ── */}
 
       {/* ── TEXTE / PRIX / ACTIONS — INCHANGÉS ── */}
-      <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-        <Box sx={{ mb: 1 }}>
+      <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2.5 } }}>
+        <Box sx={{ mb: { xs: 0.5, sm: 1 } }}>
           {product.category_name && (
             <Typography
               variant="caption"
@@ -383,44 +368,54 @@ const ProductCard: React.FC<ProductCardProps> = ({
           component="h3"
           sx={{
             fontWeight: 600,
-            fontSize: '1.05rem',
+            fontSize: { xs: '0.92rem', sm: '1.05rem' },
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            minHeight: '3em',
+            minHeight: { xs: '2.4em', sm: '3em' },
+            mb: { xs: 0.375, sm: 0.75 },
           }}
         >
           {product.name}
         </Typography>
 
-        <Box sx={{ mt: 'auto' }}>
-          {originalPrice && Number(originalPrice) > Number(product.price) && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ textDecoration: 'line-through', display: 'inline', mr: 1 }}
-            >
-              {fmt(Number(originalPrice))}
-            </Typography>
-          )}
-          <Typography
-            variant="h6"
-            component="div"
-            color="primary"
-            sx={{ display: 'inline', fontWeight: 'bold', fontSize: '1.3rem' }}
-          >
-            {fmt(displayPrice)}
-            {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
-              <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                (gros)
+        <Box sx={{ mt: { xs: 0.25, sm: 'auto' } }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 1.25, rowGap: 0, minWidth: 0 }}>
+            {originalPrice && Number(originalPrice) > Number(product.price) && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textDecoration: 'line-through', mb: 0, fontWeight: 500, fontSize: { xs: '0.78rem', sm: '0.875rem' } }}
+              >
+                {fmt(Number(originalPrice))}
               </Typography>
             )}
-          </Typography>
+            <Typography
+              variant="h6"
+              component="div"
+              color="primary"
+              sx={{
+                fontSize: { xs: '0.95rem', sm: '1.3rem' },
+                fontWeight: 'bold',
+                lineHeight: 1.2,
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+                minWidth: 0,
+              }}
+            >
+              {fmt(displayPrice)}
+              {userType === 'wholesale' && (product.wholesale_price || product.cost_price) && (
+                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  (gros)
+                </Typography>
+              )}
+            </Typography>
+          </Box>
 
           {originalPrice && Number(originalPrice) > Number(product.price) && userType !== 'wholesale' && (
-            <Box sx={{ mt: 1 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ mt: { xs: 0.375, sm: 1 } }}>
+              <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
                 <Chip
                   label={`-${discountPercentage}%`}
                   size="small"
@@ -432,7 +427,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     height: 25,
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: '#16a34a' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 500, color: '#16a34a', lineHeight: 1.3 }}>
                   Économisez {fmt(Number(originalPrice) - Number(product.price))}
                 </Typography>
               </Stack>
@@ -453,19 +448,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardActions
           className="product-actions"
           sx={{
-            p: 2.5,
-            pt: 0.5,
+            p: { xs: 1.5, sm: 2.5 },
+            pt: { xs: 0.5, sm: 0.5 },
             opacity: 1,
             transition: 'all 0.3s ease-in-out',
             '& button': { transition: 'all 0.2s ease-in-out' },
             '& button:hover': { transform: 'scale(1.05)' },
           }}
         >
-          <Stack direction="row" spacing={1} sx={{ width: '100%' }}>
+          <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} sx={{ width: '100%' }}>
             <Tooltip title="Ajouter au panier">
               <IconButton
                 color="primary"
-                size="medium"
+                size={isMobile ? 'small' : 'medium'}
                 onClick={handleAddToCart}
                 sx={{
                   bgcolor: 'primary.main',
@@ -480,7 +475,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   },
                 }}
               >
-                <ShoppingCart />
+                <ShoppingCart fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Tooltip>
 
@@ -488,14 +483,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             <Tooltip title="Voir les détails">
               <IconButton
-                size="medium"
+                size={isMobile ? 'small' : 'medium'}
                 onClick={handleViewDetails}
                 sx={{
                   bgcolor: 'action.hover',
                   '&:hover': { bgcolor: 'action.selected' },
                 }}
               >
-                <Visibility />
+                <Visibility fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Tooltip>
           </Stack>

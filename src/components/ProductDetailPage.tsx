@@ -39,6 +39,7 @@ import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
 import { BRAND_BLUE } from '@/theme';
+import { NAVBAR_HEIGHT } from './Navigation';
 
 const C = {
   primary: BRAND_BLUE,
@@ -240,7 +241,7 @@ export function ProductDetailPage({
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: C.surface, pb: { xs: 5, sm: 6, md: 8, lg: 10 } }}>
-      <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, pt: { xs: 2, sm: 2.5, md: 3, lg: 4 } }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 }, pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 2.5, md: 3, lg: 4 } }}>
         <Breadcrumbs
           separator={<NavigateNext sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: C.muted }} />}
           sx={{ mb: { xs: 2, sm: 2.5, md: 3, lg: 4 }, '& .MuiBreadcrumbs-li': { fontSize: { xs: 14, sm: 15, md: 16.25 } } }}
@@ -346,21 +347,7 @@ export function ProductDetailPage({
                   </>
                 )}
 
-                {!inStock && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      bgcolor: alpha('#fff', 0.6),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Chip label="Rupture de stock" sx={{ bgcolor: C.dark, color: '#fff', fontWeight: 700 }} />
-                  </Box>
-                )}
-              </Paper>
+                </Paper>
             </Box>
 
             {allImages.length > 1 && (
@@ -383,7 +370,7 @@ export function ProductDetailPage({
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 2.5, sm: 3, md: 3.5 },
+              p: { xs: 2, sm: 3, md: 3.5 },
               borderRadius: { xs: '20px', sm: '22px', md: '25px' },
               border: `1px solid ${C.border}`,
               bgcolor: '#fff',
@@ -425,21 +412,22 @@ export function ProductDetailPage({
                 onClick={() => onToggleFavorite(productIdStr)}
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 sx={{
-                  border: '1.5px solid rgba(25, 118, 210, 0.5)',
+                  border: '1px solid #185FA5',
                   borderRadius: '50%',
-                  width: 45,
-                  height: 45,
-                  color: isFavorite ? '#ff4d6d' : '#fff',
-                  bgcolor: 'rgba(25, 118, 210, 0.15)',
-                  backdropFilter: 'blur(12px) saturate(180%)',
+                  width: { xs: 36, sm: 45 },
+                  height: { xs: 36, sm: 45 },
+                  color: isFavorite ? '#ff4d6d' : '#ffffff',
+                  bgcolor: '#185FA5',
+                  boxShadow: '0 2px 8px rgba(24, 95, 165, 0.25)',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: 'rgba(25, 118, 210, 0.25)',
+                    bgcolor: '#185FA5',
+                    boxShadow: '0 4px 12px rgba(24, 95, 165, 0.35)',
                     transform: 'scale(1.1)',
                   },
                 }}
               >
-                {isFavorite ? <FavoriteIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} /> : <FavoriteBorderIcon sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />}
+                {isFavorite ? <FavoriteIcon sx={{ fontSize: { xs: 17, sm: 22.5 } }} /> : <FavoriteBorderIcon sx={{ fontSize: { xs: 17, sm: 22.5 } }} />}
               </IconButton>
             </Stack>
 
@@ -488,7 +476,7 @@ export function ProductDetailPage({
                     size="small"
                     sx={{ bgcolor: '#fef2f2', color: '#b91c1c', fontWeight: 800, fontSize: { xs: 13, sm: 14, md: 15 } }}
                   />
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.muted }}>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: '#16a34a', fontWeight: 600 }}>
                     Économisez {formatPrice(originalPrice! - price)}
                   </Typography>
                 </Stack>
@@ -535,10 +523,6 @@ export function ProductDetailPage({
               </Stack>
             </Stack>
 
-            <Typography sx={{ fontSize: { xs: 13.5, sm: 14, md: 15 }, color: inStock ? '#15803d' : '#b91c1c', fontWeight: 600, mb: { xs: 2, sm: 2.5, md: 3 } }}>
-              {inStock ? `${product.inventory_quantity} en stock` : 'Produit indisponible'}
-            </Typography>
-
             <Stack spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }}>
               <Button
                 variant="contained"
@@ -562,14 +546,14 @@ export function ProductDetailPage({
               </Button>
             </Stack>
 
-            <Stack spacing={{ xs: 1.25, sm: 1.5, md: 1.75 }}>
+            <Stack spacing={{ xs: 1, sm: 1.5, md: 1.75 }}>
               {trustPoints.map(({ icon: Icon, text }) => (
-                <Stack key={text} direction="row" spacing={{ xs: 1, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'flex-start' }}>
+                <Stack key={text} direction="row" spacing={{ xs: 0.75, sm: 1.25, md: 1.5 }} sx={{ alignItems: 'flex-start' }}>
                   <Box
                     sx={{
-                      width: { xs: 38, sm: 42, md: 45 },
-                      height: { xs: 38, sm: 42, md: 45 },
-                      borderRadius: { xs: '10px', sm: '11px', md: '12.5px' },
+                      width: { xs: 34, sm: 42, md: 45 },
+                      height: { xs: 34, sm: 42, md: 45 },
+                      borderRadius: { xs: '9px', sm: '11px', md: '12.5px' },
                       bgcolor: C.light,
                       display: 'flex',
                       alignItems: 'center',
@@ -577,9 +561,9 @@ export function ProductDetailPage({
                       flexShrink: 0,
                     }}
                   >
-                    <Icon sx={{ fontSize: { xs: 18, sm: 20, md: 22.5 }, color: C.primary }} />
+                    <Icon sx={{ fontSize: { xs: 17, sm: 20, md: 22.5 }, color: C.primary }} />
                   </Box>
-                  <Typography sx={{ fontSize: { xs: 14, sm: 15, md: 16.25 }, color: C.text, lineHeight: { xs: 1.4, sm: 1.45, md: 1.5 }, pt: { xs: 0.25, sm: 0.35, md: 0.5 } }}>{text}</Typography>
+                  <Typography sx={{ fontSize: { xs: 13.5, sm: 15, md: 16.25 }, color: C.text, lineHeight: { xs: 1.35, sm: 1.45, md: 1.5 }, pt: { xs: 0.25, sm: 0.35, md: 0.5 } }}>{text}</Typography>
                 </Stack>
               ))}
             </Stack>
@@ -676,13 +660,13 @@ export function ProductDetailPage({
           </Box>
 
           {loadingSimilar ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 2, sm: 2.25, md: 2.5 } }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
               {[1, 2, 3, 4].map((i) => (
                 <Skeleton key={i} variant="rounded" height={{ xs: 350, sm: 400, md: 450 }} sx={{ borderRadius: { xs: '15px', sm: '16px', md: '17.5px' } }} />
               ))}
             </Box>
           ) : similarProducts.length > 0 ? (
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 2, sm: 2.25, md: 2.5 } }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: { xs: 1.5, sm: 2.25, md: 2.5 } }}>
               {similarProducts.map((similarProduct) => (
                 <ProductCard
                   key={similarProduct.id}

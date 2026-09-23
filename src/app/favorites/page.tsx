@@ -127,7 +127,7 @@ export default function FavoritesPage() {
                                 lg: 'repeat(3, 1fr)',
                                 xl: 'repeat(3, 1fr)',
                             },
-                            gap: { xs: 2, sm: 2.5, lg: 4 },
+gap: { xs: 1.5, sm: 2.5, lg: 4 },
                         }}
                     >
                         {[1, 2, 3, 4].map((i) => (

@@ -208,8 +208,8 @@ function RegisterForm() {
         };
         
         return (
-            <Box sx={{ mt: 1, mb: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Box sx={{ mt: { xs: 0.5, sm: 1 }, mb: { xs: 0.5, sm: 1 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: { xs: 0.25, sm: 1 } }}>
                     <Typography variant="caption" color="text.secondary">
                         Force du mot de passe:
                     </Typography>
@@ -251,7 +251,7 @@ function RegisterForm() {
     };
     
     const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
-        <ListItem sx={{ py: 0.5, px: 0 }}>
+        <ListItem sx={{ py: { xs: 0.15, sm: 0.5 }, px: 0 }}>
             <ListItemIcon sx={{ minWidth: 24 }}>
                 {met ? (
                     <CheckCircle sx={{ color: 'success.main', fontSize: 16 }} />
@@ -320,15 +320,19 @@ function RegisterForm() {
             <IconButton
                 component={NextLink}
                 href="/"
+                aria-label="Retour à l'accueil"
                 sx={{
                     position: 'absolute',
-                    top: 24,
-                    left: 24,
+                    top: { xs: 16, sm: 24 },
+                    left: { xs: 16, sm: 24 },
+                    width: { xs: 44, sm: 48 },
+                    height: { xs: 44, sm: 48 },
                     color: 'white',
-                    bgcolor: alpha('#fff', 0.1),
+                    bgcolor: alpha('#fff', 0.15),
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(10px)',
                     '&:hover': {
-                        bgcolor: alpha('#fff', 0.2),
+                        bgcolor: alpha('#fff', 0.25),
                         transform: 'translateX(-4px)',
                     },
                     transition: 'all 0.3s',
@@ -346,15 +350,15 @@ function RegisterForm() {
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        py: 4,
-                    }}
-                >
-                    {/* Register Card with Glassmorphism */}
-                    <Box
-                        sx={{
-                            width: '100%',
-                            maxWidth: 680,
-                            p: { xs: 3.5, sm: 5 },
+py: { xs: 2, sm: 4 },
+                        }}
+                    >
+                        {/* Register Card with Glassmorphism */}
+                        <Box
+                            sx={{
+                                width: '100%',
+                                maxWidth: 680,
+                                p: { xs: 2.5, sm: 5 },
                             borderRadius: '16px',
                             background: alpha('#fff', 0.97),
                             backdropFilter: 'blur(24px)',
@@ -374,21 +378,21 @@ function RegisterForm() {
                         }}
                     >
                         {/* Logo/Title */}
-                        <Box sx={{ textAlign: 'center', mb: 4.5 }}>
+                        <Box sx={{ textAlign: 'center', mb: { xs: 3.25, sm: 4.5 } }}>
                             <Box
-                                sx={{
+                            sx={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    width: 56,
-                                    height: 56,
-                                    borderRadius: '14px',
+                                    width: { xs: 48, sm: 56 },
+                                    height: { xs: 48, sm: 56 },
+                                    borderRadius: { xs: '12px', sm: '14px' },
                                     background: 'linear-gradient(135deg, #185FA5 0%, #0C447C 100%)',
-                                    mb: 2.5,
+                                    mb: { xs: 2, sm: 2.5 },
                                     boxShadow: '0 4px 16px rgba(24, 95, 165, 0.3)',
                                 }}
                             >
-                                <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
+                                <Typography sx={{ fontSize: { xs: 18, sm: 20 }, fontWeight: 800, color: '#fff' }}>
                                     DS
                                 </Typography>
                             </Box>
@@ -398,12 +402,12 @@ function RegisterForm() {
                                     fontWeight: 700,
                                     color: '#042C53',
                                     mb: 0.75,
-                                    fontSize: { xs: '1.75rem', sm: '2rem' },
+                                    fontSize: { xs: '1.5rem', sm: '2rem' },
                                 }}
                             >
                                 Créer un compte
                             </Typography>
-                            <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
+                            <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.6 }}>
                                 Rejoignez DameDéco et accédez à nos services exclusifs
                             </Typography>
                         </Box>
@@ -445,7 +449,7 @@ function RegisterForm() {
                         <Box component="form" onSubmit={handleSubmit} noValidate>
                             <Box sx={{ maxWidth: 600, mx: 'auto' }}>
                                 {/* Layout à deux colonnes responsive avec alignement strict */}
-                                <Grid container spacing={3} sx={{ alignItems: 'center' }}>
+                                <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ alignItems: 'center' }}>
                                     {/* Ligne 1: Nom complet (gauche) et Email (droite) */}
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <ClientOnly>
@@ -580,6 +584,7 @@ function RegisterForm() {
                                                                     edge="end"
                                                                     sx={{
                                                                         color: '#888780',
+                                                                        p: 1.15,
                                                                         '&:hover': {
                                                                             color: BRAND_BLUE,
                                                                             bgcolor: 'rgba(24, 95, 165, 0.08)',
@@ -640,6 +645,7 @@ function RegisterForm() {
                                                                     edge="end"
                                                                     sx={{
                                                                         color: theme.palette.text.secondary,
+                                                                        p: 1.15,
                                                                         '&:hover': {
                                                                             color: theme.palette.primary.main,
                                                                         },
@@ -652,16 +658,22 @@ function RegisterForm() {
                                                     },
                                                 }}
                                                 sx={{
-                                                    mb: 2.5,
+                                                    mb: { xs: 1, sm: 2.5 },
                                                     '& .MuiOutlinedInput-root': {
-                                                        borderRadius: 2,
-                                                        transition: 'all 0.3s',
+                                                        borderRadius: '10px',
+                                                        transition: 'all 0.2s ease',
                                                         '&:hover': {
-                                                            transform: 'translateY(-2px)',
-                                                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
+                                                            borderColor: '#85B7EB',
                                                         },
                                                         '&.Mui-focused': {
-                                                            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                                            borderColor: BRAND_BLUE,
+                                                            boxShadow: '0 0 0 3px rgba(24, 95, 165, 0.1)',
+                                                        },
+                                                    },
+                                                    '& .MuiInputLabel-root': {
+                                                        fontSize: '0.875rem',
+                                                        '&.Mui-focused': {
+                                                            color: BRAND_BLUE,
                                                         },
                                                     },
                                                 }}
@@ -678,7 +690,7 @@ function RegisterForm() {
                                 disabled={loading}
                                 startIcon={!loading && <PersonAdd sx={{ fontSize: 18 }} />}
                                 sx={{
-                                    py: 1.625,
+                                    py: { xs: 1.25, sm: 1.625 },
                                     borderRadius: '10px',
                                     fontSize: '0.95rem',
                                     fontWeight: 700,
@@ -703,7 +715,7 @@ function RegisterForm() {
                                 {loading ? 'Création...' : 'Créer mon compte'}
                             </Button>
 
-                            <Divider sx={{ my: 3.5, borderColor: '#E6F1FB' }}>
+                            <Divider sx={{ my: { xs: 2, sm: 3.5 }, borderColor: '#E6F1FB' }}>
                                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
                                     ou
                                 </Typography>
@@ -716,7 +728,7 @@ function RegisterForm() {
                                 variant="outlined"
                                 startIcon={<LoginIcon sx={{ fontSize: 18 }} />}
                                 sx={{
-                                    py: 1.625,
+                                    py: { xs: 1.25, sm: 1.625 },
                                     borderRadius: '10px',
                                     borderWidth: 1.5,
                                     fontWeight: 600,

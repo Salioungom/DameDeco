@@ -324,7 +324,7 @@ export function HomePage({
             position: 'relative',
             zIndex: 1,
             px: { xs: 2, sm: 3, md: 4 },
-            pt: { xs: 8, sm: 10, md: 11, lg: 13 },
+            pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)`, sm: 10, md: 11, lg: 13 },
             pb: { xs: 7, sm: 9, lg: 11 },
             maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: 'xl' },
           }}
@@ -414,7 +414,7 @@ export function HomePage({
                   ))}
                 </Stack>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3.5, sm: 4.5, md: 6 } }}>
+                <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3.5, sm: 4.5, md: 6 } }}>
                   <Button
                     variant="contained"
                     size="large"
@@ -424,11 +424,14 @@ export function HomePage({
                       bgcolor: C.primary,
                       color: '#fff',
                       borderRadius: { xs: '10px', sm: '12.5px' },
-                      px: { xs: 2, sm: 2.5, md: 3.5 },
-                      py: { xs: 1, sm: 1.15, md: 1.25 },
+                      px: { xs: 1.75, sm: 2.5, md: 3.5 },
+                      py: { xs: 1.25, sm: 1.15, md: 1.25 },
                       fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 700,
                       textTransform: 'none',
+                      flex: { xs: 1, sm: '0 0 auto' },
+                      width: 'auto',
+                      whiteSpace: 'normal',
                       boxShadow: `0 8px 28px ${alpha(C.primary, 0.35)}`,
                       '&:hover': {
                         bgcolor: C.dark,
@@ -436,10 +439,9 @@ export function HomePage({
                         transform: 'translateY(-1px)',
                       },
                       transition: 'all 0.2s ease',
-                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
-                    Explorer la boutique
+                    Explorer
                   </Button>
                   <Button
                     variant="outlined"
@@ -450,41 +452,20 @@ export function HomePage({
                       color: C.primary,
                       bgcolor: '#fff',
                       borderRadius: { xs: '10px', sm: '12.5px' },
-                      px: { xs: 2, sm: 2.5, md: 3 },
-                      py: { xs: 1, sm: 1.15, md: 1.25 },
+                      px: { xs: 1.75, sm: 2.5, md: 3 },
+                      py: { xs: 1.25, sm: 1.15, md: 1.25 },
                       fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 600,
                       textTransform: 'none',
+                      flex: { xs: 1, sm: '0 0 auto' },
+                      width: 'auto',
+                      whiteSpace: 'normal',
                       '&:hover': { bgcolor: C.light, borderColor: C.mid },
-                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
-                    Devis professionnel
+                    Devis
                   </Button>
                 </Stack>
-
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: 'repeat(3, 1fr)', sm: 'repeat(3, 1fr)' },
-                    gap: { xs: 1.5, sm: 2 },
-                    pt: { xs: 2.5, sm: 3 },
-                    borderTop: `1px solid ${C.border}`,
-                  }}
-                >
-                  {[
-                    { num: '1 200+', label: 'Références' },
-                    { num: '4,9★', label: 'Satisfaction' },
-                    { num: '14 ans', label: "D'expertise" },
-                  ].map((s) => (
-                    <Box key={s.label}>
-                      <Typography sx={{ fontWeight: 800, fontSize: { xs: '1rem', sm: '1.2rem', md: '1.45rem' }, color: C.dark, letterSpacing: '-0.02em' }}>
-                        {s.num}
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: 12, sm: 14, md: 14.375 }, color: C.muted, mt: 0.25 }}>{s.label}</Typography>
-                    </Box>
-                  ))}
-                </Box>
               </Box>
             </Grid>
 
@@ -1078,7 +1059,7 @@ export function HomePage({
               sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-                gap: { xs: 2, md: 2.5 },
+                gap: { xs: 1.5, md: 2.5 },
               }}
             >
               {popularProducts.map((product: Product) => (

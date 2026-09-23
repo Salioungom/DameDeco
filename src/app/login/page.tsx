@@ -137,15 +137,19 @@ function LoginForm() {
             <IconButton
                 component={NextLink}
                 href="/"
+                aria-label="Retour à l'accueil"
                 sx={{
                     position: 'absolute',
-                    top: 24,
-                    left: 24,
+                    top: { xs: 16, sm: 24 },
+                    left: { xs: 16, sm: 24 },
+                    width: { xs: 44, sm: 48 },
+                    height: { xs: 44, sm: 48 },
                     color: 'white',
-                    bgcolor: alpha('#fff', 0.1),
+                    bgcolor: alpha('#fff', 0.15),
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(10px)',
                     '&:hover': {
-                        bgcolor: alpha('#fff', 0.2),
+                        bgcolor: alpha('#fff', 0.25),
                         transform: 'translateX(-4px)',
                     },
                     transition: 'all 0.3s',
@@ -192,7 +196,7 @@ function LoginForm() {
                             }}
                         >
                             {/* Logo/Title */}
-                            <Box sx={{ textAlign: 'center', mb: 4.5 }}>
+                            <Box sx={{ textAlign: 'center', mb: { xs: 3.25, sm: 4.5 } }}>
                                 <Box
                                     sx={{
                                         display: 'inline-flex',
@@ -262,6 +266,13 @@ function LoginForm() {
                                     helperText={fieldErrors.email}
                                     sx={{
                                         mb: 2.5,
+                                        '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
+                                            WebkitBoxShadow: '0 0 0 1000px #ffffff inset',
+                                            WebkitTextFillColor: '#112233',
+                                            WebkitTextDecorationColor: '#112233',
+                                            caretColor: '#112233',
+                                            transition: 'background-color 9999s ease-in-out 0s',
+                                        },
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: '10px',
                                             transition: 'all 0.2s ease',
@@ -306,6 +317,7 @@ function LoginForm() {
                                                     edge="end"
                                                     sx={{
                                                         color: '#888780',
+                                                        p: 1.15,
                                                         '&:hover': {
                                                             color: BRAND_BLUE,
                                                             bgcolor: 'rgba(24, 95, 165, 0.08)',
@@ -319,7 +331,14 @@ function LoginForm() {
                                     },
                                 }}
                                 sx={{
-                                    mb: 1.5,
+                                    mb: 2,
+                                    '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': {
+                                        WebkitBoxShadow: '0 0 0 1000px #ffffff inset',
+                                        WebkitTextFillColor: '#112233',
+                                        WebkitTextDecorationColor: '#112233',
+                                        caretColor: '#112233',
+                                        transition: 'background-color 9999s ease-in-out 0s',
+                                    },
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: '10px',
                                         transition: 'all 0.2s ease',
@@ -345,6 +364,10 @@ function LoginForm() {
                                     component={NextLink}
                                     href="/forgot-password"
                                     sx={{
+                                        display: 'inline-block',
+                                        py: { xs: 1, sm: 0.5 },
+                                        px: 0.5,
+                                        marginRight: '-0.5rem',
                                         color: BRAND_BLUE,
                                         textDecoration: 'none',
                                         fontSize: '0.875rem',
@@ -392,7 +415,7 @@ function LoginForm() {
                             </Button>
                         </Box>
 
-                        <Divider sx={{ my: 3.5, borderColor: '#E6F1FB' }}>
+                        <Divider sx={{ my: { xs: 2.5, sm: 3.5 }, borderColor: '#E6F1FB' }}>
                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', fontWeight: 500 }}>
                                 ou
                             </Typography>

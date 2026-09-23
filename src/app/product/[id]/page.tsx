@@ -53,7 +53,7 @@ export default function Page() {
 
     if (loading) {
         return (
-            <Box sx={{ bgcolor: '#F8FAFC', minHeight: '60vh', py: { xs: 3, md: 5 } }}>
+            <Box sx={{ bgcolor: '#F8FAFC', minHeight: '60vh', pb: { xs: 3, md: 5 }, pt: { xs: '92px', sm: 3, md: 5 } }}>
                 <Container maxWidth="xl" sx={{ px: { xs: 2.5, sm: 4, md: 6 } }}>
                     <Skeleton width={280} height={24} sx={{ mb: 4, borderRadius: 1 }} />
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.15fr 0.85fr' }, gap: 5 }}>

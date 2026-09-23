@@ -39,6 +39,7 @@ import { productService } from '../services/product.service';
 import { homeService } from '../services/home.service';
 import { Product, Category } from '../lib/types';
 import { BRAND_BLUE } from '@/theme';
+import { NAVBAR_HEIGHT } from './Navigation';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
@@ -337,7 +338,7 @@ export function ShopPage({
     <Box sx={{ width: '100%', bgcolor: '#fff', minHeight: '100vh' }}>
 
       {/* ── Barre haut de page ── */}
-      <Box sx={{ borderBottom: `1px solid ${C.border}`, bgcolor: '#fff' }}>
+      <Box sx={{ borderBottom: `1px solid ${C.border}`, bgcolor: '#fff', pt: { xs: `calc(${NAVBAR_HEIGHT.xs}px + 20px)` } }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, md: 4 } }}>
           <Box
             sx={{
@@ -501,7 +502,7 @@ export function ShopPage({
                   lg: 'repeat(3, 1fr)',
                   xl: 'repeat(4, 1fr)',
                 },
-                gap: { xs: 2, md: 2.5 },
+                gap: { xs: 1.5, md: 2.5 },
               }}
             >
               {sortedProducts.map((product) => (

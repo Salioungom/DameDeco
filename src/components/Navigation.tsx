@@ -476,6 +476,68 @@ export function Navigation() {
             </List>
           </>
         )}
+
+        <Divider sx={{ mx: 2, my: 0.5 }} />
+        <List disablePadding>
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href="/favorites"
+              onClick={() => setMobileOpen(false)}
+              sx={{
+                mx: { xs: 1, sm: 1.5 },
+                borderRadius: '12.5px',
+                py: { xs: 0.85, sm: 1 },
+                mb: 0.25,
+                color: 'text.secondary',
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
+                <FavoriteBorder sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Mes favoris"
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: { xs: 15, sm: 16.5 },
+                      fontWeight: 500,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href={user ? '/account' : '/login'}
+              onClick={() => setMobileOpen(false)}
+              sx={{
+                mx: { xs: 1, sm: 1.5 },
+                borderRadius: '12.5px',
+                py: { xs: 0.85, sm: 1 },
+                mb: 0.25,
+                color: 'text.secondary',
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 32, sm: 36 }, color: 'inherit' }}>
+                <PersonOutlined sx={{ fontSize: { xs: 20, sm: 22, md: 24 } }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={user ? 'Mon compte' : 'Suivre ma commande'}
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: { xs: 15, sm: 16.5 },
+                      fontWeight: 500,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
       </Box>
 
       <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
@@ -550,6 +612,9 @@ export function Navigation() {
                 fontSize: { xs: 14, sm: 16.25 },
                 textTransform: 'none',
                 color: theme.palette.primary.main,
+                justifyContent: 'center',
+                textAlign: 'center',
+                flexWrap: 'wrap',
               }}
             >
               Pas encore de compte ?{' '}
@@ -650,11 +715,11 @@ export function Navigation() {
               height: typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT : NAVBAR_HEIGHT,
               minHeight: `${typeof NAVBAR_HEIGHT === 'object' ? NAVBAR_HEIGHT.md : NAVBAR_HEIGHT}px !important`,
               justifyContent: 'space-between',
-              gap: { xs: 1, sm: 1.5, md: 2 },
+              gap: { xs: 1.5, sm: 1.5, md: 2 },
             }}
           >
             {/* Gauche */}
-            <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
+            <Stack direction="row" spacing={{ xs: 1, sm: 1 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
               <Box sx={{ display: { lg: 'none' } }}>
                 <NavActionButton
                   ariaLabel="Ouvrir le menu"
@@ -688,7 +753,7 @@ export function Navigation() {
             {/* Droite — slots fixes */}
             <Stack
               direction="row"
-              spacing={{ xs: 0.5, sm: 0.75 }}
+              spacing={{ xs: 1, sm: 0.75 }}
               sx={{ flexShrink: 0, minWidth: { xs: 'auto', sm: 'auto', md: 280 }, alignItems: 'center' }}
             >
               <Box sx={{ display: { xs: 'none', md: 'block' } }}>
@@ -938,30 +1003,33 @@ export function Navigation() {
               >
                 Se connecter
               </Button>
-              <Button
-                fullWidth
-                variant="text"
-                component={Link}
-                href="/register"
-                onClick={closeProfileMenu}
-                sx={{
-                  py: { xs: 0.75, sm: 0.9, md: 1.1 },
-                  borderRadius: { xs: '10px', sm: '12.5px' },
-                  fontWeight: 600,
-                  fontSize: { xs: 13, sm: 14, md: 16.25 },
-                  textTransform: 'none',
-                  color: theme.palette.primary.main,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.06),
-                  },
-                }}
-              >
-                Pas encore de compte ?{' '}
-                <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
-                  Créer
-                </Box>
-              </Button>
+<Button
+              fullWidth
+              variant="text"
+              component={Link}
+              href="/register"
+              onClick={closeProfileMenu}
+              sx={{
+                py: { xs: 0.75, sm: 0.9, md: 1.1 },
+                borderRadius: { xs: '10px', sm: '12.5px' },
+                fontWeight: 600,
+                fontSize: { xs: 13, sm: 14, md: 16.25 },
+                textTransform: 'none',
+                color: theme.palette.primary.main,
+                justifyContent: 'center',
+                textAlign: 'center',
+                flexWrap: 'wrap',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.06),
+                },
+              }}
+            >
+              Pas encore de compte ?{' '}
+              <Box component="span" sx={{ fontWeight: 700, ml: 0.5 }}>
+                Créer
+              </Box>
+            </Button>
             </Box>
           </Box>
         )}
