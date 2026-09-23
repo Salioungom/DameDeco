@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -36,10 +36,9 @@ import {
   People as Users,
   Settings,
   AttachMoney as DollarSign,
+  Receipt as ReceiptIcon,
   Category,
   AdminPanelSettings,
-  CheckCircle,
-  Block,
   Search as SearchIcon,
   Visibility,
 } from '@mui/icons-material';
@@ -47,6 +46,8 @@ import { useRouter } from 'next/navigation';
 
 import { Product } from '@/lib/types';
 import { productService } from '@/services/product.service';
+import { DashboardService } from '@/services/dashboard.service';
+import type { DashboardOverview, RecentOrderItem } from '@/services/dashboard.service';
 import { api } from '@/lib/api';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
@@ -64,27 +65,6 @@ const BRAND = {
   border: '#D4E8F7',
   muted: '#5F6B7A',
 } as const;
-
-interface OrderWithCustomer {
-  id: number;
-  order_number: string;
-  customer_id: number | null;
-  status: string;
-  payment_status: string;
-  payment_method: string;
-  mode: string;
-  subtotal: number;
-  tax_amount: number;
-  shipping_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  currency: string;
-  source: string;
-  shipping_address: { first_name: string; last_name: string; phone: string; address: string } | null;
-  customer: { id: number; name: string; email: string | null; phone: string | null } | null;
-  items: any[];
-  created_at: string;
-}
 
 interface ClientWithStats {
   id: number;
@@ -105,25 +85,28 @@ function StatCard({
   subtitle,
   icon,
   loading,
+  accent,
 }: {
   title: string;
   value: string | number;
   subtitle: string;
   icon: React.ReactNode;
   loading?: boolean;
+  accent?: string;
 }) {
+  const accentColor = accent || BRAND.primary;
   return (
     <Paper
       elevation={0}
       sx={{
-        p: 2.5,
+        p: 2.75,
         height: '100%',
         borderRadius: '20px',
         border: `1px solid ${BRAND.border}`,
         bgcolor: BRAND.white,
         transition: 'box-shadow 0.25s ease, transform 0.25s ease',
         '&:hover': {
-          boxShadow: `0 8px 24px ${alpha(BRAND.primary, 0.1)}`,
+          boxShadow: `0 8px 24px ${alpha(accentColor, 0.12)}`,
           transform: 'translateY(-2px)',
         },
       }}
@@ -134,8 +117,8 @@ function StatCard({
             width: 60,
             height: 60,
             borderRadius: '15px',
-            bgcolor: alpha(BRAND.primary, 0.1),
-            color: BRAND.primary,
+            bgcolor: alpha(accentColor, 0.1),
+            color: accentColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -149,13 +132,13 @@ function StatCard({
             {title}
           </Typography>
           {loading ? (
-            <CircularProgress size={24} sx={{ color: BRAND.primary, mt: 1 }} />
+            <CircularProgress size={24} sx={{ color: accentColor, mt: 1 }} />
           ) : (
-            <Typography sx={{ fontSize: 32.5, fontWeight: 700, color: BRAND.dark, mt: 0.5, lineHeight: 1.2 }}>
+            <Typography sx={{ fontSize: 30, fontWeight: 700, color: BRAND.dark, mt: 0.5, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
               {value}
             </Typography>
           )}
-          <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.5 }}>
+          <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.5, lineHeight: 1.4 }}>
             {subtitle}
           </Typography>
         </Box>
@@ -175,34 +158,58 @@ function CustomTabPanel({ children, value, index }: TabPanelProps) {
   return <Box sx={{ py: 3 }}>{children}</Box>;
 }
 
-function getOrderCustomerName(order: OrderWithCustomer) {
-  if (order.customer?.name) return order.customer.name;
-  const addr = order.shipping_address;
-  if (addr?.first_name) return `${addr.first_name} ${addr.last_name || ''}`.trim();
-  return 'Client invité';
+function getOrderCustomerName(order: { customer_name?: string | null; email?: string | null }) {
+  return order.customer_name || 'Client invité';
 }
 
 function formatFcfa(amount: number) {
   return `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
 }
 
+const STATUS_META: { status: string; label: string; color: string }[] = [
+  { status: 'pending', label: 'En attente', color: '#F59E0B' },
+  { status: 'confirmed', label: 'Confirmée', color: '#185FA5' },
+  { status: 'processing', label: 'En traitement', color: '#2563EB' },
+  { status: 'shipped', label: 'Expédiée', color: '#6366F1' },
+  { status: 'delivered', label: 'Livrée', color: '#0D7A4A' },
+  { status: 'cancelled', label: 'Annulée', color: '#DC2626' },
+  { status: 'refunded', label: 'Remboursée', color: '#5F6B7A' },
+];
+
+const PERIOD_OPTIONS: { value: 'all' | 'today' | '7d' | '30d'; label: string }[] = [
+  { value: 'all', label: 'Tout' },
+  { value: 'today', label: "Aujourd'hui" },
+  { value: '7d', label: '7 derniers jours' },
+  { value: '30d', label: '30 derniers jours' },
+];
+
+function getDateRange(period: 'all' | 'today' | '7d' | '30d'): { start_date?: string; end_date?: string } {
+  if (period === 'all') return {};
+  const formatDate = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const end = new Date();
+  const start = new Date();
+  if (period === 'today') {
+    return { start_date: formatDate(start), end_date: formatDate(end) };
+  }
+  start.setDate(end.getDate() - (period === '7d' ? 6 : 29));
+  return { start_date: formatDate(start), end_date: formatDate(end) };
+}
+
 export function AdminDashboard() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const [productsCount, setProductsCount] = useState(0);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
   const [clients, setClients] = useState<ClientWithStats[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingClients, setLoadingClients] = useState(true);
-  const [ordersError, setOrdersError] = useState<string | null>(null);
 
-  const [orderSearch, setOrderSearch] = useState('');
-  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
-  const [orderPage, setOrderPage] = useState(0);
-  const [orderRowsPerPage, setOrderRowsPerPage] = useState(10);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [recentOrdersData, setRecentOrdersData] = useState<RecentOrderItem[]>([]);
+  const [loadingOverview, setLoadingOverview] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<'all' | 'today' | '7d' | '30d'>('all');
 
   const [clientSearch, setClientSearch] = useState('');
   const [clientStatusFilter, setClientStatusFilter] = useState('all');
@@ -210,36 +217,44 @@ export function AdminDashboard() {
   const [clientRowsPerPage, setClientRowsPerPage] = useState(10);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
-  const stats = useMemo(() => {
-    const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-    const pendingOrders = orders.filter((o) => o.status === 'pending' || o.status === 'processing').length;
-    return {
-      totalRevenue,
-      totalOrders: orders.length,
-      pendingOrders,
-    };
-  }, [orders]);
-
-  const filteredOrders = useMemo(() => {
-    let result = orders;
-    if (orderStatusFilter !== 'all') {
-      result = result.filter((o) => o.status === orderStatusFilter);
+  const fetchOverview = useCallback(async () => {
+    setLoadingOverview(true);
+    setOverviewError(null);
+    try {
+      const range = getDateRange(period);
+      const [overviewRes, recentRes] = await Promise.all([
+        DashboardService.getOverview(range.start_date, range.end_date),
+        DashboardService.getRecentOrders(5),
+      ]);
+      setOverview(overviewRes);
+      setRecentOrdersData(Array.isArray(recentRes) ? recentRes : []);
+    } catch (err) {
+      setOverview(null);
+      setRecentOrdersData([]);
+      setOverviewError(err instanceof Error ? err.message : 'Impossible de charger la vue d\'ensemble');
+    } finally {
+      setLoadingOverview(false);
     }
-    if (orderSearch.trim()) {
-      const q = orderSearch.toLowerCase();
-      result = result.filter((o) =>
-        o.order_number.toLowerCase().includes(q) ||
-        getOrderCustomerName(o).toLowerCase().includes(q) ||
-        (o.customer?.email || '').toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [orders, orderStatusFilter, orderSearch]);
+  }, [period]);
 
-  const paginatedOrders = useMemo(() => {
-    const start = orderPage * orderRowsPerPage;
-    return filteredOrders.slice(start, start + orderRowsPerPage);
-  }, [filteredOrders, orderPage, orderRowsPerPage]);
+  useEffect(() => {
+    fetchOverview();
+  }, [fetchOverview]);
+
+  const statusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    (overview?.orders_by_status || []).forEach((s) => map.set(s.status, Number(s.count) || 0));
+    return STATUS_META.map((meta) => ({
+      status: meta.status,
+      label: meta.label,
+      color: meta.color,
+      count: map.get(meta.status) || 0,
+    }));
+  }, [overview]);
+
+  const statusMax = useMemo(() => Math.max(1, ...statusCounts.map((s) => s.count)), [statusCounts]);
+
+  const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label || 'Tout';
 
   const filteredClients = useMemo(() => {
     let result = clients;
@@ -265,22 +280,14 @@ export function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     setLoadingStats(true);
-    setLoadingOrders(true);
     setLoadingClients(true);
-    setOrdersError(null);
 
     try {
-      const [countRes, popularRes, ordersRes, clientsRes] = await Promise.all([
-        productService.getProducts({ limit: 1 }),
+      const [popularRes, clientsRes] = await Promise.all([
         productService.getProducts({ limit: 5, sort_by: 'is_featured', sort_order: 'desc' }),
-        api.get('/api/v1/orders/admin', { params: { skip: 0, limit: 100 } }).catch((err) => {
-          setOrdersError(err instanceof Error ? err.message : 'Impossible de charger les commandes');
-          return { data: [] };
-        }),
         api.get('/api/v1/users/clients', { params: { skip: 0, limit: 100 } }).catch(() => ({ data: { items: [] } })),
       ]);
 
-      setProductsCount(countRes.error ? 0 : countRes.data?.total || 0);
       setPopularProducts(popularRes.error ? [] : popularRes.data?.items || []);
 
       const clientsData: ClientWithStats[] = Array.isArray(clientsRes.data?.items)
@@ -289,35 +296,10 @@ export function AdminDashboard() {
           ? clientsRes.data
           : [];
       setClients(clientsData);
-
-      // Create client mapping for order-customer matching
-      const clientMap = new Map(clientsData.map(c => [c.id, c]));
-
-      const ordersData: OrderWithCustomer[] = Array.isArray(ordersRes.data)
-        ? ordersRes.data.map((order: any) => {
-            // If customer data is missing but we have customer_id, try to match from clients list
-            if (!order.customer && order.customer_id && clientMap.has(order.customer_id)) {
-              const client = clientMap.get(order.customer_id);
-              return {
-                ...order,
-                customer: {
-                  id: client!.id,
-                  name: client!.full_name || 'Client',
-                  email: client!.email,
-                  phone: client!.phone
-                }
-              };
-            }
-            return order;
-          })
-        : [];
-      setOrders(ordersData);
     } catch {
       setPopularProducts([]);
-      setProductsCount(0);
     } finally {
       setLoadingStats(false);
-      setLoadingOrders(false);
       setLoadingClients(false);
     }
   };
@@ -325,10 +307,6 @@ export function AdminDashboard() {
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
-  useEffect(() => {
-    setOrderPage(0);
-  }, [orderSearch, orderStatusFilter]);
 
   useEffect(() => {
     setClientPage(0);
@@ -347,8 +325,6 @@ export function AdminDashboard() {
     const c = colors[status] || { bg: alpha(BRAND.muted, 0.1), color: BRAND.muted };
     return { bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 13.75 };
   };
-
-  const recentOrders = orders.slice(0, 5);
 
   return (
     <Box sx={{ bgcolor: BRAND.surface, minHeight: '100vh', pb: 6 }}>
@@ -444,40 +420,100 @@ export function AdminDashboard() {
           </Tabs>
         </Paper>
 
-        {ordersError && (
-          <Alert severity="warning" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setOrdersError(null)}>
-            {ordersError}
-          </Alert>
-        )}
-
         {/* Vue d'ensemble */}
         <CustomTabPanel value={activeTab} index={0}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            sx={{ alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, mb: 2.5 }}
+          >
+            <Box>
+              <Typography sx={{ fontSize: 22.5, fontWeight: 700, color: BRAND.dark }}>
+                Vue d'ensemble
+              </Typography>
+              <Typography sx={{ fontSize: 15.5, color: BRAND.muted, mt: 0.25 }}>
+                Statistiques issues du backend — période : {periodLabel}
+              </Typography>
+            </Box>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel sx={{ color: BRAND.muted }}>Période</InputLabel>
+              <Select
+                value={period}
+                label="Période"
+                onChange={(e: React.ChangeEvent<{ value: unknown }>) => setPeriod(e.target.value as 'all' | 'today' | '7d' | '30d')}
+                sx={{ borderRadius: '10px', bgcolor: BRAND.white }}
+              >
+                {PERIOD_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+
+          {overviewError && (
+            <Alert
+              severity="error"
+              variant="outlined"
+              sx={{ mb: 2.5 }}
+              onClose={() => setOverviewError(null)}
+              action={
+                <Button size="small" color="inherit" onClick={() => fetchOverview()}>
+                  Réessayer
+                </Button>
+              }
+            >
+              {overviewError}
+            </Alert>
+          )}
+
           <Grid container spacing={2.5} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <StatCard
                 title="Revenu total"
-                value={loadingOrders ? '—' : formatFcfa(stats.totalRevenue)}
-                subtitle="Basé sur les commandes"
-                icon={<DollarSign />}
-                loading={loadingOrders}
+                value={overview ? formatFcfa(Number(overview.total_revenue) || 0) : '—'}
+                subtitle={period === 'all' ? 'Hors commandes annulées/remboursées' : `Sur ${periodLabel.toLowerCase()}`}
+                icon={<DollarSign sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent="#0D7A4A"
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <StatCard
                 title="Commandes"
-                value={stats.totalOrders}
-                subtitle={`${stats.pendingOrders} en attente / traitement`}
-                icon={<ShoppingCart />}
-                loading={loadingOrders}
+                value={overview ? Number(overview.total_orders) || 0 : '—'}
+                subtitle={period === 'all' ? 'Toutes commandes confondues' : `Sur ${periodLabel.toLowerCase()}`}
+                icon={<ShoppingCart sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent="#185FA5"
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Panier moyen"
+                value={overview ? formatFcfa(Number(overview.average_order_value) || 0) : '—'}
+                subtitle="Revenu ÷ commandes"
+                icon={<ReceiptIcon sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent="#6366F1"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <StatCard
                 title="Produits"
-                value={productsCount}
-                subtitle="Catalogue actif"
-                icon={<Package />}
-                loading={loadingStats}
+                value={overview ? Number(overview.total_products) || 0 : '—'}
+                subtitle="Catalogue (total backend)"
+                icon={<Package sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent="#B45309"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <StatCard
+                title="Clients"
+                value={overview ? Number(overview.total_clients) || 0 : '—'}
+                subtitle={period === 'all' ? 'Comptes enregistrés' : 'Sur la période sélectionnée'}
+                icon={<Users sx={{ fontSize: 30 }} />}
+                loading={loadingOverview}
+                accent="#0D9488"
               />
             </Grid>
           </Grid>
@@ -490,44 +526,40 @@ export function AdminDashboard() {
               >
                 <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
                   <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
-                    Commandes récentes
+                    Répartition par statut
                   </Typography>
                 </Box>
-                <Box sx={{ p: 2 }}>
-                  {loadingOrders ? (
+                <Box sx={{ p: 2.5 }}>
+                  {loadingOverview ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                       <CircularProgress size={32} sx={{ color: BRAND.primary }} />
                     </Box>
-                  ) : recentOrders.length === 0 ? (
+                  ) : !overview || statusCounts.every((s) => s.count === 0) ? (
                     <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
-                      Aucune commande pour le moment
+                      Aucune commande sur la période sélectionnée
                     </Typography>
                   ) : (
-                    <Stack spacing={1.25}>
-                      {recentOrders.map((order) => (
-                        <Box
-                          key={order.id}
-                          sx={{
-                            p: 1.5,
-                            borderRadius: '12.5px',
-                            border: `1px solid ${BRAND.border}`,
-                            bgcolor: BRAND.surface,
-                          }}
-                        >
-                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box>
-                              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }}>
-                                {getOrderCustomerName(order)}
-                              </Typography>
-                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
-                                {order.order_number} · {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                              </Typography>
-                            </Box>
-                            <Chip label={order.status} size="small" sx={getStatusChipSx(order.status)} />
+                    <Stack spacing={1.75}>
+                      {statusCounts.map(({ status, label, color, count }) => (
+                        <Box key={status}>
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+                              <Typography sx={{ fontSize: 15, fontWeight: 600, color: BRAND.dark }}>{label}</Typography>
+                            </Stack>
+                            <Typography sx={{ fontSize: 15, fontWeight: 700, color: BRAND.dark }}>{count}</Typography>
                           </Stack>
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, mt: 0.75 }}>
-                            {formatFcfa(Number(order.total_amount) || 0)}
-                          </Typography>
+                          <Box sx={{ height: 9, borderRadius: '99px', bgcolor: BRAND.surface, overflow: 'hidden' }}>
+                            <Box
+                              sx={{
+                                height: '100%',
+                                width: `${Math.round((count / statusMax) * 100)}%`,
+                                borderRadius: '99px',
+                                bgcolor: color,
+                                transition: 'width 0.4s ease',
+                              }}
+                            />
+                          </Box>
                         </Box>
                       ))}
                     </Stack>
@@ -537,6 +569,66 @@ export function AdminDashboard() {
             </Grid>
 
             <Grid size={{ xs: 12, lg: 6 }}>
+              <Paper
+                elevation={0}
+                sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
+              >
+                <Box sx={{ px: 2.5, py: 2, bgcolor: BRAND.light, borderBottom: `1px solid ${BRAND.border}` }}>
+                  <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
+                    Commandes récentes
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  {loadingOverview ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={32} sx={{ color: BRAND.primary }} />
+                    </Box>
+                  ) : recentOrdersData.length === 0 ? (
+                    <Typography sx={{ fontSize: 17.5, color: BRAND.muted, textAlign: 'center', py: 3 }}>
+                      Aucune commande pour le moment
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.25}>
+                      {recentOrdersData.map((order) => (
+                        <Box
+                          key={order.id}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: '12.5px',
+                            border: `1px solid ${BRAND.border}`,
+                            bgcolor: BRAND.surface,
+                          }}
+                        >
+                          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5 }}>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }} noWrap>
+                                {getOrderCustomerName(order)}
+                              </Typography>
+                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
+                                {order.order_number || `#${order.id}`}
+                                {order.created_at ? ` · ${new Date(order.created_at).toLocaleDateString('fr-FR')}` : ''}
+                                {typeof order.items_count === 'number' ? ` · ${order.items_count} article${order.items_count > 1 ? 's' : ''}` : ''}
+                              </Typography>
+                              {order.email ? (
+                                <Typography sx={{ fontSize: 13.5, color: BRAND.muted, mt: 0.25 }} noWrap>
+                                  {order.email}
+                                </Typography>
+                              ) : null}
+                            </Box>
+                            <Chip label={order.status || '—'} size="small" sx={{ ...getStatusChipSx(order.status || ''), flexShrink: 0 }} />
+                          </Stack>
+                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, mt: 0.75 }}>
+                            {typeof order.total_amount === 'number' ? formatFcfa(Number(order.total_amount) || 0) : '—'}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
               <Paper
                 elevation={0}
                 sx={{ borderRadius: '20px', border: `1px solid ${BRAND.border}`, bgcolor: BRAND.white, overflow: 'hidden' }}
@@ -556,34 +648,37 @@ export function AdminDashboard() {
                       Aucun produit mis en avant
                     </Typography>
                   ) : (
-                    <Stack spacing={1.25}>
+                    <Grid container spacing={1.5}>
                       {popularProducts.map((product) => (
-                        <Box
-                          key={product.id}
-                          sx={{
-                            p: 1.5,
-                            borderRadius: '12.5px',
-                            border: `1px solid ${BRAND.border}`,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: 2,
-                          }}
-                        >
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 17.5, fontWeight: 600, color: BRAND.dark }} noWrap>
-                              {product.name}
-                            </Typography>
-                            <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
-                              Stock : {product.inventory_quantity ?? '—'}
+                        <Grid key={product.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              borderRadius: '12.5px',
+                              border: `1px solid ${BRAND.border}`,
+                              bgcolor: BRAND.surface,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: 2,
+                              height: '100%',
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 16.25, fontWeight: 600, color: BRAND.dark }} noWrap>
+                                {product.name}
+                              </Typography>
+                              <Typography sx={{ fontSize: 15, color: BRAND.muted }}>
+                                Stock : {product.inventory_quantity ?? '—'}
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ fontSize: 16.25, fontWeight: 700, color: BRAND.primary, flexShrink: 0 }}>
+                              {formatFcfa(Number(product.price) || 0)}
                             </Typography>
                           </Box>
-                          <Typography sx={{ fontSize: 17.5, fontWeight: 700, color: BRAND.primary, flexShrink: 0 }}>
-                            {formatFcfa(Number(product.price) || 0)}
-                          </Typography>
-                        </Box>
+                        </Grid>
                       ))}
-                    </Stack>
+                    </Grid>
                   )}
                 </Box>
               </Paper>

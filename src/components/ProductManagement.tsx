@@ -950,17 +950,6 @@ export function ProductManagement() {
               <TextField
                 fullWidth
                 type="number"
-                label="Stock initial"
-                value={formData.inventory_quantity || 0}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, inventory_quantity: Number(e.target.value) })}
-                required
-                sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                type="number"
                 label="Nombre de pièces"
                 value={formData.pieces || 1}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, pieces: Number(e.target.value) })}
@@ -1109,21 +1098,6 @@ export function ProductManagement() {
                       placeholder="Ancien prix"
                       value={formData.original_price || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, original_price: Number(e.target.value) })}
-                      slotProps={{
-                        input: {
-                          endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>,
-                        },
-                      }}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Prix Grossiste (Cost Price)"
-                      value={formData.wholesale_price || ''}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, wholesale_price: Number(e.target.value) })}
                       slotProps={{
                         input: {
                           endAdornment: <InputAdornment position="end"><Typography variant="body2" fontWeight={600} color="text.secondary">FCFA</Typography></InputAdornment>,
