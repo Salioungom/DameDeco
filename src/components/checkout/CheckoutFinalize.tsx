@@ -30,6 +30,7 @@ import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useCheckoutStore } from '@/store/useCheckoutStore';
 import { getImageUrl } from '@/lib/imageUtils';
 import { computeDeliveryFee, type DeliveryMode } from '@/lib/delivery';
+import { formatFcfa } from '@/lib/format';
 import { OrderResponse } from '@/services/order.service';
 
   
@@ -601,10 +602,10 @@ export function CheckoutFinalize({
                         </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography variant={{ xs: 'caption', sm: 'caption' }} color="text.secondary">
-                            {item.quantity} x {(price || 0).toLocaleString('fr-FR')} FCFA
+                            {item.quantity} x {formatFcfa(price || 0)}
                           </Typography>
                           <Typography variant={{ xs: 'caption', sm: 'body2' }} fontWeight={700} color="primary">
-                            {totalPrice.toLocaleString('fr-FR')} FCFA
+                            {formatFcfa(totalPrice)}
                           </Typography>
                         </Box>
                       </Box>
@@ -617,7 +618,7 @@ export function CheckoutFinalize({
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">Sous-total</Typography>
                   <Typography variant="body2" fontWeight={600}>
-                    {subtotal.toLocaleString('fr-FR')} FCFA
+                    {formatFcfa(subtotal)}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -625,7 +626,7 @@ export function CheckoutFinalize({
                     {deliveryMode === 'store_pickup' ? 'Retrait' : 'Livraison'}
                   </Typography>
                   <Chip
-                    label={displayDeliveryFee === 0 ? 'Gratuite' : `${displayDeliveryFee.toLocaleString('fr-FR')} FCFA`}
+                    label={displayDeliveryFee === 0 ? 'Gratuite' : formatFcfa(displayDeliveryFee)}
                     size="small"
                     sx={{
                       height: 27.5,
@@ -643,7 +644,7 @@ export function CheckoutFinalize({
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" fontWeight={800}>Total</Typography>
                   <Typography variant="subtitle1" fontWeight={800} color="primary">
-                    {displayTotal.toLocaleString('fr-FR')} FCFA
+                    {formatFcfa(displayTotal)}
                   </Typography>
                 </Box>
 

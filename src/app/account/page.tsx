@@ -34,6 +34,7 @@ import {
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsService } from '@/services/stats.service';
+import { formatFcfa } from '@/lib/format';
 
 function AccountPageContent() {
     const router = useRouter();
@@ -112,7 +113,7 @@ function AccountPageContent() {
         },
         {
             title: 'Total Dépensé',
-            value: `${Math.round(stats.totalSpent).toLocaleString('fr-FR')} FCFA`,
+            value: formatFcfa(stats.totalSpent),
             icon: <TrendingUp sx={{ fontSize: 32 }} />,
             color: theme.palette.success.main,
             bgColor: alpha(theme.palette.success.main, 0.1),
@@ -226,7 +227,7 @@ function AccountPageContent() {
                                         {typeof stat.value === 'string' && stat.value.includes('FCFA') ? (
                                             <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
                                                 <Typography variant="h4" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
-                                                    {stat.value.replace(' FCFA', '')}
+                                                    {stat.value.replace(/\s*FCFA$/, '')}
                                                 </Typography>
                                                 <Typography fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.1 }}>
                                                     FCFA

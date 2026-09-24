@@ -41,8 +41,22 @@ import {
   Visibility as VisibilityIcon,
   Person as PersonIcon,
   LocalShipping as LocalShippingIcon,
+  ReceiptLong as ReceiptLongIcon,
+  PictureAsPdf as PictureAsPdfIcon,
+  Download as DownloadIcon,
+  WhatsApp as WhatsAppIcon,
 } from '@mui/icons-material';
 import { getAdminOrders, updateOrderStatus } from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
+import InvoiceService, {
+  buildInvoiceWhatsappMessage,
+  getInvoicePaymentBadge,
+  getInvoicePaymentMethodLabel,
+  getInvoicePdfFileName,
+  getInvoiceStatusLabel,
+  normalizeInvoicePhone,
+} from '@/services/invoice.service';
+import type { Invoice } from '@/services/invoice.service';
 import { BRAND_BLUE } from '@/theme';
 
 const BRAND = {
@@ -127,6 +141,16 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
+  // Invoice Dialog State
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [pdfViewing, setPdfViewing] = useState(false);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
+  const [whatsappSending, setWhatsappSending] = useState(false);
+
   // Snackbar Alert State
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -180,6 +204,125 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
     setDetailOrder(null);
   };
 
+  const handleCloseInvoiceDialog = () => {
+    setInvoiceDialogOpen(false);
+    setInvoiceOrder(null);
+    setInvoice(null);
+    setInvoiceError(null);
+  };
+
+  const getInvoiceErrorMessage = (err: any, fallback: string) => {
+    const status = Number(err?.status) || 0;
+    if (status === 401) return 'Votre session a expiré. Veuillez vous reconnecter.';
+    if (status === 403) return "Vous n'êtes pas autorisé à consulter cette facture.";
+    if (status === 404) return 'Facture introuvable.';
+    if (status >= 500) return 'Erreur serveur lors de la récupération de la facture.';
+    return err?.message || fallback;
+  };
+
+  const handleOpenInvoiceDialog = async (order: Order) => {
+    setInvoiceOrder(order);
+    setInvoice(null);
+    setInvoiceError(null);
+    setInvoiceDialogOpen(true);
+    setInvoiceLoading(true);
+    try {
+      let facture: Invoice;
+      try {
+        facture = await InvoiceService.getInvoiceByOrderId(order.id);
+      } catch (err: any) {
+        // 404 → aucune facture générée pour cette commande : on la génère (idempotent).
+        if (Number(err?.status) === 404) {
+          facture = await InvoiceService.createInvoice(order.id);
+        } else {
+          throw err;
+        }
+      }
+      setInvoice(facture);
+    } catch (err: any) {
+      console.error('Error loading invoice:', err);
+      setInvoiceError(getInvoiceErrorMessage(err, 'Impossible de charger la facture.'));
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  const handleViewInvoicePdf = async () => {
+    if (!invoice || pdfViewing) return;
+    setPdfViewing(true);
+    try {
+      const blob = await InvoiceService.getInvoicePdf(invoice.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err: any) {
+      console.error('Error viewing invoice pdf:', err);
+      setSnackbar({
+        open: true,
+        message: getInvoiceErrorMessage(err, "Impossible d'afficher le PDF de la facture."),
+        severity: 'error',
+      });
+    } finally {
+      setPdfViewing(false);
+    }
+  };
+
+  const handleDownloadInvoicePdf = async () => {
+    if (!invoice || pdfDownloading) return;
+    setPdfDownloading(true);
+    try {
+      const blob = await InvoiceService.getInvoicePdf(invoice.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = getInvoicePdfFileName(invoice.invoice_number);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setSnackbar({
+        open: true,
+        message: `Facture ${invoice.invoice_number} téléchargée.`,
+        severity: 'success',
+      });
+    } catch (err: any) {
+      console.error('Error downloading invoice pdf:', err);
+      setSnackbar({
+        open: true,
+        message: getInvoiceErrorMessage(err, 'Impossible de télécharger le PDF de la facture.'),
+        severity: 'error',
+      });
+    } finally {
+      setPdfDownloading(false);
+    }
+  };
+
+  const handleSendInvoiceWhatsapp = () => {
+    if (!invoice || !invoiceOrder || whatsappSending) return;
+    const phone = normalizeInvoicePhone(
+      invoice.customer?.phone ||
+      invoiceOrder.customer?.phone ||
+      invoiceOrder.shipping_address?.phone
+    );
+    if (!phone) {
+      setSnackbar({
+        open: true,
+        message: 'Aucun numéro de téléphone disponible pour ce client.',
+        severity: 'error',
+      });
+      return;
+    }
+    setWhatsappSending(true);
+    const message = buildInvoiceWhatsappMessage(invoice, getOrderCustomerName(invoiceOrder));
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+    setWhatsappSending(false);
+    setSnackbar({
+      open: true,
+      message: 'Ouverture de WhatsApp...',
+      severity: 'success',
+    });
+  };
+
   const handleConfirmStatusChange = async () => {
     if (!selectedOrder) return;
     setSubmittingStatus(true);
@@ -209,11 +352,6 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
     } finally {
       setSubmittingStatus(false);
     }
-  };
-
-  // Helper to format currency
-  const formatFcfa = (amount: number) => {
-    return `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
   };
 
   // Helper to get Customer Name
@@ -466,6 +604,21 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
                             size="small"
                           >
                             <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Facture">
+                          <IconButton
+                            onClick={() => handleOpenInvoiceDialog(order)}
+                            sx={{
+                              color: '#2E7D32',
+                              bgcolor: alpha('#2E7D32', 0.08),
+                              '&:hover': {
+                                bgcolor: alpha('#2E7D32', 0.18),
+                              },
+                            }}
+                            size="small"
+                          >
+                            <ReceiptLongIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </Stack>
@@ -801,6 +954,449 @@ export function AdminOrderManagement({ initialCustomerId }: AdminOrderManagement
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Invoice Dialog */}
+      <Dialog
+        open={invoiceDialogOpen}
+        onClose={handleCloseInvoiceDialog}
+        maxWidth="md"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              p: 0,
+            },
+          },
+        }}
+      >
+        {invoiceLoading ? (
+          <DialogContent sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress sx={{ color: BRAND.primary }} />
+          </DialogContent>
+        ) : invoiceError ? (
+          <DialogContent sx={{ p: 4, textAlign: 'center' }}>
+            <Alert severity="error" variant="outlined" sx={{ mb: 3 }}>
+              {invoiceError}
+            </Alert>
+            <Button
+              onClick={handleCloseInvoiceDialog}
+              sx={{
+                color: BRAND.muted,
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
+              Fermer
+            </Button>
+          </DialogContent>
+        ) : invoice ? (
+          <>
+            <DialogTitle
+              sx={{
+                fontWeight: 700,
+                pb: 2,
+                borderBottom: `1px solid ${BRAND.border}`,
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.5}
+                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <Typography sx={{ fontSize: 20, fontWeight: 700, color: BRAND.dark }}>
+                  Facture {invoice.invoice_number}
+                </Typography>
+                <Chip
+                  label={getInvoiceStatusLabel(invoice.status)}
+                  size="small"
+                  sx={{
+                    bgcolor: alpha('#2E7D32', 0.12),
+                    color: '#2E7D32',
+                    fontWeight: 600,
+                    fontSize: 14,
+                  }}
+                />
+              </Stack>
+              {invoiceOrder && (
+                <Typography sx={{ fontSize: 15, color: BRAND.muted, mt: 0.5 }}>
+                  Commande {invoice.order_number || invoiceOrder.order_number} —{' '}
+                  {getOrderCustomerName(invoiceOrder)}
+                </Typography>
+              )}
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Stack spacing={3}>
+                {/* Informations client + facture */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: '12px',
+                    border: `1px solid ${BRAND.border}`,
+                    bgcolor: BRAND.surface,
+                  }}
+                >
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Client</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                        {invoice.customer?.full_name || (invoiceOrder ? getOrderCustomerName(invoiceOrder) : '—')}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Date d'émission</Typography>
+                      <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                        {invoice.issued_at
+                          ? new Date(invoice.issued_at).toLocaleDateString('fr-FR')
+                          : invoice.created_at
+                            ? new Date(invoice.created_at).toLocaleDateString('fr-FR')
+                            : '—'}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Email</Typography>
+                      <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                        {invoice.customer?.email || '—'}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Téléphone</Typography>
+                      <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                        {invoice.customer?.phone ||
+                          invoiceOrder?.customer?.phone ||
+                          invoiceOrder?.shipping_address?.phone ||
+                          '—'}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                {/* Adresse de livraison (jamais de JSON brut : champs affichés proprement) */}
+                {invoiceOrder?.shipping_address && invoiceOrder.mode !== 'store_pickup' ? (
+                  <Box>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                      Adresse de livraison
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: '12px',
+                        border: `1px solid ${BRAND.border}`,
+                        bgcolor: BRAND.surface,
+                      }}
+                    >
+                      <Stack spacing={1}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {invoiceOrder.shipping_address.first_name
+                            ? `${invoiceOrder.shipping_address.first_name} ${invoiceOrder.shipping_address.last_name || ''}`.trim()
+                            : invoiceOrder.shipping_address.full_name || ''}
+                        </Typography>
+                        {invoiceOrder.shipping_address.address && (
+                          <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                            {invoiceOrder.shipping_address.address}
+                          </Typography>
+                        )}
+                        {invoiceOrder.shipping_address.city && (
+                          <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                            {invoiceOrder.shipping_address.city}
+                          </Typography>
+                        )}
+                        {invoiceOrder.shipping_address.instructions && (
+                          <Typography sx={{ fontSize: 15, color: BRAND.muted, fontStyle: 'italic' }}>
+                            Instructions : {invoiceOrder.shipping_address.instructions}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Paper>
+                  </Box>
+                ) : (
+                  <Box>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                      Adresse de livraison
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: '12px',
+                        border: `1px solid ${BRAND.border}`,
+                        bgcolor: BRAND.surface,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 16, color: BRAND.muted, fontStyle: 'italic' }}>
+                        Retrait en boutique — aucune adresse de livraison requise.
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
+
+                {/* Articles */}
+                {Array.isArray(invoice.items) && invoice.items.length > 0 && (
+                  <Box>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                      Articles
+                    </Typography>
+                    <TableContainer
+                      component={Paper}
+                      elevation={0}
+                      sx={{
+                        borderRadius: '12px',
+                        border: `1px solid ${BRAND.border}`,
+                        overflowX: 'auto',
+                      }}
+                    >
+                      <Table size="small" aria-label="Articles de la facture" sx={{ minWidth: 560 }}>
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: BRAND.dark }}>
+                            <TableCell sx={{ color: BRAND.white, fontWeight: 600 }}>Produit</TableCell>
+                            <TableCell align="center" sx={{ color: BRAND.white, fontWeight: 600 }}>Qté</TableCell>
+                            <TableCell align="right" sx={{ color: BRAND.white, fontWeight: 600 }}>PU</TableCell>
+                            <TableCell align="right" sx={{ color: BRAND.white, fontWeight: 600 }}>Total</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {invoice.items.map((item, idx) => (
+                            <TableRow
+                              key={`${item.product_id}-${idx}`}
+                              sx={{
+                                bgcolor: idx % 2 === 0 ? BRAND.white : BRAND.surface,
+                                '& td': { borderColor: BRAND.border },
+                              }}
+                            >
+                              <TableCell sx={{ fontSize: 15, color: BRAND.dark }}>
+                                {item.product_name || `Produit #${item.product_id}`}
+                              </TableCell>
+                              <TableCell align="center" sx={{ fontSize: 15, color: BRAND.dark }}>
+                                {Number(item.quantity) || 0}
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontSize: 15, color: BRAND.dark }}>
+                                {formatFcfa(Number(item.unit_price) || 0)}
+                              </TableCell>
+                              <TableCell align="right" sx={{ fontSize: 15, fontWeight: 600, color: BRAND.dark }}>
+                                {formatFcfa(Number(item.total_price) || 0)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                )}
+
+                {/* Totaux */}
+                <Box>
+                  <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                    Récapitulatif
+                  </Typography>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: '12px',
+                      border: `1px solid ${BRAND.border}`,
+                      bgcolor: BRAND.surface,
+                    }}
+                  >
+                    <Stack spacing={1.5}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography sx={{ fontSize: 15, color: BRAND.muted }}>Sous-total</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {formatFcfa(Number(invoice.subtotal) || 0)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography sx={{ fontSize: 15, color: BRAND.muted }}>Livraison</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                          {formatFcfa(Number(invoice.delivery_fee) || 0)}
+                        </Typography>
+                      </Box>
+                      {Number(invoice.discount_amount) > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography sx={{ fontSize: 15, color: BRAND.muted }}>Remise</Typography>
+                          <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.muted }}>
+                            − {formatFcfa(Number(invoice.discount_amount) || 0)}
+                          </Typography>
+                        </Box>
+                      )}
+                      {Number(invoice.tax_amount) > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography sx={{ fontSize: 15, color: BRAND.muted }}>TVA</Typography>
+                          <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                            {formatFcfa(Number(invoice.tax_amount) || 0)}
+                          </Typography>
+                        </Box>
+                      )}
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: BRAND.dark }}>Total</Typography>
+                        <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.primary }}>
+                          {formatFcfa(Number(invoice.total) || 0)}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                </Box>
+
+                {/* Paiement */}
+                {invoice.payment && (
+                  <Box>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: BRAND.dark, mb: 2 }}>
+                      Paiement
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: '12px',
+                        border: `1px solid ${BRAND.border}`,
+                        bgcolor: BRAND.surface,
+                      }}
+                    >
+                      <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                          <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Statut</Typography>
+                          {(() => {
+                            const badge = getInvoicePaymentBadge(invoice.payment.status);
+                            if (!badge) {
+                              return <Typography sx={{ fontSize: 16, color: BRAND.dark }}>—</Typography>;
+                            }
+                            const c = {
+                              success: { bg: alpha('#2E7D32', 0.12), color: '#2E7D32' },
+                              warning: { bg: alpha('#F59E0B', 0.16), color: '#B45309' },
+                              error: { bg: alpha('#D32F2F', 0.12), color: '#D32F2F' },
+                            }[badge.tone];
+                            return (
+                              <Chip
+                                size="small"
+                                label={badge.label}
+                                aria-label={`Statut du paiement : ${badge.label}`}
+                                sx={{
+                                  bgcolor: c.bg,
+                                  color: c.color,
+                                  fontWeight: 600,
+                                  fontSize: 14,
+                                }}
+                              />
+                            );
+                          })()}
+                        </Grid>
+                        {invoice.payment.method && (
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Moyen</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {getInvoicePaymentMethodLabel(invoice.payment.method)}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {invoice.payment.transaction_reference && (
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Référence</Typography>
+                            <Typography sx={{ fontSize: 16, color: BRAND.dark }}>
+                              {invoice.payment.transaction_reference}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {Number(invoice.payment.paid_amount) > 0 && (
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Montant payé</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: BRAND.dark }}>
+                              {formatFcfa(Number(invoice.payment.paid_amount) || 0)}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {Number(invoice.payment.amount_remaining) > 0 && (
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <Typography sx={{ fontSize: 14, color: BRAND.muted, mb: 0.5 }}>Reste à payer</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#B45309' }}>
+                              {formatFcfa(Number(invoice.payment.amount_remaining) || 0)}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </Paper>
+                  </Box>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions
+              sx={{
+                px: 3,
+                pb: 3,
+                pt: 0,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.5,
+                justifyContent: 'flex-end',
+              }}
+            >
+              <Button
+                onClick={handleCloseInvoiceDialog}
+                sx={{
+                  color: BRAND.muted,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Fermer
+              </Button>
+              <Button
+                onClick={handleSendInvoiceWhatsapp}
+                disabled={whatsappSending}
+                startIcon={<WhatsAppIcon />}
+                variant="outlined"
+                sx={{
+                  color: '#128C7E',
+                  borderColor: '#128C7E',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                  '&:hover': {
+                    borderColor: '#075E54',
+                    bgcolor: alpha('#128C7E', 0.08),
+                  },
+                }}
+              >
+                WhatsApp
+              </Button>
+              <Button
+                onClick={handleViewInvoicePdf}
+                loading={pdfViewing}
+                loadingPosition="start"
+                startIcon={<PictureAsPdfIcon />}
+                sx={{
+                  color: BRAND.primary,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                }}
+              >
+                Voir le PDF
+              </Button>
+              <Button
+                onClick={handleDownloadInvoicePdf}
+                loading={pdfDownloading}
+                loadingPosition="start"
+                startIcon={<DownloadIcon />}
+                variant="contained"
+                sx={{
+                  bgcolor: BRAND.primary,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                  px: 3,
+                  '&:hover': {
+                    bgcolor: BRAND.dark,
+                  },
+                }}
+              >
+                Télécharger la facture (PDF)
+              </Button>
+            </DialogActions>
+          </>
+        ) : null}
       </Dialog>
 
       {/* Snackbar Alert */}

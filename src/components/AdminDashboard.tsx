@@ -49,6 +49,7 @@ import { productService } from '@/services/product.service';
 import { DashboardService } from '@/services/dashboard.service';
 import type { DashboardOverview, RecentOrderItem } from '@/services/dashboard.service';
 import { api } from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
 import { ProductManagement } from './ProductManagement';
 import { CategoriesManagement } from './CategoriesManagement';
 import { AdminOrderManagement } from './AdminOrderManagement';
@@ -160,10 +161,6 @@ function CustomTabPanel({ children, value, index }: TabPanelProps) {
 
 function getOrderCustomerName(order: { customer_name?: string | null; email?: string | null }) {
   return order.customer_name || 'Client invité';
-}
-
-function formatFcfa(amount: number) {
-  return `${Math.round(amount).toLocaleString('fr-FR')} FCFA`;
 }
 
 const STATUS_META: { status: string; label: string; color: string }[] = [

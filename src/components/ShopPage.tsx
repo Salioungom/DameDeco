@@ -39,6 +39,7 @@ import { productService } from '../services/product.service';
 import { homeService } from '../services/home.service';
 import { Product, Category } from '../lib/types';
 import { BRAND_BLUE } from '@/theme';
+import { formatFcfa } from '@/lib/format';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -437,7 +438,7 @@ export function ShopPage({
               })}
               {(priceRange[0] > 0 || priceRange[1] < 150000) && (
                 <Chip
-                  label={`${priceRange[0].toLocaleString('fr-FR')} – ${priceRange[1].toLocaleString('fr-FR')} F CFA`}
+                  label={`${formatFcfa(priceRange[0])} – ${formatFcfa(priceRange[1])}`}
                   size="small"
                   onDelete={() => setPriceRange([0, 150000])}
                   sx={{ bgcolor: C.light, color: C.primary, fontWeight: 500, fontSize: 15, height: 30, '& .MuiChip-deleteIcon': { color: C.mid, fontSize: 17.5 } }}

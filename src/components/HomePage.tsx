@@ -22,12 +22,14 @@ import {
   Place as PlaceIcon,
   CheckCircle,
   Add as AddIcon,
+  RequestQuote as RequestQuoteIcon,
 } from '@mui/icons-material';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 import { homeService } from '../services/home.service';
 import { productService } from '../services/product.service';
 import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 import ProductCard from './ProductCard';
 import Autoplay from 'embla-carousel-autoplay';
 import {
@@ -41,7 +43,7 @@ import { Product, Category } from '../lib/types';
 import { PaymentIcons } from './PaymentIcons';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/error-handler';
-import { BRAND_BLUE } from '@/theme';
+import { BRAND_BLUE, FONT_POPPINS } from '@/theme';
 
 const C = {
   primary: BRAND_BLUE,
@@ -51,13 +53,12 @@ const C = {
   border: '#D4E6F7',
   mid: '#85B7EB',
   muted: '#64748B',
-  text: '#5F5E5A',
+  text: '#475569',
 } as const;
 
-const HERO_IMAGE = '/banner.png';
+const HERO_IMAGE = '/banner.jpg';
 
-const formatPrice = (amount: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount).replace('XOF', 'FCFA');
+const formatPrice = (amount: number) => formatFcfa(amount);
 
 const sectionLabelSx = {
   fontSize: { xs: 12, sm: 13, md: 14, lg: 15 },
@@ -72,6 +73,7 @@ const sectionTitleSx = {
   fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.1rem', lg: '2.5rem' },
   fontWeight: 800,
   color: C.dark,
+  fontFamily: FONT_POPPINS,
   letterSpacing: '-0.03em',
   lineHeight: { xs: 1.2, sm: 1.18, md: 1.15 },
   mb: { xs: 1, sm: 1.25, md: 1.5 },
@@ -172,9 +174,11 @@ function HeroProductThumb({ name, coverImage }: { name?: string; coverImage?: st
       }}
     >
       {imgSrc ? (
-        <img
+        <Image
           src={imgSrc}
           alt={name || 'Produit'}
+          width={70}
+          height={70}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       ) : (
@@ -290,7 +294,7 @@ export function HomePage({
       ? Math.round(((featuredProduct.compare_price - featuredProduct.price) / featuredProduct.compare_price) * 100)
       : null;
 
-  const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px)`;
+  const heroMinHeight = `calc(100dvh - ${NAVBAR_HEIGHT.md}px)`;
 
   return (
     <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.default' }}>
@@ -300,7 +304,6 @@ export function HomePage({
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          overflowX: 'hidden',
           bgcolor: C.surface,
           minHeight: { xs: 'auto', lg: heroMinHeight },
         }}
@@ -361,6 +364,7 @@ export function HomePage({
                   component="h1"
                   sx={{
                     fontWeight: 800,
+                    fontFamily: FONT_POPPINS,
                     fontSize: { xs: '1.75rem', sm: '2.15rem', md: '2.75rem', lg: '3.15rem', xl: '3.5rem' },
                     lineHeight: { xs: 1.15, sm: 1.1, md: 1.08 },
                     letterSpacing: '-0.035em',
@@ -373,7 +377,7 @@ export function HomePage({
                     component="span"
                     sx={{
                       color: C.primary,
-                      background: `linear-gradient(135deg, ${C.primary} 0%, ${C.mid} 100%)`,
+                      background: `linear-gradient(135deg, ${C.primary} 0%, #2a7bc4 100%)`,
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}
@@ -414,7 +418,11 @@ export function HomePage({
                   ))}
                 </Stack>
 
-                <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: { xs: 3.5, sm: 4.5, md: 6 } }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={{ xs: 1.25, sm: 1.5 }}
+                  sx={{ mb: { xs: 3.5, sm: 4.5, md: 6 } }}
+                >
                   <Button
                     variant="contained"
                     size="large"
@@ -429,8 +437,7 @@ export function HomePage({
                       fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 700,
                       textTransform: 'none',
-                      flex: { xs: 1, sm: '0 0 auto' },
-                      width: 'auto',
+                      width: { xs: '100%', sm: 'auto' },
                       whiteSpace: 'normal',
                       boxShadow: `0 8px 28px ${alpha(C.primary, 0.35)}`,
                       '&:hover': {
@@ -446,6 +453,7 @@ export function HomePage({
                   <Button
                     variant="outlined"
                     size="large"
+                    startIcon={<RequestQuoteIcon />}
                     onClick={() => handleNavigate('contact')}
                     sx={{
                       borderColor: C.border,
@@ -457,8 +465,7 @@ export function HomePage({
                       fontSize: { xs: 14.5, sm: 15.5, md: 17.5 },
                       fontWeight: 600,
                       textTransform: 'none',
-                      flex: { xs: 1, sm: '0 0 auto' },
-                      width: 'auto',
+                      width: { xs: '100%', sm: 'auto' },
                       whiteSpace: 'normal',
                       '&:hover': { bgcolor: C.light, borderColor: C.mid },
                     }}
@@ -529,25 +536,28 @@ export function HomePage({
 
                 <Box
                   sx={{
-                    display: 'flex',
+                    display: { xs: 'flex', lg: 'none' },
                     flexWrap: 'wrap',
                     gap: { xs: 0.75, sm: 1 },
                     mt: { xs: 1.5, sm: 2 },
                   }}
                 >
                   {heroCategoryTags.map((cat) => (
-                      <Box
+                      <Button
                         key={cat.id}
+                        disableRipple
                         onClick={() => (onViewCategory ? onViewCategory(cat.id) : handleNavigate('shop'))}
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
+                          minWidth: 0,
                           px: { xs: 1, sm: 1.5 },
                           py: { xs: 0.5, sm: 0.75 },
                           borderRadius: '12.5px',
                           bgcolor: '#fff',
                           border: `1px solid ${C.border}`,
-                          cursor: 'pointer',
+                          color: C.dark,
+                          fontSize: { xs: 13, sm: 14.375 },
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
                           transition: 'all 0.2s ease',
                           '&:hover': {
                             bgcolor: C.light,
@@ -557,23 +567,24 @@ export function HomePage({
                           },
                         }}
                       >
-                        <Typography sx={{ fontSize: { xs: 13, sm: 14.375 }, fontWeight: 600, color: C.dark, whiteSpace: 'nowrap' }}>
-                          {cat.name}
-                        </Typography>
-                      </Box>
+                        {cat.name}
+                      </Button>
                     ))}
-                  <Box
+                  <Button
+                    disableRipple
+                    startIcon={<AddIcon sx={{ fontSize: { xs: 16, sm: 17.5 }, color: C.primary }} />}
                     onClick={() => handleNavigate('shop')}
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
+                      minWidth: 0,
                       px: { xs: 1, sm: 1.5 },
                       py: { xs: 0.5, sm: 0.75 },
                       borderRadius: '12.5px',
                       bgcolor: alpha(C.primary, 0.06),
                       border: `1px dashed ${alpha(C.primary, 0.3)}`,
-                      cursor: 'pointer',
+                      color: C.primary,
+                      fontSize: { xs: 13, sm: 14.375 },
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         bgcolor: alpha(C.primary, 0.1),
@@ -581,25 +592,36 @@ export function HomePage({
                       },
                     }}
                   >
-                    <AddIcon sx={{ fontSize: { xs: 16, sm: 17.5 }, color: C.primary }} />
-                    <Typography sx={{ fontSize: { xs: 13, sm: 14.375 }, fontWeight: 600, color: C.primary, whiteSpace: 'nowrap' }}>
-                      Plus
-                    </Typography>
-                  </Box>
+                    Plus
+                  </Button>
                 </Box>
 
                 <Paper
                   elevation={0}
                   onClick={() => featuredProduct && onViewProduct(featuredProduct)}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+                    if (featuredProduct && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      onViewProduct(featuredProduct);
+                    }
+                  }}
+                  role={featuredProduct ? 'button' : undefined}
+                  tabIndex={featuredProduct ? 0 : -1}
+                  aria-label={featuredProduct ? `Voir le produit ${featuredProduct.name ?? ''}`.trim() : undefined}
                   sx={{
                     mt: 2,
                     p: 2,
-              borderRadius: '25px',
+                    borderRadius: '25px',
                     bgcolor: '#fff',
                     border: `1px solid ${C.border}`,
                     boxShadow: `0 12px 40px ${alpha(C.dark, 0.1)}`,
                     cursor: featuredProduct ? 'pointer' : 'default',
+                    outline: 'none',
                     transition: 'box-shadow 0.25s ease, transform 0.25s ease',
+                    '&:focus-visible': {
+                      borderColor: C.primary,
+                      boxShadow: `0 0 0 2px ${C.primary}`,
+                    },
                     ...(featuredProduct && {
                       '&:hover': {
                         transform: 'translateY(-3px)',
@@ -617,9 +639,9 @@ export function HomePage({
                         <Skeleton width="35%" height={17.5} />
                       </Box>
                     </Stack>
-                  ) : (
+                  ) : featuredProduct ? (
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                      <HeroProductThumb name={featuredProduct?.name} coverImage={featuredProduct?.cover_image_url} />
+                      <HeroProductThumb name={featuredProduct.name} coverImage={featuredProduct.cover_image_url} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                           <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary }}>
@@ -641,13 +663,13 @@ export function HomePage({
                             textTransform: 'capitalize',
                           }}
                         >
-                          {featuredProduct?.name || 'Découvrir la boutique'}
+                          {featuredProduct.name}
                         </Typography>
                         <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline', mt: 0.5 }}>
                           <Typography sx={{ fontSize: 18.75, fontWeight: 800, color: C.primary }}>
-                            {featuredProduct ? formatPrice(featuredProduct.price) : 'Voir les prix'}
+                            {formatPrice(featuredProduct.price)}
                           </Typography>
-                          {featuredProduct?.compare_price && featuredProduct.compare_price > featuredProduct.price && (
+                          {featuredProduct.compare_price && featuredProduct.compare_price > featuredProduct.price && (
                             <Typography sx={{ fontSize: 15, color: C.muted, textDecoration: 'line-through' }}>
                               {formatPrice(featuredProduct.compare_price)}
                             </Typography>
@@ -667,6 +689,34 @@ export function HomePage({
                         }}
                       >
                         <ArrowRight sx={{ color: C.primary, fontSize: 25 }} />
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          width: 70,
+                          height: 70,
+                          borderRadius: '15px',
+                          flexShrink: 0,
+                          bgcolor: C.light,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Package sx={{ fontSize: 32, color: C.primary }} />
+                      </Box>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.primary, mb: 0.5 }}>
+                          Sélection du moment
+                        </Typography>
+                        <Typography sx={{ fontWeight: 700, fontSize: 17, color: C.dark, lineHeight: 1.3 }}>
+                          Notre sélection arrive prochainement
+                        </Typography>
+                        <Typography sx={{ fontSize: 13.5, color: C.muted, mt: 0.5 }}>
+                          Parcourez la boutique dès maintenant.
+                        </Typography>
                       </Box>
                     </Stack>
                   )}
@@ -760,6 +810,7 @@ export function HomePage({
                       fontSize: { xs: 18, sm: 19.5, md: 21, lg: 23 },
                       fontWeight: 700,
                       color: C.dark,
+                      fontFamily: FONT_POPPINS,
                       mb: { xs: 1, sm: 1.15, md: 1.25 },
                       letterSpacing: '-0.01em',
                     }}
@@ -891,7 +942,7 @@ export function HomePage({
                         {category.image ? (
                           <Box
                             component="img"
-                            src={category.image}
+                            src={getImageUrl(category.image)}
                             alt={category.name}
                             className="cat-img"
                             onError={(e: React.SyntheticEvent<HTMLImageElement>) => {

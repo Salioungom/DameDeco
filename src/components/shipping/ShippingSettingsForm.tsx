@@ -17,6 +17,7 @@ import { Save as SaveIcon } from '@mui/icons-material';
 import { shippingAPI } from '@/lib/shipping';
 import type { ShippingSettings, ShippingSettingsCreate } from '@/lib/types/shipping';
 import { BRAND_BLUE } from '@/theme';
+import { formatFcfa } from '@/lib/format';
 
 const BRAND = {
   primary: BRAND_BLUE,
@@ -47,10 +48,6 @@ export default function ShippingSettingsForm() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<ShippingSettings>>({});
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
   const loadSettings = async () => {
     setLoading(true);
     setError(null);
@@ -65,6 +62,10 @@ export default function ShippingSettingsForm() {
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -211,13 +212,13 @@ export default function ShippingSettingsForm() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>Seuil gratuit</Typography>
               <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.primary }}>
-                {Number(settings.freeShippingThreshold).toLocaleString('fr-FR')} FCFA
+                {formatFcfa(settings.freeShippingThreshold)}
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ fontSize: 16.25, color: BRAND.muted }}>Coût standard</Typography>
               <Typography sx={{ fontSize: 18.75, fontWeight: 700, color: BRAND.primary }}>
-                {Number(settings.standardShippingCost).toLocaleString('fr-FR')} FCFA
+                {formatFcfa(settings.standardShippingCost)}
               </Typography>
             </Grid>
           </Grid>

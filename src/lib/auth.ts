@@ -58,38 +58,4 @@ export const authAPI = {
   },
 };
 
-// Admin API functions
-export const adminAPI = {
-  // Security endpoints
-  getSecuritySummary: () => apiClient.get('/admin/security/summary'),
-
-  getSecurityEvents: (params?: any) => apiClient.get('/admin/security/events', { params }),
-
-  getActiveSessions: () => apiClient.get('/admin/security/sessions/active'),
-
-  getSecurityAlerts: () => apiClient.get('/admin/security/alerts'),
-
-  getSecuritySettings: () => apiClient.get('/admin/security/settings'),
-
-  updateSecuritySettings: (settings: any) => apiClient.put('/admin/security/settings', settings),
-
-  // User management
-  getUsers: (params?: any) => apiClient.get('/admin/users', { params }),
-
-  getUserById: (id: string) => apiClient.get(`/admin/users/${id}`),
-
-  createUser: (userData: any) => apiClient.post('/admin/users', userData),
-
-  updateUser: (id: string, userData: any) => apiClient.put(`/admin/users/${id}`, userData),
-
-  deleteUser: (id: string) => apiClient.delete(`/admin/users/${id}`),
-
-  // System management
-  getSystemStatus: () => apiClient.get('/admin/system/status'),
-
-  getSystemLogs: (params?: any) => apiClient.get('/admin/system/logs', { params }),
-
-  getSystemMetrics: () => apiClient.get('/admin/system/metrics'),
-};
-
 export default apiClient;

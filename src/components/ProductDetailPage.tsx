@@ -39,6 +39,7 @@ import { ProductImage } from './ProductImage';
 import ProductCard from './ProductCard';
 import { PaymentIcons } from './PaymentIcons';
 import { BRAND_BLUE } from '@/theme';
+import { formatFcfa } from '@/lib/format';
 import { NAVBAR_HEIGHT } from './Navigation';
 
 const C = {
@@ -53,8 +54,7 @@ const C = {
   gold: '#C6A75E',
 } as const;
 
-const formatPrice = (amount: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(amount).replace('XOF', 'FCFA');
+const formatPrice = (amount: number) => formatFcfa(amount);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 

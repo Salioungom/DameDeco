@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { Product } from '../types/product';
 import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 
 // ─── Styled components ───────────────────────────────────────────────────────
 
@@ -203,8 +204,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     [userType, product],
   );
 
-  const fmt = (amount: number) =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount).replace('XOF', 'FCFA');
+  const fmt = (amount: number) => formatFcfa(amount);
 
   // ── Skeleton state ─────────────────────────────────────────────────────────
 

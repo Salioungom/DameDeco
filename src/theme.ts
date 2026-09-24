@@ -47,6 +47,9 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+export const FONT_INTER = inter.style.fontFamily;
+export const FONT_POPPINS = poppins.style.fontFamily;
+
 export const BRAND_BLUE = '#185FA5';
 
 const theme = createTheme({

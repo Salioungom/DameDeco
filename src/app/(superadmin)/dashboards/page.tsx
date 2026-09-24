@@ -60,6 +60,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { safeApiCall } from '@/lib/error-handler';
 import { BRAND_BLUE } from '@/theme';
+import { SuperAdminService, type SuperAdminStats } from '@/services/superadmin.service';
 
 const BRAND = {
   primary: BRAND_BLUE,
@@ -80,7 +81,7 @@ type User = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  last_login?: string;
+  last_login?: string | null;
 };
 
 function StatCard({
@@ -89,12 +90,14 @@ function StatCard({
   subtitle,
   icon,
   accent = BRAND.primary,
+  loading = false,
 }: {
   title: string;
-  value: string | number;
+  value?: string | number;
   subtitle: string;
   icon: React.ReactNode;
   accent?: string;
+  loading?: boolean;
 }) {
   return (
     <Card
@@ -132,9 +135,15 @@ function StatCard({
             <Typography sx={{ fontSize: 13, color: BRAND.muted, fontWeight: 500, mb: 0.5 }}>
               {title}
             </Typography>
-            <Typography sx={{ fontSize: 28, fontWeight: 700, color: BRAND.dark, lineHeight: 1.1 }}>
-              {value}
-            </Typography>
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 31 }}>
+                <CircularProgress size={22} sx={{ color: accent }} />
+              </Box>
+            ) : (
+              <Typography sx={{ fontSize: 28, fontWeight: 700, color: BRAND.dark, lineHeight: 1.1 }}>
+                {value ?? '—'}
+              </Typography>
+            )}
             <Typography sx={{ fontSize: 12, color: BRAND.muted, mt: 0.5 }}>
               {subtitle}
             </Typography>
@@ -200,6 +209,19 @@ function QuickActionButton({
   );
 }
 
+function formatLastLogin(value?: string | null): string {
+  if (!value) return 'Jamais connecté';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Jamais connecté';
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function SuperAdminDashboardPage() {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -210,6 +232,10 @@ export default function SuperAdminDashboardPage() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<SuperAdminStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -230,9 +256,6 @@ export default function SuperAdminDashboardPage() {
     role: 'admin' as 'admin' | 'client',
     is_active: true,
   });
-
-  const activeCount = useMemo(() => users.filter((u) => u.is_active).length, [users]);
-  const inactiveCount = useMemo(() => users.filter((u) => !u.is_active).length, [users]);
 
   const filteredUsers = useMemo(() => {
     let result = users;
@@ -317,6 +340,32 @@ export default function SuperAdminDashboardPage() {
       setUsersError(message);
     } finally {
       setUsersLoading(false);
+    }
+  }, [isAuthenticated, accessToken, router]);
+
+  const loadStats = useCallback(async () => {
+    setStatsLoading(true);
+    setStatsError(null);
+
+    try {
+      if (!isAuthenticated || !accessToken) {
+        router.push('/login');
+        return;
+      }
+
+      const result = await safeApiCall(() => SuperAdminService.getStats());
+
+      if (result.error) {
+        setStatsError(result.error.message);
+        return;
+      }
+
+      setStats(result.data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Impossible de charger les statistiques administrateurs';
+      setStatsError(message);
+    } finally {
+      setStatsLoading(false);
     }
   }, [isAuthenticated, accessToken, router]);
 
@@ -437,8 +486,9 @@ export default function SuperAdminDashboardPage() {
   useEffect(() => {
     if (!authLoading && isAuthenticated && user?.role === 'superadmin') {
       loadUsers();
+      loadStats();
     }
-  }, [authLoading, isAuthenticated, user, loadUsers]);
+  }, [authLoading, isAuthenticated, user, loadUsers, loadStats]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -603,6 +653,11 @@ export default function SuperAdminDashboardPage() {
             {usersError}
           </Alert>
         )}
+        {statsError && (
+          <Alert severity="error" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setStatsError(null)}>
+            {statsError}
+          </Alert>
+        )}
         {success && (
           <Alert severity="success" variant="outlined" sx={{ mb: 2, animation: 'slideUp 0.35s ease-out', '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(-8px)' }, to: { opacity: 1, transform: 'translateY(0)' } } }} onClose={() => setSuccess(null)}>
             {success}
@@ -615,8 +670,9 @@ export default function SuperAdminDashboardPage() {
             <Grid container spacing={2.5} sx={{ mb: 3 }}>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard
-                  title="Administrateurs"
-                  value={users.length}
+                  title="Total administrateurs"
+                  value={stats?.total_admins}
+                  loading={statsLoading}
                   subtitle="Comptes admin enregistrés"
                   icon={<PeopleIcon />}
                   accent={BRAND.primary}
@@ -624,8 +680,9 @@ export default function SuperAdminDashboardPage() {
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard
-                  title="Actifs"
-                  value={activeCount}
+                  title="Administrateurs actifs"
+                  value={stats?.active_admins}
+                  loading={statsLoading}
                   subtitle="Comptes actuellement actifs"
                   icon={<CheckCircleOutlined />}
                   accent="#0D7A4A"
@@ -633,8 +690,9 @@ export default function SuperAdminDashboardPage() {
               </Grid>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                 <StatCard
-                  title="Inactifs"
-                  value={inactiveCount}
+                  title="Administrateurs inactifs"
+                  value={stats?.inactive_admins}
+                  loading={statsLoading}
                   subtitle="Comptes désactivés"
                   icon={<CancelOutlined />}
                   accent={BRAND.muted}
@@ -920,6 +978,7 @@ export default function SuperAdminDashboardPage() {
                         <TableCell>Email</TableCell>
                         <TableCell>Rôle</TableCell>
                         <TableCell>Statut</TableCell>
+                        <TableCell>Dernière connexion</TableCell>
                         <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
@@ -988,6 +1047,11 @@ export default function SuperAdminDashboardPage() {
                                 color: row.is_active ? '#0D7A4A' : BRAND.muted,
                               }}
                             />
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: 13, color: BRAND.muted }}>
+                              {formatLastLogin(row.last_login)}
+                            </Typography>
                           </TableCell>
                           <TableCell align="right">
                             <Tooltip title="Actions">

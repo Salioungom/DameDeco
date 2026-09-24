@@ -51,6 +51,7 @@ import { categoryService, Category } from '../services/category.service';
 import { Product, ProductStatus, CreateProductData } from '../types/product';
 import { ProductImage } from './ProductImage';
 import { BRAND_BLUE } from '@/theme';
+import { formatFcfa } from '@/lib/format';
 
 const BRAND = {
   primary: BRAND_BLUE,
@@ -717,7 +718,7 @@ export function ProductManagement() {
                     />
                     <ProductImageOverlay className="product-image-overlay">
                       <Typography variant="h6" color="white" fontWeight="bold">
-                        {product.price.toLocaleString()} FCFA
+                        {formatFcfa(product.price)}
                       </Typography>
                     </ProductImageOverlay>
                     <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -742,11 +743,11 @@ export function ProductManagement() {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                       <Typography variant="h6" sx={{ color: BRAND.primary, fontWeight: 700 }}>
-                        {Number(product.price).toLocaleString('fr-FR')} FCFA
+                        {formatFcfa(product.price)}
                       </Typography>
                       {product.original_price && product.original_price > product.price && (
                         <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.disabled' }}>
-                          {product.original_price.toLocaleString()} FCFA
+                          {formatFcfa(product.original_price)}
                         </Typography>
                       )}
                     </Box>
@@ -756,7 +757,7 @@ export function ProductManagement() {
                       </Typography>
                       {product.wholesale_price && (
                         <Typography variant="caption" color="success.main">
-                          Grossiste: {product.wholesale_price.toLocaleString()} FCFA
+                          Grossiste: {formatFcfa(product.wholesale_price)}
                         </Typography>
                       )}
                     </Box>
@@ -1467,7 +1468,7 @@ export function ProductManagement() {
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Prix Public</Typography>
-                      <Typography variant="h6" color="primary.main" fontWeight={800}>{selectedProduct.price.toLocaleString()} FCFA</Typography>
+                      <Typography variant="h6" color="primary.main" fontWeight={800}>{formatFcfa(selectedProduct.price)}</Typography>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontWeight: 700, letterSpacing: 1 }}>Catégorie</Typography>

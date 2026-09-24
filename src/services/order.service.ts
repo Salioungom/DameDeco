@@ -7,6 +7,7 @@
 
 import { getOrders, getOrderById, createOrder, cancelOrder, getOrderPayments, confirmOrderDelivery, updateOrderDelivery } from '@/lib/api';
 import api from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
 import { Order, CartItem } from '@/lib/types';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import type { DeliveryMode, PaymentMethod, ShippingAddress } from '@/lib/delivery';
@@ -366,15 +367,13 @@ export class OrderService {
   }
 
   /**
-   * Formater le montant en devise locale
+   * Formater le montant en devise locale.
+   * Formatage centralisé dans /lib/format.ts (0 décimale, suffixe « FCFA »).
+   * L'application n'utilise que la devise FCFA : `currency` est conservé pour
+   * compatibilité d'appel.
    */
   static formatAmount(amount: string | number, currency: string = 'FCFA'): string {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat('fr-SN', {
-      style: 'currency',
-      currency: 'FRF', // Pas de XOF dans Intl, utiliser FRF pour format
-      minimumFractionDigits: 0
-    }).format(numAmount).replace('FRF', currency);
+    return formatFcfa(amount);
   }
 
   /**

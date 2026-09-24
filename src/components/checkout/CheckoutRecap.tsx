@@ -25,6 +25,7 @@ import { ClientOnly } from '@/components/ClientOnly';
 import { CartItemWithProduct } from '@/hooks/useCartWithProducts';
 import { useStore } from '@/store/useStore';
 import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 
 interface CheckoutRecapProps {
   items: CartItemWithProduct[];
@@ -190,7 +191,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                         </Box>
 
                         <Typography variant="subtitle1" fontWeight={700} color="primary" sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }}>
-                          {lineTotal.toLocaleString('fr-FR')} FCFA
+                          {formatFcfa(lineTotal)}
                         </Typography>
                       </Box>
                     </Box>
@@ -222,7 +223,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     Sous-total
                   </Typography>
                   <Typography variant="body2" fontWeight={600} sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }}>
-                    {subtotal.toLocaleString('fr-FR')} FCFA
+                    {formatFcfa(subtotal)}
                   </Typography>
                 </Box>
 
@@ -233,7 +234,7 @@ export function CheckoutRecap({ items, onContinue, onBackToCart, shippingLoading
                     Total
                   </Typography>
                   <Typography variant="subtitle1" fontWeight={800} color="primary" sx={{ fontSize: { xs: 16, sm: 17, md: 18 } }}>
-                    {total.toLocaleString('fr-FR')} FCFA
+                    {formatFcfa(total)}
                   </Typography>
                 </Box>
 

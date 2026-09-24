@@ -26,6 +26,7 @@ import {
 import { useStore } from '@/store/useStore';
 import { useCartWithProducts } from '@/hooks/useCartWithProducts';
 import { getImageUrl } from '@/lib/imageUtils';
+import { formatFcfa } from '@/lib/format';
 
 export default function CartPage() {
     const theme = useTheme();
@@ -249,7 +250,7 @@ export default function CartPage() {
                                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: { xs: 0.75, sm: 1 }, mt: { xs: 0.75, sm: 1 } }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.35, sm: 0.5 } }}>
                                             <Typography variant="body2" fontWeight={700} color="primary" sx={{ mr: { xs: 0.5, sm: 0.75, md: 1 }, fontSize: { xs: 13, sm: 14, md: 15 } }}>
-                                                {price.toLocaleString('fr-FR')} FCFA
+                                                {formatFcfa(price)}
                                             </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: { xs: 1.25, sm: 1.35, md: 1.5 } }}>
                                                 <IconButton
@@ -274,7 +275,7 @@ export default function CartPage() {
 
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'space-between', sm: 'flex-end' }, gap: { xs: 1, sm: 1.25, md: 1.5 } }}>
                                             <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: { xs: 14, sm: 14, md: 15 } }}>
-                                                {itemTotal.toLocaleString('fr-FR')} FCFA
+                                                {formatFcfa(itemTotal)}
                                             </Typography>
                                             <IconButton
                                                 size="small"
@@ -323,7 +324,7 @@ export default function CartPage() {
                                     Sous-total
                                 </Typography>
                                 <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: 22, sm: 28, md: 32 } }}>
-                                    {subtotal.toLocaleString('fr-FR')} FCFA
+                                    {formatFcfa(subtotal)}
                                 </Typography>
                             </Box>
 

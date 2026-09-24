@@ -6,6 +6,7 @@
  */
 
 import { api } from '@/lib/api';
+import { formatFcfa } from '@/lib/format';
 import { OrderResponse } from './order.service';
 
 // Types pour les statistiques
@@ -167,15 +168,12 @@ export class StatsService {
   }
 
   /**
-   * Formater le montant pour l'affichage
+   * Formater le montant pour l'affichage.
+   * Formatage centralisé dans /lib/format.ts (0 décimale, suffixe « FCFA ») :
+   * l'implémentation XOF est supprimée au profit de l'utilitaire unique.
    */
   static formatAmount(amount: number, currency: string = 'FCFA'): string {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount).replace('XOF', 'FCFA');
+    return formatFcfa(amount);
   }
 
   /**

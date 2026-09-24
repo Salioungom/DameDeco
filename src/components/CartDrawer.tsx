@@ -27,6 +27,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUtils';
 import { FREE_SHIPPING_THRESHOLD } from '@/lib/delivery';
+import { formatFcfa } from '@/lib/format';
 
 
 export function CartDrawer() {
@@ -189,7 +190,7 @@ export function CartDrawer() {
                           {item.product ? item.product.name : `Produit #${item.product_id}`}
                         </Typography>
                         <Typography variant="body2" fontWeight={700} color="primary" sx={{ mt: 0.25 }}>
-                          {price.toLocaleString('fr-FR')} FCFA
+                          {formatFcfa(price)}
                         </Typography>
                         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mt: 0.75 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1.875 }}>
@@ -234,7 +235,7 @@ export function CartDrawer() {
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography color="text.secondary">Sous-total</Typography>
-                  <Typography fontWeight={700}>{subtotal.toLocaleString('fr-FR')} FCFA</Typography>
+                  <Typography fontWeight={700}>{formatFcfa(subtotal)}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography color="text.secondary">Livraison</Typography>
@@ -263,7 +264,7 @@ export function CartDrawer() {
                       Les frais seront gratuits pour les commandes supérieures à
                     </Typography>
                     <Typography variant="caption" fontWeight={700} color="warning.main">
-                       {FREE_SHIPPING_THRESHOLD.toLocaleString('fr-FR')} FCFA
+                       {formatFcfa(FREE_SHIPPING_THRESHOLD)}
                     </Typography>
                   </Box>
                 )}
@@ -271,7 +272,7 @@ export function CartDrawer() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" fontWeight={800}>Total</Typography>
                   <Typography variant="subtitle1" fontWeight={800} color="primary">
-                    {(subtotal).toLocaleString('fr-FR')} FCFA
+                    {formatFcfa(subtotal)}
                   </Typography>
                 </Box>
                 <Button
